@@ -1,0 +1,95 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Agency {
+  id               String      @id @default(uuid())
+  name             String
+  slug             String      @unique
+  logoUrl          String?
+  phone            String?
+  email            String?
+  address          String?
+  location         String?
+  foundedYear      String?
+  website          String?
+  subscriptionPlan String      @default("PRO") // FREE, PRO, ENTERPRISE
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  users            User[]
+  deceaseds        Deceased[]
+  funerals         Funeral[]
+  documents        Document[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      String   @default("ADMIN") // ADMIN, OPERATOR, DESIGNER
+  agencyId  String
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Deceased {
+  id          String    @id @default(uuid())
+  fullName    String
+  age         Int
+  dateOfBirth DateTime?
+  dateOfDeath DateTime
+  placeOfDeath String?
+  photoUrl    String?
+  agencyId    String
+  agency      Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  funerals    Funeral[]
+}
+
+model Funeral {
+  id                  String     @id @default(uuid())
+  deceasedId          String
+  deceased            Deceased   @relation(fields: [deceasedId], references: [id], onDelete: Cascade)
+  agencyId            String
+  agency              Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  funeralDate         DateTime
+  funeralTime         String
+  locationParish      String
+  cemeteryLocation    String
+  wakeLocation        String
+  wakeDate            DateTime?
+  wakeTime            String?
+  notes               String?
+  status              String     @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED
+  publicNoticeEnabled Boolean    @default(true)
+  createdAt           DateTime   @default(now())
+  documents           Document[]
+}
+
+model Template {
+  id           String   @id @default(uuid())
+  name         String
+  category     String   @default("PARTICIPACAO") // PARTICIPACAO, AGRADECIMENTO, ANUNCIO
+  previewUrl   String?
+  editableFields String // JSON string for template default configs
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  title      String
+  type       String   @default("CERTIFICATE") // CERTIFICATE, AUTHORIZATION, CONTRACT, IDENTITY
+  fileUrl    String
+  fileSize   String?
+  agencyId   String
+  agency     Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  funeralId  String?
+  funeral    Funeral? @relation(fields: [funeralId], references: [id], onDelete: SetNull)
+  uploadedAt DateTime @default(now())
+}

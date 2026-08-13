@@ -1,0 +1,57 @@
+import { FlyerTemplateConfig, FlyerData } from './types';
+
+export const PRESET_TEMPLATES: FlyerTemplateConfig[] = [
+  {
+    id: 'casa-hortas-template',
+    name: 'Modelo Casa Hortas (Azul & Dourado)',
+    category: 'PARTICIPACAO',
+    description: 'Design premium baseado no modelo tradicional com cabeçalho azul escuro, moldura em arco dourado para foto, ícones elegantes e cartão da agência com brasão.',
+    primaryColor: '#0a192f',
+    secondaryColor: '#ffffff',
+    accentColor: '#d4af37',
+    fontFamily: 'sans',
+    layoutStyle: 'casa-hortas',
+  },
+  {
+    id: 'classico-ouro-template',
+    name: 'Modelo Clássico Dourado',
+    category: 'PARTICIPACAO',
+    description: 'Estilo sóbrio e solene com moldura dourada ornamentada e tipografia serifa luxuosa.',
+    primaryColor: '#0f172a',
+    secondaryColor: '#f8fafc',
+    accentColor: '#c5a059',
+    fontFamily: 'serif',
+    layoutStyle: 'classico-ouro',
+  },
+  {
+    id: 'sereno-minimal-template',
+    name: 'Modelo Sereno Minimalista',
+    category: 'PARTICIPACAO',
+    description: 'Visual moderno e limpo, ideal para leitura rápida e impressão económica.',
+    primaryColor: '#1e293b',
+    secondaryColor: '#ffffff',
+    accentColor: '#64748b',
+    fontFamily: 'sans',
+    layoutStyle: 'sereno-minimal',
+  },
+];
+
+export const DEFAULT_FLYER_DATA: FlyerData = {
+  title: 'PARTICIPAÇÃO DE FALECIMENTO',
+  deceasedName: 'LUÍS FILIPE DA SILVA FREITAS',
+  age: 27,
+  photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800',
+  funeralDateFormatted: 'Quarta-feira, dia 8 de julho, 17:00 horas',
+  parishLocation: 'Igreja Paroquial da Ventosa, Braga',
+  cemeteryLocation: 'Ventosa, Vieira do Minho',
+  deathLocation: 'Hospital de Braga',
+  wakeDetailsFormatted: 'Quarta-feira, dia 8 de julho, 15:30 horas, na Igreja Paroquial da Ventosa',
+  agencyName: 'Funerária Casa Hortas, Lda',
+  agencyAddress: 'Rua das Maceirinhas, Cabreiros, Braga',
+  agencyLocation: 'Ventosa, Vieira do Minho',
+  agencyFounded: 'DESDE 1890',
+  agencyWebsite: 'www.casahortas.com',
+  agencyLogoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=300',
+  primaryColor: '#0a192f',
+  accentColor: '#d4af37',
+};
