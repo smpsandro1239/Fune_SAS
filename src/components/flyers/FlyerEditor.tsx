@@ -818,8 +818,8 @@ export default function FlyerEditor() {
           >
             <div className="relative" style={{ width: '100%', maxWidth: 544, height: Math.max(240, 760 * scale) }}>
               <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 origin-top"
-                style={{ transform: `scale(${scale})` }}
+                className="absolute top-0 left-1/2 origin-top"
+                style={{ transform: `translateX(-50%) scale(${scale})` }}
               >
                 <FlyerCanvasPreview
                   data={flyerData}
