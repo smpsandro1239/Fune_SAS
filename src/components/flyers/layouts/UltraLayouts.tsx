@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Cloud, Sparkles } from 'lucide-react';
-import { CANVAS_CLASS, FlyerLayoutProps, photoSrc, canvasStyle } from './shared';
+import { CANVAS_CLASS, FlyerLayoutProps, canvasStyle } from './shared';
+import PhotoImage from '../PhotoImage';
 
 export function Profundidade3DLayout({ data, previewRef }: FlyerLayoutProps) {
   return (
@@ -60,8 +61,7 @@ export function Profundidade3DLayout({ data, previewRef }: FlyerLayoutProps) {
             className="relative w-44 h-52 overflow-hidden rounded-xl border border-[var(--fs-accent)]/40 shadow-2xl"
             style={{ transform: 'perspective(700px) rotateY(-7deg) rotateX(3deg)', boxShadow: '-14px 22px 50px rgba(0,0,0,0.55)' }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+            <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
           </div>
         </div>
 
@@ -149,8 +149,7 @@ export function AquarelaUltraLayout({ data, previewRef }: FlyerLayoutProps) {
         <div className="w-44 h-52 mx-auto overflow-hidden border border-white shadow-lg"
           style={{ borderRadius: '185px 185px 18px 18px / 195px 195px 24px 24px' }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+          <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
         </div>
 
         <div className="space-y-1">
@@ -247,8 +246,7 @@ export function VideoUltraLayout({ data, previewRef }: FlyerLayoutProps) {
       <div className="relative z-10 text-center space-y-5">
         <div className="w-40 h-40 mx-auto rounded-full border border-[var(--fs-accent)]/50 p-1 shadow-[0_0_50px_rgba(252,211,77,0.25)]">
           <div className="w-full h-full rounded-full overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+            <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
           </div>
         </div>
 

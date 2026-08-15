@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Heart, User, Flame, Calendar, MapPin, Cross, Info } from 'lucide-react';
-import { CANVAS_CLASS, FlyerLayoutProps, photoSrc } from './shared';
+import { CANVAS_CLASS, FlyerLayoutProps } from './shared';
+import PhotoImage from '../PhotoImage';
 
 export function CasaHortasLayout({ data, previewRef }: FlyerLayoutProps) {
   const showImageLogo = data.agencyLogoType === 'IMAGE' && (data.agencyLogoDataUrl || data.agencyLogoUrl);
@@ -31,8 +32,7 @@ export function CasaHortasLayout({ data, previewRef }: FlyerLayoutProps) {
 
         <div className="w-[36%] relative">
           <div className="relative w-44 h-56 rounded-b-[70px] rounded-t-2xl overflow-hidden border-[3px] border-[#D4AF37] shadow-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+            <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
           </div>
           <div className="absolute -top-3 -right-3 w-48 h-60 rounded-b-[75px] rounded-t-3xl border border-[#D4AF37]/50 pointer-events-none"></div>
         </div>
@@ -153,8 +153,7 @@ export function ClassicoOuroLayout({ data, previewRef }: FlyerLayoutProps) {
         <div className="text-gold-400 tracking-[0.3em] text-xs uppercase font-semibold">{data.title}</div>
 
         <div className="w-24 h-24 mx-auto rounded-full border-2 border-gold-400 p-1 overflow-hidden shadow-xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover rounded-full" />
+          <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover rounded-full" />
         </div>
 
         <div>
@@ -224,8 +223,9 @@ export function SerenoMinimalLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="grid grid-cols-3 gap-6 items-center my-4">
         <div className="col-span-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-40 object-cover rounded border border-slate-200" />
+          <div className="overflow-hidden rounded border border-slate-200">
+          <PhotoImage data={data} alt={data.deceasedName} className="w-full h-40 object-cover" />
+        </div>
         </div>
         <div className="col-span-2 space-y-3 text-xs">
           <div>

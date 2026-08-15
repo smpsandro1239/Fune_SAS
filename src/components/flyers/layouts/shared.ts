@@ -1,4 +1,4 @@
-import { FlyerData, FlyerFontFamily } from '@/lib/types';
+import { FlyerData, FlyerFontFamily, PhotoTransform } from '@/lib/types';
 
 export interface FlyerLayoutProps {
   data: FlyerData;
@@ -10,6 +10,14 @@ export const CANVAS_CLASS =
 
 export function photoSrc(data: FlyerData): string {
   return data.photoDataUrl || data.photoUrl;
+}
+
+export function photoImageStyle(transform?: PhotoTransform): React.CSSProperties {
+  return {
+    objectPosition: `${transform?.x ?? 50}% ${transform?.y ?? 50}%`,
+    transform: transform && transform.zoom !== 1 ? `scale(${transform.zoom})` : undefined,
+    transformOrigin: 'center center',
+  };
 }
 
 export function resolveFontFamily(fontFamily?: FlyerFontFamily): string {

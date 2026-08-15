@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Cross, Flower2 } from 'lucide-react';
-import { CANVAS_CLASS, FlyerLayoutProps, photoSrc, canvasStyle } from './shared';
+import { CANVAS_CLASS, FlyerLayoutProps, canvasStyle } from './shared';
+import PhotoImage from '../PhotoImage';
 
 export function EleganteMinimalLayout({ data, previewRef }: FlyerLayoutProps) {
   return (
@@ -23,8 +24,7 @@ export function EleganteMinimalLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="relative z-10 text-center space-y-5">
         <div className="w-44 h-52 mx-auto overflow-hidden rounded-sm border border-slate-200 shadow-lg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+          <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
         </div>
 
         <div className="space-y-1.5">
@@ -79,8 +79,7 @@ export function ClassicoSobrioLayout({ data, previewRef }: FlyerLayoutProps) {
       <div className="relative z-10 text-center space-y-5">
         <div className="w-40 h-40 mx-auto rounded-full border border-stone-700 p-1.5 shadow-inner">
           <div className="w-full h-full rounded-full overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover grayscale-[15%]" />
+            <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover grayscale-[15%]" />
           </div>
         </div>
 
@@ -163,8 +162,7 @@ export function FloralSuaveLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="relative z-10 text-center space-y-4">
         <div className="w-40 h-52 mx-auto overflow-hidden rounded-t-[90px] rounded-b-md border border-[var(--fs-accent)]/70 shadow-md">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover sepia-[12%]" />
+          <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover sepia-[12%]" />
         </div>
 
         <div className="space-y-1">

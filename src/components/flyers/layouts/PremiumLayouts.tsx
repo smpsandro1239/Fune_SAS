@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Flame, Flower2, Sparkles, Sun } from 'lucide-react';
-import { CANVAS_CLASS, FlyerLayoutProps, photoSrc, canvasStyle } from './shared';
+import { CANVAS_CLASS, FlyerLayoutProps, canvasStyle } from './shared';
+import PhotoImage from '../PhotoImage';
 
 export function DouradoPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
   return (
@@ -34,8 +35,7 @@ export function DouradoPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
         <div className="relative w-44 h-52 mx-auto">
           <div className="absolute -inset-2 bg-[radial-gradient(circle,rgba(201,162,39,0.4),transparent_70%)]"></div>
           <div className="relative w-44 h-52 overflow-hidden rounded-b-[80px] rounded-t-xl border-2 border-[var(--fs-accent)] shadow-[0_0_40px_rgba(201,162,39,0.25)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+            <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
           </div>
         </div>
 
@@ -110,8 +110,7 @@ export function MarmorePremiumLayout({ data, previewRef }: FlyerLayoutProps) {
       <div className="relative z-10 text-center space-y-4">
         <div className="w-44 h-52 mx-auto rounded-t-full rounded-b-md border-[5px] border-[var(--fs-accent)]/60 p-1 shadow-xl">
           <div className="w-full h-full rounded-t-full rounded-b-[4px] overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+            <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
           </div>
         </div>
 
@@ -194,8 +193,7 @@ export function LuzRadianteLayout({ data, previewRef }: FlyerLayoutProps) {
           <div className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(232,201,106,0.45),transparent_70%)]"></div>
           <div className="relative w-40 h-40 rounded-full border-2 border-[var(--fs-accent)]/60 p-1 bg-[#0e1a2f] shadow-2xl">
             <div className="w-full h-full rounded-full overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+              <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
             </div>
           </div>
         </div>
@@ -286,8 +284,7 @@ export function JardimPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="relative z-10 text-center space-y-4">
         <div className="w-40 h-52 mx-auto overflow-hidden rounded-t-[90px] rounded-b-md border-2 border-[var(--fs-accent)]/60 shadow-md bg-white">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+          <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
         </div>
 
         <div className="space-y-1">
@@ -375,8 +372,7 @@ export function VelasPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
           <div className="absolute -inset-4 rounded-full bg-[radial-gradient(circle,rgba(224,164,88,0.3),transparent_70%)]"></div>
           <div className="relative w-40 h-40 rounded-full border border-[var(--fs-accent)]/60 p-1 bg-[#241a0c] shadow-2xl">
             <div className="w-full h-full rounded-full overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photoSrc(data)} alt={data.deceasedName} className="w-full h-full object-cover" />
+              <PhotoImage data={data} alt={data.deceasedName} className="w-full h-full object-cover" />
             </div>
           </div>
         </div>

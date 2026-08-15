@@ -9,6 +9,7 @@ import FlyerCanvasPreview from './FlyerCanvasPreview';
 import TemplateGallery from './TemplateGallery';
 import DateTimePicker from './DateTimePicker';
 import ImageUploader from './ImageUploader';
+import PhotoAdjuster, { DEFAULT_PHOTO_TRANSFORM } from './PhotoAdjuster';
 import {
   Building2,
   Calendar,
@@ -501,8 +502,14 @@ export default function FlyerEditor() {
                     label="Fotografia do Falecido"
                     description="Carregue a fotografia para o flyer"
                     value={flyerData.photoDataUrl}
-                    onUpload={(base64) => handleChange('photoDataUrl', base64)}
-                    onClear={() => handleChange('photoDataUrl', undefined)}
+                    onUpload={(base64) => {
+                      handleChange('photoDataUrl', base64);
+                      handleChange('photoTransform', DEFAULT_PHOTO_TRANSFORM);
+                    }}
+                    onClear={() => {
+                      handleChange('photoDataUrl', undefined);
+                      handleChange('photoTransform', DEFAULT_PHOTO_TRANSFORM);
+                    }}
                   />
 
                   <div>
@@ -513,11 +520,21 @@ export default function FlyerEditor() {
                       id="flyer-photo-url"
                       type="url"
                       value={flyerData.photoUrl}
-                      onChange={(e) => handleChange('photoUrl', e.target.value)}
+                      onChange={(e) => {
+                        handleChange('photoUrl', e.target.value);
+                        handleChange('photoTransform', DEFAULT_PHOTO_TRANSFORM);
+                      }}
                       placeholder="https://exemplo.pt/foto.jpg"
                       className="w-full px-3 py-2 rounded-lg bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-gold-400"
                     />
                   </div>
+
+                  {(flyerData.photoDataUrl || flyerData.photoUrl) && (
+                    <PhotoAdjuster
+                      transform={flyerData.photoTransform || DEFAULT_PHOTO_TRANSFORM}
+                      onChange={(t) => handleChange('photoTransform', t)}
+                    />
+                  )}
                 </div>
               )}
 

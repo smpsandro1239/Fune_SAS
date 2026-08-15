@@ -98,12 +98,19 @@ export interface FlyerTemplateConfig {
   animated?: boolean;
 }
 
+export interface PhotoTransform {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
 export interface FlyerData {
   title: string;
   deceasedName: string;
   age: number | string;
   photoUrl: string;
   photoDataUrl?: string;
+  photoTransform?: PhotoTransform;
   funeralDate?: string;
   funeralTime?: string;
   funeralDateFormatted: string;
