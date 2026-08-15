@@ -2,6 +2,8 @@ export type SubscriptionPlan = 'FREE' | 'PRO' | 'ENTERPRISE';
 export type UserRole = 'ADMIN' | 'OPERATOR' | 'DESIGNER';
 export type FuneralStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
 export type DocumentType = 'CERTIFICATE' | 'AUTHORIZATION' | 'CONTRACT' | 'IDENTITY';
+export type FlyerPlan = 'FREE' | 'PREMIUM' | 'ULTRA';
+export type FlyerFontFamily = 'serif' | 'sans' | 'display';
 
 export interface Agency {
   id: string;
@@ -66,34 +68,62 @@ export interface DocumentItem {
   uploadedAt: string;
 }
 
+export type FlyerLayoutStyle =
+  | 'casa-hortas'
+  | 'classico-ouro'
+  | 'sereno-minimal'
+  | 'elegante-minimal'
+  | 'classico-sobrio'
+  | 'floral-suave'
+  | 'dourado-premium'
+  | 'marmore-premium'
+  | 'luz-radiante'
+  | 'jardim-premium'
+  | 'velas-premium'
+  | 'profundidade-3d'
+  | 'aquarela-ultra'
+  | 'video-ultra';
+
 export interface FlyerTemplateConfig {
   id: string;
   name: string;
+  plan: FlyerPlan;
   category: string;
   description: string;
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
-  fontFamily: 'serif' | 'sans';
-  layoutStyle: 'casa-hortas' | 'classico-ouro' | 'sereno-minimal';
+  fontFamily: FlyerFontFamily;
+  layoutStyle: FlyerLayoutStyle;
+  animated?: boolean;
 }
 
 export interface FlyerData {
-  title: string; // e.g. "PARTICIPAÇÃO DE FALECIMENTO"
+  title: string;
   deceasedName: string;
   age: number | string;
   photoUrl: string;
-  funeralDateFormatted: string; // e.g. "Quarta-feira, dia 8 de julho, 17:00 horas"
-  parishLocation: string; // e.g. "Igreja Paroquial da Ventosa, Braga"
-  cemeteryLocation: string; // e.g. "Ventosa, Vieira do Minho"
-  deathLocation: string; // e.g. "Hospital de Braga"
-  wakeDetailsFormatted: string; // e.g. "Quarta-feira, dia 8 de julho, 15:30 horas, na Igreja Paroquial da Ventosa"
-  agencyName: string; // e.g. "Funerária Casa Hortas, Lda"
-  agencyAddress: string; // e.g. "Rua das Maceirinhas, Cabreiros, Braga"
-  agencyLocation: string; // e.g. "Ventosa, Vieira do Minho"
-  agencyFounded: string; // e.g. "DESDE 1890"
-  agencyWebsite: string; // e.g. "www.casahortas.com"
+  photoDataUrl?: string;
+  funeralDate?: string;
+  funeralTime?: string;
+  funeralDateFormatted: string;
+  parishLocation: string;
+  cemeteryLocation: string;
+  deathLocation: string;
+  wakeDate?: string;
+  wakeTime?: string;
+  wakeLocation?: string;
+  wakeDetailsFormatted: string;
+  agencyName: string;
+  agencyAddress: string;
+  agencyLocation: string;
+  agencyFounded: string;
+  agencyWebsite: string;
   agencyLogoUrl: string;
+  agencyLogoDataUrl?: string;
+  agencyLogoType: 'IMAGE' | 'INITIALS';
+  agencyInitials: string;
   primaryColor: string;
   accentColor: string;
+  fontFamily?: FlyerFontFamily;
 }
