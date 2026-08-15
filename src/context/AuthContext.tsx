@@ -48,12 +48,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const isPublicPath = pathname === '/login' || pathname.startsWith('/public');
+
   useEffect(() => {
     if (loading) return;
-    if (!user && pathname !== '/login') {
+    if (!user && !isPublicPath) {
       router.replace('/login');
     }
-  }, [loading, user, pathname, router]);
+  }, [loading, user, pathname, router, isPublicPath]);
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -95,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user && pathname !== '/login') {
+  if (!user && !isPublicPath) {
     return null;
   }
 
