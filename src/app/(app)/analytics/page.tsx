@@ -1,88 +1,258 @@
 'use client';
 
-import React from 'react';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Palette, 
-  Users, 
-  Building2, 
-  Calendar,
-  Sparkles
+import React, { useEffect, useState } from 'react';
+import {
+  BarChart3,
+  Loader2,
+  AlertCircle,
+  Users,
+  CheckCircle2,
+  CalendarClock,
+  FileText,
+  Palette,
+  Sparkles,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
+import {
+  DashboardSummary,
+  FuneralsPerPeriod,
+  ServicesUsage,
+  ServiceType,
+  apiErrorMessage,
+  apiService,
+} from '@/lib/api';
+
+const SERVICE_LABELS: Record<ServiceType, string> = {
+  CERIMONIA: 'Cerimónia',
+  VELORIO: 'Velório',
+  CREMACAO: 'Cremação',
+  TRANSPORTE: 'Transporte',
+  ACOLHIMENTO: 'Acolhimento',
+  OUTRO: 'Outro',
+};
+
+const CHART_COLORS = ['#d4af37', '#93c5fd', '#6ee7b7', '#fcd34d', '#c4b5fd', '#94a3b8'];
 
 export default function AnalyticsPage() {
-  const metrics = [
-    { title: 'Funerais Executados (2026)', value: '42', growth: '+14% vs ano anterior' },
-    { title: 'Participações/Flyers Gerados', value: '128', growth: 'Média de 3 flyers por funeral' },
-    { title: 'Visualizações de Obituários', value: '3,840', growth: 'Através de código QR e partilhas' },
-    { title: 'Taxa de Satisfação Familiar', value: '99.4%', growth: 'Avaliação média 4.9/5' },
-  ];
+  const [dashboard, setDashboard] = useState<DashboardSummary | null>(null);
+  const [period, setPeriod] = useState<FuneralsPerPeriod | null>(null);
+  const [usage, setUsage] = useState<ServicesUsage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      apiService.reports.dashboard(),
+      apiService.reports.funeralsPerPeriod('month'),
+      apiService.reports.servicesUsage(),
+    ])
+      .then(([dash, per, use]) => {
+        if (cancelled) return;
+        setDashboard(dash);
+        setPeriod(per);
+        setUsage(use);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(apiErrorMessage(err, 'Não foi possível carregar os relatórios.'));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-7 h-7 animate-spin text-gold-400" />
+      </div>
+    );
+  }
+
+  const metrics = dashboard
+    ? [
+        { title: 'Funerais Registados', value: String(dashboard.funerals), icon: Users, color: 'text-blue-400' },
+        { title: 'Concluídos', value: String(dashboard.completed), icon: CheckCircle2, color: 'text-emerald-400' },
+        { title: 'Agendados / Em Curso', value: String(dashboard.scheduled), icon: CalendarClock, color: 'text-amber-400' },
+        { title: 'Documentos Arquivados', value: String(dashboard.documents), icon: FileText, color: 'text-gold-400' },
+      ]
+    : [];
+
+  const periodData =
+    period?.periods.map((p) => {
+      const [year, month] = p.period.split('-');
+      const label = month
+        ? new Date(Number(year), Number(month) - 1, 1).toLocaleDateString('pt-PT', { month: 'short' })
+        : year;
+      return { period: label, count: p.count };
+    }) || [];
+
+  const usageData =
+    usage?.services.map((s) => ({
+      name: SERVICE_LABELS[s.serviceType] || s.serviceType,
+      value: s.count,
+      percentage: s.percentage,
+    })) || [];
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      {/* Header */}
+      {/* Cabeçalho */}
       <div>
         <h1 className="text-xl font-bold text-white flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-gold-400" />
-          Relatórios & Métricas Operacionais
+          Relatórios & Métricas
         </h1>
         <p className="text-xs text-navy-300">
-          Estatísticas da agência funerária, produção gráfica e desempenho dos serviços.
+          Estatísticas reais da agência: funerais, documentos e distribuição de serviços.
         </p>
       </div>
 
-      {/* Grid Metrics */}
+      {error && (
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Cartões de métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((m) => (
-          <div key={m.title} className="p-5 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-2 shadow-lg">
-            <span className="text-xs font-semibold text-navy-300">{m.title}</span>
-            <div className="text-2xl font-bold text-white">{m.value}</div>
-            <div className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>{m.growth}</span>
+        {metrics.map((m) => {
+          const Icon = m.icon;
+          return (
+            <div key={m.title} className="p-5 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-2 shadow-lg">
+              <span className="text-xs font-semibold text-navy-300">{m.title}</span>
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold text-white">{m.value}</div>
+                <div className={`p-2.5 rounded-xl bg-navy-950 border border-navy-800 ${m.color}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Visual Chart Placeholder Card */}
-      <div className="p-6 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-4 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-gold-400" />
-              Distribuição de Serviços por Mês (2026)
-            </h2>
-            <p className="text-xs text-navy-300">Comparativo mensal de cerimónias e participações impressas</p>
+      {dashboard && (
+        <p className="flex items-center gap-1.5 text-[11px] text-navy-400">
+          <Palette className="w-3.5 h-3.5 text-gold-500/70" />
+          {dashboard.templates} modelos de flyer disponíveis na galeria.
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Gráfico de funerais por período */}
+        <div className="p-6 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-gold-400" />
+                Funerais por Mês
+              </h2>
+              <p className="text-xs text-navy-300">Distribuição mensal de cerimónias (últimos 12 meses)</p>
+            </div>
+            <span className="text-xs font-bold text-gold-400 px-2.5 py-1 rounded-lg bg-gold-500/15 border border-gold-500/30">
+              Total: {period?.total ?? 0}
+            </span>
           </div>
-          <span className="text-xs text-gold-400 font-semibold px-2.5 py-1 rounded-lg bg-gold-500/15 border border-gold-500/30">
-            Relatório Anual
-          </span>
+
+          {periodData.length === 0 ? (
+            <p className="text-xs text-navy-400 py-10 text-center">Sem dados para o período.</p>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={periodData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="period" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#0f172a',
+                      border: '1px solid #334155',
+                      borderRadius: 12,
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: '#e2e8f0', fontWeight: 700 }}
+                    itemStyle={{ color: '#d4af37' }}
+                  />
+                  <Bar dataKey="count" name="Funerais" fill="#d4af37" radius={[6, 6, 0, 0]} maxBarSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
-        {/* Mock Chart Graphic Bars */}
-        <div className="h-48 flex items-end justify-between gap-2 pt-8 px-4 border-b border-navy-800">
-          {[
-            { month: 'Jan', val: '60%' },
-            { month: 'Fev', val: '45%' },
-            { month: 'Mar', val: '75%' },
-            { month: 'Abr', val: '50%' },
-            { month: 'Mai', val: '65%' },
-            { month: 'Jun', val: '80%' },
-            { month: 'Jul', val: '95%' },
-            { month: 'Ago', val: '70%' },
-          ].map((bar) => (
-            <div key={bar.month} className="flex-1 flex flex-col items-center gap-2 group">
-              <div className="w-full bg-navy-800 rounded-t-lg relative overflow-hidden flex items-end h-32">
-                <div 
-                  className="w-full bg-gradient-to-t from-gold-600 via-gold-500 to-amber-300 rounded-t-lg transition-all group-hover:brightness-125"
-                  style={{ height: bar.val }}
-                ></div>
-              </div>
-              <span className="text-[10px] font-bold text-navy-300">{bar.month}</span>
+        {/* Gráfico de serviços */}
+        <div className="p-6 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Users className="w-4 h-4 text-gold-400" />
+                Serviços Mais Utilizados
+              </h2>
+              <p className="text-xs text-navy-300">Distribuição por tipo de serviço</p>
             </div>
-          ))}
+            <span className="text-xs font-bold text-gold-400 px-2.5 py-1 rounded-lg bg-gold-500/15 border border-gold-500/30">
+              Total: {usage?.total ?? 0}
+            </span>
+          </div>
+
+          {usageData.length === 0 ? (
+            <p className="text-xs text-navy-400 py-10 text-center">Sem dados de serviços.</p>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={usageData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={85}
+                    paddingAngle={3}
+                  >
+                    {usageData.map((entry, index) => (
+                      <Cell key={entry.name} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#0f172a',
+                      border: '1px solid #334155',
+                      borderRadius: 12,
+                      fontSize: 12,
+                    }}
+                    formatter={(value, name) => {
+                      const v = Number(value ?? 0);
+                      return [`${v} (${((v / (usage?.total || 1)) * 100).toFixed(0)}%)`, String(name)];
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    iconType="circle"
+                    formatter={(value) => <span style={{ color: '#cbd5e1', fontSize: 11 }}>{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </div>
     </div>
