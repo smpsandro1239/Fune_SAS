@@ -244,6 +244,9 @@ export const apiService = {
   deceased: {
     list: (search?: string) => api.get<ApiDeceased[]>('/deceased', { params: { search } }).then((r) => r.data),
     create: (data: Record<string, unknown>) => api.post<ApiDeceased>('/deceased', data).then((r) => r.data),
+    update: (id: string, data: Record<string, unknown>) =>
+      api.patch<ApiDeceased>(`/deceased/${id}`, data).then((r) => r.data),
+    remove: (id: string) => api.delete<{ success: boolean }>(`/deceased/${id}`).then((r) => r.data),
   },
 
   documents: {
