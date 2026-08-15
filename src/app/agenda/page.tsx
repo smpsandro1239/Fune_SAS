@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -9,14 +9,30 @@ import {
   ChevronLeft, 
   ChevronRight,
   Flame,
-  Cross
+  Cross,
+  X,
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
+import { useAgency } from '@/context/AgencyContext';
+
+interface EventItem {
+  id: string;
+  title: string;
+  time: string;
+  date: string;
+  location: string;
+  type: 'WAKE' | 'FUNERAL' | 'BURIAL' | 'MISSA';
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
+}
 
 export default function AgendaPage() {
-  const events = [
+  const { currentAgency } = useAgency();
+
+  const [events, setEvents] = useState<EventItem[]>([
     {
       id: '1',
-      title: 'Missa de Corpos Presentes - Maria Ribeiro',
+      title: 'Missa de Corpo Presente - Maria Ribeiro',
       time: '11:00 - 12:30',
       date: '14 de Agosto, 2026',
       location: 'Basílica dos Congregados, Braga',
@@ -41,7 +57,36 @@ export default function AgendaPage() {
       type: 'BURIAL',
       status: 'COMPLETED',
     },
-  ];
+  ]);
+
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventType, setEventType] = useState<'WAKE' | 'FUNERAL' | 'BURIAL' | 'MISSA'>('FUNERAL');
+  const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
+
+  const handleAddEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!eventTitle.trim() || !eventDate || !eventLocation.trim()) return;
+
+    const newEvent: EventItem = {
+      id: Date.now().toString(),
+      title: eventTitle,
+      type: eventType,
+      date: eventDate,
+      time: eventTime || '15:00',
+      location: eventLocation,
+      status: 'SCHEDULED',
+    };
+
+    setEvents([newEvent, ...events]);
+    setEventTitle('');
+    setEventDate('');
+    setEventTime('');
+    setEventLocation('');
+    setShowScheduleModal(false);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -53,11 +98,14 @@ export default function AgendaPage() {
             Agenda & Notificações de Serviços
           </h1>
           <p className="text-xs text-navy-300">
-            Calendário de velórios, missas de corpo presente e cremações/sepultamentos.
+            Agendamento de cerimónias para <span className="text-gold-400 font-semibold">{currentAgency.name}</span>.
           </p>
         </div>
 
-        <button className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow-lg transition-all hover:brightness-110">
+        <button
+          onClick={() => setShowScheduleModal(true)}
+          className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow-lg transition-all hover:brightness-110"
+        >
           <Plus className="w-4 h-4" />
           <span>Agendar Serviço</span>
         </button>
@@ -76,9 +124,9 @@ export default function AgendaPage() {
         </div>
 
         <div className="flex items-center space-x-2 text-xs font-medium">
-          <span className="px-2.5 py-1 rounded-lg bg-gold-500/20 text-gold-300 border border-gold-500/30">Hoje</span>
-          <span className="px-2.5 py-1 rounded-lg bg-navy-800 text-navy-300">Semana</span>
-          <span className="px-2.5 py-1 rounded-lg bg-navy-800 text-navy-300">Mês</span>
+          <span className="px-2.5 py-1 rounded-lg bg-gold-500/20 text-gold-300 border border-gold-500/30 font-bold">
+            {events.length} Serviços Agendados
+          </span>
         </div>
       </div>
 
@@ -96,9 +144,13 @@ export default function AgendaPage() {
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                    event.status === 'IN_PROGRESS' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    event.status === 'IN_PROGRESS'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : event.status === 'COMPLETED'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                   }`}>
-                    {event.status === 'IN_PROGRESS' ? 'Em Curso' : 'Agendado'}
+                    {event.status === 'IN_PROGRESS' ? 'Em Curso' : event.status === 'COMPLETED' ? 'Concluído' : 'Agendado'}
                   </span>
                   <span className="text-xs font-semibold text-gold-400">{event.date}</span>
                 </div>
@@ -122,6 +174,104 @@ export default function AgendaPage() {
           </div>
         ))}
       </div>
+
+      {/* Modal: Agendar Serviço */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-navy-800 pb-3">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Plus className="w-4 h-4 text-gold-400" />
+                Agendar Novo Serviço Funerário
+              </h2>
+              <button onClick={() => setShowScheduleModal(false)} className="text-navy-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddEvent} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Título do Serviço / Cerimónia *</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Missa de 7º Dia - Luís Freitas"
+                  value={eventTitle}
+                  onChange={(e) => setEventTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-navy-200 mb-1 font-semibold">Tipo de Serviço</label>
+                  <select
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  >
+                    <option value="FUNERAL">Funeral & Missa</option>
+                    <option value="WAKE">Velório</option>
+                    <option value="BURIAL">Sepultamento / Cremação</option>
+                    <option value="MISSA">Missa de Sufrágio</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-navy-200 mb-1 font-semibold">Hora de Início</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: 15:30 - 17:00"
+                    value={eventTime}
+                    onChange={(e) => setEventTime(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Data do Serviço *</label>
+                <input
+                  type="text"
+                  placeholder="Ex: 20 de Agosto, 2026"
+                  value={eventDate}
+                  onChange={(e) => setEventDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Localização / Igreja / Cemitério *</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Igreja Paroquial de Cabreiros, Braga"
+                  value={eventLocation}
+                  onChange={(e) => setEventLocation(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="pt-3 border-t border-navy-800 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleModal(false)}
+                  className="px-4 py-2 rounded-xl bg-navy-800 text-navy-300 font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold shadow"
+                >
+                  Confirmar Agendamento
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
