@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,6 +7,7 @@
 :root {
   --font-inter: 'Inter', sans-serif;
   --font-cinzel: 'Cinzel', serif;
+  --font-display: 'Playfair Display', 'Cinzel', Georgia, serif;
 }
 
 body {
@@ -54,4 +55,107 @@ body {
 
 .gold-border-glow {
   box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+
+/* ============================================================
+   Flyer Studio — Animações CSS subtis (templates Ultra/Premium)
+   ============================================================ */
+@keyframes fs-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes fs-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(18px, -24px) scale(1.06); }
+  66% { transform: translate(-14px, -10px) scale(0.97); }
+}
+@keyframes fs-rays-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes fs-sheen {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+@keyframes fs-parallax {
+  0%, 100% { transform: perspective(900px) rotateX(8deg) translateY(0); }
+  50% { transform: perspective(900px) rotateX(5deg) translateY(-10px); }
+}
+@keyframes fs-flicker {
+  0%, 100% { transform: scale(1) rotate(-1.5deg); opacity: 1; }
+  25% { transform: scale(1.06) rotate(1.5deg); opacity: 0.92; }
+  60% { transform: scale(0.97) rotate(-0.5deg); opacity: 0.98; }
+  80% { transform: scale(1.03) rotate(1deg); opacity: 0.9; }
+}
+@keyframes fs-aurora {
+  0%, 100% { filter: blur(48px); transform: translate(0, 0) scale(1); opacity: 0.75; }
+  50% { filter: blur(56px); transform: translate(24px, -18px) scale(1.12); opacity: 0.95; }
+}
+@keyframes fs-star {
+  0%, 100% { opacity: 0.15; transform: scale(0.85); }
+  50% { opacity: 0.9; transform: scale(1.2); }
+}
+
+.fs-anim-float { animation: fs-float 7s ease-in-out infinite; }
+.fs-anim-drift { animation: fs-drift 12s ease-in-out infinite; }
+.fs-anim-rays { animation: fs-rays-spin 90s linear infinite; }
+.fs-anim-sheen { animation: fs-sheen 4s ease-in-out infinite; }
+.fs-anim-parallax { animation: fs-parallax 9s ease-in-out infinite; }
+.fs-anim-flicker { animation: fs-flicker 2.8s ease-in-out infinite; }
+.fs-anim-aurora { animation: fs-aurora 14s ease-in-out infinite; }
+.fs-anim-star { animation: fs-star 4.5s ease-in-out infinite; }
+
+/* react-datepicker dark theme */
+.react-datepicker {
+  font-family: var(--font-inter);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 12px;
+  background: #0b1a33;
+  color: #e2e8f0;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.react-datepicker__header {
+  background: #102a43;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  color: #fff;
+}
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: #ecd38e;
+  font-weight: 600;
+}
+.react-datepicker__day {
+  color: #cbd5e1;
+  border-radius: 8px;
+}
+.react-datepicker__day:hover {
+  background: rgba(212, 175, 55, 0.25);
+  color: #fff;
+}
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: #d4af37;
+  color: #0a192f;
+  font-weight: 700;
+}
+.react-datepicker__day--outside-month {
+  color: #475569;
+}
+.react-datepicker__navigation-icon::before {
+  border-color: #ecd38e;
+}
+.react-datepicker__time-container {
+  border-left: 1px solid rgba(212, 175, 55, 0.2);
+}
+.react-datepicker__time-list-item {
+  color: #cbd5e1;
+}
+.react-datepicker__time-list-item--selected {
+  background: #d4af37 !important;
+  color: #0a192f !important;
+  font-weight: 700;
+}
+.react-datepicker__time-box {
+  background: #0b1a33;
 }
