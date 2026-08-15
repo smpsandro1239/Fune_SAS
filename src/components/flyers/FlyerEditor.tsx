@@ -401,6 +401,7 @@ export default function FlyerEditor() {
           templates={PRESET_TEMPLATES}
           selectedId={selectedTemplate.id}
           onSelect={handleTemplateSelect}
+          previewData={flyerData}
         />
       </div>
 
