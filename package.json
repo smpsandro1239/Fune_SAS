@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",
+    "axios": "^1.19.0",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -24,6 +25,7 @@
     "react-datepicker": "^9.1.0",
     "react-dom": "^18.3.1",
     "react-dropzone": "^20.1.0",
+    "recharts": "^3.10.1",
     "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {

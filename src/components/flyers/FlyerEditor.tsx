@@ -26,6 +26,7 @@ import {
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { useAgency } from '@/context/AgencyContext';
+import { ApiFuneral, apiService } from '@/lib/api';
 
 type EditorTab = 'deceased' | 'ceremony' | 'agency' | 'style';
 
@@ -35,25 +36,35 @@ const FONT_OPTIONS: { value: FlyerFontFamily; label: string; preview: string }[]
   { value: 'display', label: 'Elegante (Display)', preview: '[font-family:var(--font-display)]' },
 ];
 
+function agencyFlyerDefaults(agency: ReturnType<typeof useAgency>['currentAgency']) {
+  return {
+    agencyName: agency?.name || DEFAULT_FLYER_DATA.agencyName,
+    agencyAddress: agency?.address || DEFAULT_FLYER_DATA.agencyAddress,
+    agencyLocation: agency?.location || DEFAULT_FLYER_DATA.agencyLocation,
+    agencyFounded: agency?.foundedYear || DEFAULT_FLYER_DATA.agencyFounded,
+    agencyWebsite: agency?.website || DEFAULT_FLYER_DATA.agencyWebsite,
+    agencyInitials: agency?.initials || 'CH',
+    agencyLogoType: agency?.logoType || 'INITIALS',
+  };
+}
+
 export default function FlyerEditor() {
   const { currentAgency } = useAgency();
 
   const [selectedTemplate, setSelectedTemplate] = useState<FlyerTemplateConfig>(PRESET_TEMPLATES[0]);
   const [flyerData, setFlyerData] = useState<FlyerData>({
     ...DEFAULT_FLYER_DATA,
-    agencyName: currentAgency.name,
-    agencyAddress: currentAgency.address || DEFAULT_FLYER_DATA.agencyAddress,
-    agencyLocation: currentAgency.location || DEFAULT_FLYER_DATA.agencyLocation,
-    agencyFounded: currentAgency.foundedYear || DEFAULT_FLYER_DATA.agencyFounded,
-    agencyWebsite: currentAgency.website || DEFAULT_FLYER_DATA.agencyWebsite,
-    agencyInitials: currentAgency.initials || 'CH',
-    agencyLogoType: currentAgency.logoType || 'INITIALS',
+    ...agencyFlyerDefaults(currentAgency),
   });
   const [activeTab, setActiveTab] = useState<EditorTab>('deceased');
   const [isExporting, setIsExporting] = useState<null | 'png' | 'pdf'>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<'ok' | 'error' | null>(null);
   const [scale, setScale] = useState(1);
+
+  const [funerals, setFunerals] = useState<ApiFuneral[]>([]);
+  const [funeralsLoading, setFuneralsLoading] = useState(true);
+  const [selectedFuneralId, setSelectedFuneralId] = useState('');
 
   const previewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -68,6 +79,54 @@ export default function FlyerEditor() {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!currentAgency) return;
+    setFlyerData((prev) => ({ ...prev, ...agencyFlyerDefaults(currentAgency) }));
+  }, [currentAgency]);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiService.funerals
+      .list()
+      .then((list) => {
+        if (!cancelled) setFunerals(list);
+      })
+      .catch(() => {
+        // API indisponível: o editor continua com dados manuais
+      })
+      .finally(() => {
+        if (!cancelled) setFuneralsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const applyFuneral = (funeral: ApiFuneral) => {
+    const d = funeral.funeralDate ? new Date(funeral.funeralDate) : null;
+    const wakeDetails = composeWakeDetails(funeral.wakeDate || '', funeral.wakeTime || '', funeral.wakeLocation || '');
+    setFlyerData({
+      ...flyerData,
+      deceasedName: funeral.deceased.fullName || flyerData.deceasedName,
+      age: funeral.deceased.age ?? flyerData.age,
+      photoUrl: funeral.deceased.photoUrl || flyerData.photoUrl,
+      photoDataUrl: funeral.deceased.photoUrl ? undefined : flyerData.photoDataUrl,
+      funeralDate: d ? toISODate(d) : flyerData.funeralDate,
+      funeralTime: funeral.funeralTime || flyerData.funeralTime,
+      funeralDateFormatted: d ? formatPTDate(d, true) : flyerData.funeralDateFormatted,
+      parishLocation: funeral.locationParish || flyerData.parishLocation,
+      cemeteryLocation: funeral.cemeteryLocation || flyerData.cemeteryLocation,
+      deathLocation: funeral.deceased.placeOfDeath || flyerData.deathLocation,
+      wakeDate: funeral.wakeDate ? funeral.wakeDate.slice(0, 10) : flyerData.wakeDate,
+      wakeTime: funeral.wakeTime || flyerData.wakeTime,
+      wakeLocation: funeral.wakeLocation || flyerData.wakeLocation,
+      wakeDetailsFormatted: wakeDetails || flyerData.wakeDetailsFormatted,
+    });
+    setExportMessage(`Dados de ${funeral.deceased.fullName} carregados.`);
+    setExportStatus('ok');
+    setTimeout(() => setExportMessage(null), 2500);
+  };
 
   const handleChange = useCallback((field: keyof FlyerData, value: unknown) => {
     setFlyerData((prev) => ({ ...prev, [field]: value }));
@@ -144,17 +203,12 @@ export default function FlyerEditor() {
   const handleRestoreDefaults = () => {
     setFlyerData({
       ...DEFAULT_FLYER_DATA,
-      agencyName: currentAgency.name,
-      agencyAddress: currentAgency.address || DEFAULT_FLYER_DATA.agencyAddress,
-      agencyLocation: currentAgency.location || DEFAULT_FLYER_DATA.agencyLocation,
-      agencyFounded: currentAgency.foundedYear || DEFAULT_FLYER_DATA.agencyFounded,
-      agencyWebsite: currentAgency.website || DEFAULT_FLYER_DATA.agencyWebsite,
-      agencyInitials: currentAgency.initials || 'CH',
-      agencyLogoType: currentAgency.logoType || 'INITIALS',
+      ...agencyFlyerDefaults(currentAgency),
       primaryColor: selectedTemplate.primaryColor,
       accentColor: selectedTemplate.accentColor,
       fontFamily: selectedTemplate.fontFamily,
     });
+    setSelectedFuneralId('');
     setExportMessage('Dados de exemplo restaurados.');
     setExportStatus('ok');
     setTimeout(() => setExportMessage(null), 2500);
@@ -244,6 +298,36 @@ export default function FlyerEditor() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <User className="w-3.5 h-3.5 text-navy-400 absolute left-3 top-2.5 pointer-events-none" />
+              <select
+                aria-label="Carregar dados de um funeral real"
+                value={selectedFuneralId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setSelectedFuneralId(id);
+                  const funeral = funerals.find((f) => f.id === id);
+                  if (funeral) applyFuneral(funeral);
+                }}
+                className="pl-8 pr-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 border border-navy-600 text-xs font-medium text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 max-w-[220px]"
+              >
+                <option value="">Carregar de Funeral...</option>
+                {funerals.map((funeral) => (
+                  <option key={funeral.id} value={funeral.id}>
+                    {funeral.deceased.fullName}
+                    {funeral.funeralDate
+                      ? ` — ${new Date(funeral.funeralDate).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                      : ''}
+                  </option>
+                ))}
+              </select>
+              {funeralsLoading && (
+                <Loader2 className="w-3.5 h-3.5 text-gold-400 animate-spin absolute right-3 top-2.5" />
+              )}
+            </div>
+          </div>
+
           <button
             onClick={handleRestoreDefaults}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 border border-navy-600 text-xs font-medium text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"

@@ -98,7 +98,7 @@ export default function AgendaPage() {
             Agenda & Notificações de Serviços
           </h1>
           <p className="text-xs text-navy-300">
-            Agendamento de cerimónias para <span className="text-gold-400 font-semibold">{currentAgency.name}</span>.
+            Agendamento de cerimónias para <span className="text-gold-400 font-semibold">{currentAgency?.name || 'a agência'}</span>.
           </p>
         </div>
 

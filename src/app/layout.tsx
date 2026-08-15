@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navbar from '@/components/layout/Navbar';
-import Sidebar from '@/components/layout/Sidebar';
-import { AgencyProvider } from '@/context/AgencyContext';
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
   title: 'FuneSAS - Plataforma SaaS Funerária Multi-Agência',
@@ -17,15 +15,7 @@ export default function RootLayout({
   return (
     <html lang="pt">
       <body className="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
-        <AgencyProvider>
-          <Navbar />
-          <div className="flex flex-1">
-            <Sidebar />
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-              {children}
-            </main>
-          </div>
-        </AgencyProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
