@@ -1,0 +1,11 @@
+# Node
+node_modules/
+dist/
+coverage/
+*.log
+
+# Base de dados e ambiente
+.env
+.env.local
+uploads/
+prisma/dev.db

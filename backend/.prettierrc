@@ -1,0 +1,6 @@
+// Prettier - configuração herdada do NestJS
+module.exports = {
+  singleQuote: true,
+  trailingComma: 'all',
+  printWidth: 100,
+};
