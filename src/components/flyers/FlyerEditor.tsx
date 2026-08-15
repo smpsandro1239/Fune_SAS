@@ -813,7 +813,7 @@ export default function FlyerEditor() {
                       </div>
                     </div>
                     <p className="text-[10px] text-navy-400">
-                      As cores e a tipografia são aplicadas em tempo real no canvas (modelos clássicos de marca mantêm a fidelidade original).
+                      As cores e a tipografia são aplicadas em tempo real no canvas de todos os modelos.
                     </p>
                   </div>
                 </div>

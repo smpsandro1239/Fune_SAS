@@ -40,7 +40,7 @@ export function DouradoPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
         </div>
 
         <div className="space-y-1.5">
-          <h1 className="text-[27px] font-bold uppercase tracking-wide text-[#f3e2a7]">
+          <h1 className="text-[27px] font-bold uppercase tracking-wide text-[var(--fs-accent)]">
             {data.deceasedName}
           </h1>
           <p className="text-xs tracking-[0.35em] text-[var(--fs-accent)]">{data.age} ANOS</p>
@@ -71,7 +71,7 @@ export function DouradoPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="relative z-10 flex items-center justify-between border-t border-[var(--fs-accent)]/30 pt-4">
         <div>
-          <p className="font-semibold text-[#f3e2a7]">{data.agencyName}</p>
+          <p className="font-semibold text-[var(--fs-accent)]">{data.agencyName}</p>
           <p className="text-[10px] text-[#9a937f]">{data.agencyAddress} • {data.agencyWebsite}</p>
         </div>
         <div className="w-11 h-11 rounded-full border border-[var(--fs-accent)] flex items-center justify-center bg-[#0d1424]">
@@ -103,7 +103,7 @@ export function MarmorePremiumLayout({ data, previewRef }: FlyerLayoutProps) {
       <div className="absolute inset-6 border border-[var(--fs-accent)]/25 pointer-events-none"></div>
 
       <div className="relative z-10 text-center space-y-1.5">
-        <p className="text-[10px] tracking-[0.4em] uppercase text-[#8a7353] font-semibold">{data.title}</p>
+        <p className="text-[10px] tracking-[0.4em] uppercase text-[var(--fs-accent)] font-semibold">{data.title}</p>
         <div className="w-14 h-px bg-[var(--fs-accent)] mx-auto"></div>
       </div>
 
@@ -115,23 +115,23 @@ export function MarmorePremiumLayout({ data, previewRef }: FlyerLayoutProps) {
         </div>
 
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold uppercase tracking-wide text-[#2d2923]">{data.deceasedName}</h1>
-          <p className="text-[11px] tracking-[0.3em] text-[#8a7353]">{data.age} Anos</p>
+          <h1 className="text-2xl font-semibold uppercase tracking-wide text-[var(--fs-primary)]">{data.deceasedName}</h1>
+          <p className="text-[11px] tracking-[0.3em] text-[var(--fs-accent)]">{data.age} Anos</p>
         </div>
 
-        <div className="max-w-sm mx-auto text-[12.5px] leading-relaxed text-[#57503f] space-y-2.5">
+        <div className="max-w-sm mx-auto text-[12.5px] leading-relaxed text-[var(--fs-primary)]/85 space-y-2.5">
           <p>
-            <span className="uppercase tracking-[0.25em] text-[10px] text-[#8a7353] font-bold block">Cerimónia</span>
+            <span className="uppercase tracking-[0.25em] text-[10px] text-[var(--fs-accent)] font-bold block">Cerimónia</span>
             {data.funeralDateFormatted}
           </p>
-          <p className="text-[#4c4538]">{data.parishLocation}</p>
+          <p className="text-[var(--fs-primary)]/80">{data.parishLocation}</p>
           <p>
-            <span className="uppercase tracking-[0.25em] text-[10px] text-[#8a7353] font-bold block">Cemitério</span>
+            <span className="uppercase tracking-[0.25em] text-[10px] text-[var(--fs-accent)] font-bold block">Cemitério</span>
             {data.cemeteryLocation}
           </p>
           {data.wakeDetailsFormatted && (
             <p>
-              <span className="uppercase tracking-[0.25em] text-[10px] text-[#8a7353] font-bold block">Velório</span>
+              <span className="uppercase tracking-[0.25em] text-[10px] text-[var(--fs-accent)] font-bold block">Velório</span>
               {data.wakeDetailsFormatted}
             </p>
           )}
@@ -140,11 +140,11 @@ export function MarmorePremiumLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="relative z-10 flex items-center justify-between border-t border-[var(--fs-accent)]/40 pt-4">
         <div>
-          <p className="text-sm font-semibold text-[#3a352d] italic">{data.agencyName}</p>
-          <p className="text-[10px] text-[#8a7a5e]">{data.agencyWebsite} • {data.agencyAddress}</p>
+          <p className="text-sm font-semibold text-[var(--fs-primary)] italic">{data.agencyName}</p>
+          <p className="text-[10px] text-[var(--fs-accent)]/85">{data.agencyWebsite} • {data.agencyAddress}</p>
         </div>
         <div className="w-10 h-10 rounded-full border border-[var(--fs-accent)]/60 flex items-center justify-center bg-[#fdfbf6]">
-          <span className="font-serif font-bold text-[#8a7353] text-sm">{data.agencyInitials || 'AF'}</span>
+          <span className="font-serif font-bold text-[var(--fs-accent)] text-sm">{data.agencyInitials || 'AF'}</span>
         </div>
       </div>
     </div>
@@ -274,11 +274,11 @@ export function JardimPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
       {leaf(388, 636, true)}
 
       <div className="relative z-10 text-center space-y-1.5">
-        <p className="text-[10px] tracking-[0.4em] uppercase text-[#5c7057] font-semibold">{data.title}</p>
+        <p className="text-[10px] tracking-[0.4em] uppercase text-[var(--fs-accent)] font-semibold">{data.title}</p>
         <div className="flex items-center justify-center gap-2 text-[var(--fs-accent)]">
-          <div className="h-px w-14 bg-[#bcc9b2]"></div>
+          <div className="h-px w-14 bg-[var(--fs-accent)]/50"></div>
           <Flower2 className="w-4 h-4" strokeWidth={1.5} />
-          <div className="h-px w-14 bg-[#bcc9b2]"></div>
+          <div className="h-px w-14 bg-[var(--fs-accent)]/50"></div>
         </div>
       </div>
 
@@ -288,37 +288,37 @@ export function JardimPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
         </div>
 
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold uppercase tracking-wide text-[#22301f]">{data.deceasedName}</h1>
+          <h1 className="text-2xl font-semibold uppercase tracking-wide text-[var(--fs-primary)]">{data.deceasedName}</h1>
           <p className="text-[11px] tracking-[0.3em] text-[var(--fs-accent)]">{data.age} Anos</p>
         </div>
 
-        <div className="max-w-sm mx-auto text-[12.5px] leading-relaxed text-[#46513f] space-y-2">
+        <div className="max-w-sm mx-auto text-[12.5px] leading-relaxed text-[var(--fs-primary)]/85 space-y-2">
           <p>
-            <span className="block font-semibold tracking-[0.25em] text-[10px] uppercase text-[#5c7057]">Cerimónia Funerária</span>
+            <span className="block font-semibold tracking-[0.25em] text-[10px] uppercase text-[var(--fs-accent)]">Cerimónia Funerária</span>
             {data.funeralDateFormatted}
             <br />
-            <span className="text-[#55634d]">{data.parishLocation}</span>
+            <span className="text-[var(--fs-primary)]/75">{data.parishLocation}</span>
           </p>
           <p>
-            <span className="block font-semibold tracking-[0.25em] text-[10px] uppercase text-[#5c7057]">Cemitério</span>
+            <span className="block font-semibold tracking-[0.25em] text-[10px] uppercase text-[var(--fs-accent)]">Cemitério</span>
             {data.cemeteryLocation}
           </p>
           {data.wakeDetailsFormatted && (
             <p>
-              <span className="block font-semibold tracking-[0.25em] text-[10px] uppercase text-[#5c7057]">Velório</span>
+              <span className="block font-semibold tracking-[0.25em] text-[10px] uppercase text-[var(--fs-accent)]">Velório</span>
               {data.wakeDetailsFormatted}
             </p>
           )}
         </div>
       </div>
 
-      <div className="relative z-10 flex items-center justify-between border-t border-[#c4cdbb] pt-3.5">
+      <div className="relative z-10 flex items-center justify-between border-t border-[var(--fs-accent)]/40 pt-3.5">
         <div>
-          <p className="text-[13px] font-semibold italic text-[#2d3a28]">{data.agencyName}</p>
-          <p className="text-[10px] text-[#7a8770]">{data.agencyAddress} • {data.agencyWebsite}</p>
+          <p className="text-[13px] font-semibold italic text-[var(--fs-primary)]">{data.agencyName}</p>
+          <p className="text-[10px] text-[var(--fs-accent)]">{data.agencyAddress} • {data.agencyWebsite}</p>
         </div>
         <div className="w-10 h-10 rounded-full border border-[var(--fs-accent)]/60 flex items-center justify-center bg-white">
-          <span className="text-[#4c5f44] font-bold text-sm">{data.agencyInitials || 'AF'}</span>
+          <span className="text-[var(--fs-accent)] font-bold text-sm">{data.agencyInitials || 'AF'}</span>
         </div>
       </div>
     </div>
@@ -378,11 +378,11 @@ export function VelasPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
         </div>
 
         <div className="space-y-1.5">
-          <h1 className="text-[26px] font-bold uppercase tracking-wider text-[#f6ead6]">{data.deceasedName}</h1>
+          <h1 className="text-[26px] font-bold uppercase tracking-wider text-[var(--fs-accent)]">{data.deceasedName}</h1>
           <p className="text-xs tracking-[0.35em] text-[var(--fs-accent)]">{data.age} ANOS</p>
         </div>
 
-        <div className="max-w-sm mx-auto bg-[#241a0c]/70 border border-[var(--fs-accent)]/20 rounded-xl p-5 space-y-2.5 text-[12px] leading-relaxed text-[#d9c9ad] text-left">
+        <div className="max-w-sm mx-auto bg-[#241a0c]/70 border border-[var(--fs-accent)]/20 rounded-xl p-5 space-y-2.5 text-[12px] leading-relaxed text-[var(--fs-accent)]/85 text-left">
           <p>
             <span className="font-semibold tracking-[0.25em] text-[10px] uppercase text-[var(--fs-accent)] block mb-0.5">Cerimónia</span>
             {data.funeralDateFormatted} — {data.parishLocation}
@@ -400,8 +400,8 @@ export function VelasPremiumLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="relative z-10 text-center space-y-1.5">
         <Flame className="w-4 h-4 mx-auto text-[var(--fs-accent)]/70" />
-        <p className="text-sm font-medium text-[#e8d9be]">{data.agencyName}</p>
-        <p className="text-[10px] text-[#a5906f]">{data.agencyAddress} • {data.agencyWebsite}</p>
+        <p className="text-sm font-medium text-[var(--fs-accent)]">{data.agencyName}</p>
+        <p className="text-[10px] text-[var(--fs-accent)]/75">{data.agencyAddress} • {data.agencyWebsite}</p>
       </div>
     </div>
   );

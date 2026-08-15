@@ -47,7 +47,7 @@ export function Profundidade3DLayout({ data, previewRef }: FlyerLayoutProps) {
       </div>
 
       <div className="relative z-10 text-center space-y-2">
-        <p className="text-[10px] tracking-[0.5em] uppercase text-[#a89bf0] font-semibold">{data.title}</p>
+        <p className="text-[10px] tracking-[0.5em] uppercase text-[var(--fs-accent)] font-semibold">{data.title}</p>
         <Sparkles className="w-4 h-4 mx-auto text-[var(--fs-accent)]" />
       </div>
 
@@ -72,7 +72,7 @@ export function Profundidade3DLayout({ data, previewRef }: FlyerLayoutProps) {
           >
             {data.deceasedName}
           </h1>
-          <p className="text-xs tracking-[0.4em] text-[#a89bf0]">{data.age} Anos</p>
+          <p className="text-xs tracking-[0.4em] text-[var(--fs-accent)]">{data.age} Anos</p>
         </div>
 
         <div
@@ -83,7 +83,7 @@ export function Profundidade3DLayout({ data, previewRef }: FlyerLayoutProps) {
             <span className="font-semibold tracking-[0.25em] text-[10px] uppercase text-[var(--fs-accent)] block mb-0.5">Cerimónia</span>
             {data.funeralDateFormatted}
             <br />
-            <span className="text-[#b9afe8]">{data.parishLocation}</span>
+            <span className="text-[var(--fs-accent)]/90">{data.parishLocation}</span>
           </p>
           <p>
             <span className="font-semibold tracking-[0.25em] text-[10px] uppercase text-[var(--fs-accent)] block mb-0.5">Cemitério</span>
@@ -104,7 +104,7 @@ export function Profundidade3DLayout({ data, previewRef }: FlyerLayoutProps) {
       >
         <p className="text-[12px] font-medium text-[#e6e0ff]">
           {data.agencyName}
-          <span className="block text-[9.5px] text-[#9c8fe8]">{data.agencyAddress} • {data.agencyWebsite}</span>
+          <span className="block text-[9.5px] text-[var(--fs-accent)]/80">{data.agencyAddress} • {data.agencyWebsite}</span>
         </p>
         <span className="text-[var(--fs-accent)] text-sm">{data.agencyInitials || 'AF'}</span>
       </div>
@@ -141,7 +141,7 @@ export function AquarelaUltraLayout({ data, previewRef }: FlyerLayoutProps) {
       <div className="absolute inset-5 pointer-events-none" style={{ border: '1.5px solid rgba(120,140,160,0.4)', borderRadius: '255px 18px 225px 25px / 25px 225px 25px 255px' }}></div>
 
       <div className="relative z-10 text-center space-y-1.5">
-        <p className="text-[10px] tracking-[0.4em] uppercase text-[#64748b] font-semibold">{data.title}</p>
+        <p className="text-[10px] tracking-[0.4em] uppercase text-[var(--fs-accent)] font-semibold">{data.title}</p>
         <div className="w-16 h-1 mx-auto rounded-full" style={{ background: 'linear-gradient(90deg, var(--fs-accent), #a4c4ac, #d4bea3)' }}></div>
       </div>
 
@@ -153,11 +153,11 @@ export function AquarelaUltraLayout({ data, previewRef }: FlyerLayoutProps) {
         </div>
 
         <div className="space-y-1">
-          <h1 className="text-[26px] font-bold uppercase tracking-wide text-[#1e293b]">{data.deceasedName}</h1>
+          <h1 className="text-[26px] font-bold uppercase tracking-wide text-[var(--fs-primary)]">{data.deceasedName}</h1>
           <p className="text-[11px] tracking-[0.35em] uppercase text-[var(--fs-accent)] font-semibold">{data.age} Anos</p>
         </div>
 
-        <div className="max-w-sm mx-auto rounded-2xl p-5 space-y-2.5 text-[12.5px] leading-relaxed text-[#475569] text-left"
+        <div className="max-w-sm mx-auto rounded-2xl p-5 space-y-2.5 text-[12.5px] leading-relaxed text-[var(--fs-primary)]/80 text-left"
           style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(4px)', border: '1px solid rgba(122,162,196,0.3)' }}
         >
           <p>
@@ -177,8 +177,8 @@ export function AquarelaUltraLayout({ data, previewRef }: FlyerLayoutProps) {
 
       <div className="relative z-10 flex items-center justify-between border-t pt-3.5" style={{ borderColor: 'rgba(122,162,196,0.35)' }}>
         <div>
-          <p className="text-[13px] font-semibold italic text-[#1e293b]">{data.agencyName}</p>
-          <p className="text-[10px] text-[#94a3b8]">{data.agencyAddress} • {data.agencyWebsite}</p>
+          <p className="text-[13px] font-semibold italic text-[var(--fs-primary)]">{data.agencyName}</p>
+          <p className="text-[10px] text-[var(--fs-accent)]/90">{data.agencyAddress} • {data.agencyWebsite}</p>
         </div>
         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
           style={{ background: 'linear-gradient(135deg, var(--fs-accent), #a4c4ac)' }}
