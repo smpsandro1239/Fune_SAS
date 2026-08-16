@@ -3,9 +3,13 @@ node_modules/
 dist/
 coverage/
 *.log
+*.tsbuildinfo
 
 # Base de dados e ambiente
 .env
 .env.local
 uploads/
 prisma/dev.db
+prisma/seed.js
+prisma/seed.js.map
+prisma/seed.d.ts

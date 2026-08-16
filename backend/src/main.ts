@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
@@ -28,6 +29,9 @@ async function bootstrap() {
   app.useGlobalGuards(new JwtAuthGuard(app.get(Reflector)));
 
   const uploadsDir = join(process.cwd(), 'uploads');
+  if (!existsSync(uploadsDir)) {
+    mkdirSync(uploadsDir, { recursive: true });
+  }
   app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
 
   const config = new DocumentBuilder()

@@ -1,0 +1,30 @@
+# Render Blueprint — fune-sas-api
+# Deploy manual recomendado: dashboard.render.com -> "New" -> "Blueprint"
+# Aponta para este repositório; o Render deteta este ficheiro automaticamente.
+#
+# Env vars a definir no painel (valores gerados/seguros):
+#   DATABASE_URL        -> connection string do Neon (postgresql://...)
+#   JWT_ACCESS_SECRET   -> segredo longo e aleatório
+#   JWT_REFRESH_SECRET  -> segredo longo e aleatório
+
+services:
+  - type: web
+    name: fune-sas-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/main
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
