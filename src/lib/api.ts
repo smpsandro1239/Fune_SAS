@@ -118,6 +118,29 @@ export interface ServicesUsage {
   services: { serviceType: ServiceType; count: number; percentage: number }[];
 }
 
+export interface ApiNotification {
+  id: string;
+  agencyId: string;
+  userId: string | null;
+  type: 'EMAIL' | 'SMS' | 'TAREFA' | 'LEMBRETE' | 'SISTEMA';
+  title: string;
+  message: string;
+  readAt: string | null;
+  sentAt: string;
+}
+
+export interface ApiSubscription {
+  id: string;
+  agencyId: string;
+  plan: SubscriptionPlan;
+  status: 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'EXPIRED';
+  priceCents: number | null;
+  validUntil: string | null;
+  startedAt: string;
+  createdAt: string;
+  agency?: { subscriptionPlan: SubscriptionPlan };
+}
+
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -278,6 +301,24 @@ export const apiService = {
     funeralsPerPeriod: (groupBy: 'day' | 'month' | 'year' = 'month') =>
       api.get<FuneralsPerPeriod>('/reports/funerals-per-period', { params: { groupBy } }).then((r) => r.data),
     servicesUsage: () => api.get<ServicesUsage>('/reports/services-usage').then((r) => r.data),
+  },
+
+  notifications: {
+    list: (unreadOnly = false) =>
+      api.get<ApiNotification[]>('/notifications', { params: unreadOnly ? { unread: 'true' } : {} }).then((r) => r.data),
+    markRead: (id: string) =>
+      api.patch<ApiNotification>(`/notifications/${id}/read`).then((r) => r.data),
+    markAllRead: () =>
+      api.post<{ count: number }>('/notifications/read-all').then((r) => r.data),
+  },
+
+  subscriptions: {
+    current: () =>
+      api.get<ApiSubscription>('/subscriptions/current').then((r) => r.data),
+    history: () =>
+      api.get<ApiSubscription[]>('/subscriptions/history').then((r) => r.data),
+    changePlan: (plan: SubscriptionPlan) =>
+      api.post<ApiSubscription>('/subscriptions/change-plan', { plan }).then((r) => r.data),
   },
 };
 
