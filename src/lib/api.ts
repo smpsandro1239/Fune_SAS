@@ -320,6 +320,19 @@ export const apiService = {
     changePlan: (plan: SubscriptionPlan) =>
       api.post<ApiSubscription>('/subscriptions/change-plan', { plan }).then((r) => r.data),
   },
+
+  drafts: {
+    list: () =>
+      api.get<{ id: string; name: string; layoutStyle: string; createdAt: string; updatedAt: string }[]>('/drafts').then((r) => r.data),
+    get: (id: string) =>
+      api.get<{ id: string; name: string; layoutStyle: string; data: any; createdAt: string; updatedAt: string }>(`/drafts/${id}`).then((r) => r.data),
+    save: (name: string, layoutStyle: string, data: any) =>
+      api.post<{ id: string }>('/drafts', { name, layoutStyle, data }).then((r) => r.data),
+    update: (id: string, name: string, layoutStyle: string, data: any) =>
+      api.put<{ id: string }>(`/drafts/${id}`, { name, layoutStyle, data }).then((r) => r.data),
+    delete: (id: string) =>
+      api.delete(`/drafts/${id}`).then((r) => r.data),
+  },
 };
 
 export default api;

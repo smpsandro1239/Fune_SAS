@@ -80,6 +80,7 @@ model Agency {
   documents        Document[]
   subscriptions    Subscription[]
   notifications    Notification[]
+  flyerDrafts      FlyerDraft[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -220,4 +221,18 @@ model Condolence {
   authorName String
   message   String
   createdAt DateTime @default(now())
+}
+
+model FlyerDraft {
+  id           String   @id @default(cuid())
+  agencyId     String
+  agency       Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  userId       String
+  name         String
+  layoutStyle  String
+  data         Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([agencyId])
 }

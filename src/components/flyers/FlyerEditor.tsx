@@ -15,14 +15,18 @@ import {
   Calendar,
   Check,
   Download,
+  FileText,
   ImageIcon,
   Keyboard,
   Loader2,
   Palette,
   RefreshCw,
+  Save,
   Sparkles,
+  Trash2,
   Type,
   User,
+  X,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
@@ -67,6 +71,13 @@ export default function FlyerEditor() {
   const [funeralsLoading, setFuneralsLoading] = useState(true);
   const [selectedFuneralId, setSelectedFuneralId] = useState('');
 
+  const [drafts, setDrafts] = useState<{ id: string; name: string; layoutStyle: string; createdAt: string; updatedAt: string }[]>([]);
+  const [draftsLoading, setDraftsLoading] = useState(false);
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const [showDraftsModal, setShowDraftsModal] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+
   const previewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +114,73 @@ export default function FlyerEditor() {
       cancelled = true;
     };
   }, []);
+
+  const loadDrafts = async () => {
+    setDraftsLoading(true);
+    try {
+      const list = await apiService.drafts.list();
+      setDrafts(list);
+    } catch {
+      // API indisponível
+    } finally {
+      setDraftsLoading(false);
+    }
+  };
+
+  const saveDraft = async () => {
+    if (!draftName.trim()) return;
+    setSavingDraft(true);
+    try {
+      if (currentDraftId) {
+        await apiService.drafts.update(currentDraftId, draftName.trim(), selectedTemplate.layoutStyle, flyerData);
+        setExportMessage('Rascunho atualizado com sucesso!');
+      } else {
+        const result = await apiService.drafts.save(draftName.trim(), selectedTemplate.layoutStyle, flyerData);
+        setCurrentDraftId(result.id);
+        setExportMessage('Rascunho guardado com sucesso!');
+      }
+      setExportStatus('ok');
+      loadDrafts();
+    } catch {
+      setExportMessage('Erro ao guardar rascunho.');
+      setExportStatus('error');
+    } finally {
+      setSavingDraft(false);
+      setTimeout(() => setExportMessage(null), 3000);
+    }
+  };
+
+  const loadDraft = async (id: string) => {
+    try {
+      const draft = await apiService.drafts.get(id);
+      setFlyerData(draft.data as FlyerData);
+      setCurrentDraftId(draft.id);
+      setDraftName(draft.name);
+      const tmpl = PRESET_TEMPLATES.find((t) => t.layoutStyle === draft.layoutStyle);
+      if (tmpl) {
+        setSelectedTemplate(tmpl);
+        setFlyerData((prev) => ({ ...prev, primaryColor: tmpl.primaryColor, accentColor: tmpl.accentColor, fontFamily: tmpl.fontFamily }));
+      }
+      setShowDraftsModal(false);
+      setExportMessage(`Rascunho "${draft.name}" carregado.`);
+      setExportStatus('ok');
+      setTimeout(() => setExportMessage(null), 2500);
+    } catch {
+      setExportMessage('Erro ao carregar rascunho.');
+      setExportStatus('error');
+      setTimeout(() => setExportMessage(null), 3000);
+    }
+  };
+
+  const deleteDraft = async (id: string) => {
+    try {
+      await apiService.drafts.delete(id);
+      if (currentDraftId === id) { setCurrentDraftId(null); setDraftName(''); }
+      loadDrafts();
+    } catch {
+      // silently fail
+    }
+  };
 
   const applyFuneral = (funeral: ApiFuneral) => {
     const d = funeral.funeralDate ? new Date(funeral.funeralDate) : null;
@@ -221,25 +299,26 @@ export default function FlyerEditor() {
     setExportStatus(null);
     setExportMessage(
       format === 'png'
-        ? 'A gerar imagem PNG de alta resolução...'
-        : 'A preparar documento PDF para impressão...'
+        ? 'A gerar imagem PNG de alta resolução (300 DPI)...'
+        : 'A preparar documento PDF de alta resolução (300 DPI)...'
     );
     try {
-      const dataUrl = await toPng(previewRef.current, { quality: 0.95, pixelRatio: 2, cacheBust: true });
+      const pixelRatio = format === 'pdf' ? 4 : 2;
+      const dataUrl = await toPng(previewRef.current, { quality: 1.0, pixelRatio, cacheBust: true });
       if (format === 'png') {
         const link = document.createElement('a');
         link.download = `Flyer_${flyerData.deceasedName.replace(/\s+/g, '_')}.png`;
         link.href = dataUrl;
         link.click();
-        setExportMessage('PNG exportado com sucesso!');
+        setExportMessage('PNG exportado com sucesso! (2x resolução)');
       } else {
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
         const imgProps = pdf.getImageProperties(dataUrl);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'MEDIUM');
         pdf.save(`Participacao_${flyerData.deceasedName.replace(/\s+/g, '_')}.pdf`);
-        setExportMessage('PDF gerado com sucesso!');
+        setExportMessage('PDF de alta resolução gerado com sucesso! (300 DPI)');
       }
       setExportStatus('ok');
     } catch (err) {
@@ -336,6 +415,34 @@ export default function FlyerEditor() {
             <RefreshCw className="w-3.5 h-3.5 text-navy-300" />
             <span>Repor Exemplo</span>
           </button>
+
+          <div className="h-6 w-px bg-navy-700 mx-1 hidden sm:block"></div>
+
+          <button
+            onClick={() => { setShowDraftsModal(true); loadDrafts(); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 border border-navy-600 text-xs font-medium text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
+          >
+            <FileText className="w-3.5 h-3.5 text-navy-300" />
+            <span>Rascunhos</span>
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              value={draftName}
+              onChange={(e) => setDraftName(e.target.value)}
+              placeholder="Nome do rascunho..."
+              className="w-[140px] px-2 py-1.5 rounded-lg bg-navy-950 border border-navy-700 text-white text-[11px] focus:border-gold-400 focus:outline-none"
+            />
+            <button
+              onClick={saveDraft}
+              disabled={savingDraft || !draftName.trim()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 border border-navy-600 text-xs font-medium text-white transition-all disabled:opacity-50"
+            >
+              {savingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 text-navy-300" />}
+              <span>{currentDraftId ? 'Atualizar' : 'Guardar'}</span>
+            </button>
+          </div>
 
           <div className="h-6 w-px bg-navy-700 mx-1 hidden sm:block"></div>
 
@@ -853,6 +960,52 @@ export default function FlyerEditor() {
           </div>
         </div>
       </div>
+
+      {/* Drafts Modal */}
+      {showDraftsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDraftsModal(false)} />
+          <div className="relative bg-navy-900 border border-navy-700 rounded-2xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-navy-800">
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gold-400" />
+                Rascunhos Guardados
+              </h2>
+              <button onClick={() => setShowDraftsModal(false)} className="p-1.5 rounded-lg bg-navy-800 text-navy-300 hover:text-white border border-navy-700">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {draftsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-5 h-5 text-gold-400 animate-spin" />
+                </div>
+              ) : drafts.length === 0 ? (
+                <p className="text-center text-xs text-navy-400 py-8">Nenhum rascunho guardado.</p>
+              ) : (
+                drafts.map((d) => (
+                  <div
+                    key={d.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                      currentDraftId === d.id
+                        ? 'bg-gold-500/10 border-gold-500/30'
+                        : 'bg-navy-800/50 border-navy-700/50 hover:border-navy-600'
+                    }`}
+                  >
+                    <button onClick={() => loadDraft(d.id)} className="flex-1 text-left">
+                      <p className="text-xs font-semibold text-white">{d.name}</p>
+                      <p className="text-[10px] text-navy-400">{d.layoutStyle} • {new Date(d.updatedAt).toLocaleDateString('pt-PT')}</p>
+                    </button>
+                    <button onClick={() => deleteDraft(d.id)} className="p-1.5 rounded text-navy-400 hover:text-red-400 transition-colors" title="Eliminar">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
