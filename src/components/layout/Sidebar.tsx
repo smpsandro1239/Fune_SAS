@@ -11,7 +11,8 @@ import {
   Calendar, 
   BarChart3, 
   Settings, 
-  ExternalLink
+  ExternalLink,
+  UserCircle,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -25,6 +26,10 @@ export default function Sidebar() {
     { name: 'Agenda & Serviços', href: '/agenda', icon: Calendar },
     { name: 'Relatórios & Métricas', href: '/analytics', icon: BarChart3 },
     { name: 'Configurações Agência', href: '/agencies', icon: Settings },
+  ];
+
+  const bottomItems = [
+    { name: 'Meu Perfil', href: '/profile', icon: UserCircle },
   ];
 
   return (
@@ -58,6 +63,32 @@ export default function Sidebar() {
                       {item.badge}
                     </span>
                   )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Bottom nav */}
+        <div>
+          <nav className="space-y-1">
+            {bottomItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-gold-500/20 to-navy-800 text-gold-300 border border-gold-500/30 font-semibold shadow-sm'
+                      : 'text-navy-300 hover:text-white hover:bg-navy-800/60'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-gold-400' : 'text-navy-400'}`} />
+                    <span>{item.name}</span>
+                  </div>
                 </Link>
               );
             })}

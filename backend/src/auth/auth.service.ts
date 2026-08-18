@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,6 +14,8 @@ import {
   LoginDto,
   RegisterDto,
   ResetPasswordDto,
+  UpdateProfileDto,
+  ChangePasswordDto,
 } from './dto/auth.dto';
 
 const ACCESS_TOKEN_TYPE = 'access';
@@ -191,6 +194,41 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Utilizador não encontrado.');
     const { passwordHash, ...profile } = user;
     return profile;
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Utilizador não encontrado.');
+
+    if (dto.email && dto.email.toLowerCase() !== user.email) {
+      const existing = await this.prisma.user.findUnique({
+        where: { email: dto.email.toLowerCase() },
+      });
+      if (existing) throw new ConflictException('Já existe um utilizador com este email.');
+    }
+
+    const data: Record<string, unknown> = {};
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.email !== undefined) data.email = dto.email.toLowerCase();
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, agencyId: true, name: true, email: true, role: true, createdAt: true, updatedAt: true },
+    });
+    return updated;
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Utilizador não encontrado.');
+
+    const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!valid) throw new BadRequestException('A password atual está incorreta.');
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    return { success: true };
   }
 
   private async issueTokens(user: User): Promise<TokenPair> {

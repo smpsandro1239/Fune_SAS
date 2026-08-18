@@ -72,3 +72,27 @@ export class ResetPasswordDto {
   @MinLength(8, { message: 'A password deve ter pelo menos 8 caracteres.' })
   newPassword: string;
 }
+
+export class UpdateProfileDto {
+  @ApiProperty({ example: 'Ana Oliveira' })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiProperty({ example: 'ana@casahortas.com' })
+  @IsOptional()
+  @IsEmail({}, { message: 'Email inválido.' })
+  email?: string;
+}
+
+export class ChangePasswordDto {
+  @ApiProperty({ example: 'Admin123!' })
+  @IsString()
+  @IsNotEmpty({ message: 'A password atual é obrigatória.' })
+  currentPassword: string;
+
+  @ApiProperty({ example: 'NovaPassword123!' })
+  @IsString()
+  @MinLength(8, { message: 'A nova password deve ter pelo menos 8 caracteres.' })
+  newPassword: string;
+}

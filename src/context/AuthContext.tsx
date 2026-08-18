@@ -13,6 +13,7 @@ import {
 
 interface AuthContextType {
   user: ApiUser | null;
+  setUser: (user: ApiUser | null) => void;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -80,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.replace('/login');
   }, [router]);
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout]);
+  const value = useMemo(() => ({ user, setUser, loading, login, logout }), [user, loading, login, logout]);
 
   if (loading) {
     return (

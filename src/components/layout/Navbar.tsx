@@ -82,16 +82,18 @@ export default function Navbar() {
 
         {/* Utilizador */}
         <div className="flex items-center space-x-2.5 pl-2 border-l border-navy-700/80">
-          <div className="w-8 h-8 rounded-full bg-navy-700 border border-gold-500/30 flex items-center justify-center text-white text-xs font-bold">
-            {initials}
-          </div>
-          <div className="hidden lg:block text-left">
-            <div className="text-xs font-semibold text-white">{user?.name}</div>
-            <div className="text-[10px] text-gold-400 flex items-center gap-1">
-              <User className="w-3 h-3" />
-              {user ? ROLE_LABELS[user.role] || user.role : ''}
+          <Link href="/profile" className="flex items-center space-x-2.5 group">
+            <div className="w-8 h-8 rounded-full bg-navy-700 border border-gold-500/30 flex items-center justify-center text-white text-xs font-bold group-hover:border-gold-500 transition-all">
+              {initials}
             </div>
-          </div>
+            <div className="hidden lg:block text-left">
+              <div className="text-xs font-semibold text-white group-hover:text-gold-300 transition-colors">{user?.name}</div>
+              <div className="text-[10px] text-gold-400 flex items-center gap-1">
+                <User className="w-3 h-3" />
+                {user ? ROLE_LABELS[user.role] || user.role : ''}
+              </div>
+            </div>
+          </Link>
           <button
             onClick={handleLogout}
             disabled={loggingOut}

@@ -1,7 +1,7 @@
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ForgotPasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
+import { ChangePasswordDto, ForgotPasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto, UpdateProfileDto } from './dto/auth.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
@@ -60,5 +60,17 @@ export class AuthController {
   @ApiOperation({ summary: 'Devolve o perfil do utilizador autenticado com a sua agência' })
   getProfile(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.getProfile(user.id);
+  }
+
+  @Patch('me')
+  @ApiOperation({ summary: 'Atualiza o perfil do utilizador autenticado (nome, email)' })
+  updateProfile(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateProfileDto) {
+    return this.authService.updateProfile(user.id, dto);
+  }
+
+  @Post('change-password')
+  @ApiOperation({ summary: 'Altera a password do utilizador autenticado' })
+  changePassword(@CurrentUser() user: AuthenticatedUser, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(user.id, dto);
   }
 }

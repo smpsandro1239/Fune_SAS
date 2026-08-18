@@ -224,6 +224,10 @@ export const apiService = {
     logout: (refreshToken: string) =>
       api.post<{ success: boolean }>('/auth/logout', { refreshToken }).then((r) => r.data),
     me: () => api.get<ApiUser>('/auth/me').then((r) => r.data),
+    updateProfile: (data: { name?: string; email?: string }) =>
+      api.patch<ApiUser>('/auth/me', data).then((r) => r.data),
+    changePassword: (currentPassword: string, newPassword: string) =>
+      api.post<{ success: boolean }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.data),
   },
 
   agencies: {
