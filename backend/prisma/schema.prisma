@@ -150,6 +150,7 @@ model Funeral {
   status              FuneralStatus @default(SCHEDULED)
   publicNoticeEnabled Boolean       @default(true)
   documents           Document[]
+  condolences        Condolence[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 }
@@ -210,4 +211,13 @@ model Notification {
   message   String
   readAt    DateTime?
   sentAt    DateTime         @default(now())
+}
+
+model Condolence {
+  id        String   @id @default(cuid())
+  funeralId String
+  funeral   Funeral  @relation(fields: [funeralId], references: [id], onDelete: Cascade)
+  authorName String
+  message   String
+  createdAt DateTime @default(now())
 }

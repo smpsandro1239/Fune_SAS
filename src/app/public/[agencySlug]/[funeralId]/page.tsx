@@ -1,130 +1,292 @@
 'use client';
 
-import React, { useState } from 'react';
-import { 
-  Heart, 
-  Flame, 
-  Calendar, 
-  MapPin, 
-  Cross, 
-  Share2, 
-  MessageSquare, 
-  Send, 
-  Building2, 
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import {
+  Heart,
+  Flame,
+  Calendar,
+  MapPin,
+  Cross,
+  Share2,
+  MessageSquare,
+  Send,
+  Building2,
   CheckCircle2,
-  Clock
+  Clock,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
+import axios from 'axios';
 
-export default function PublicObituaryPage({ params }: { params: { agencySlug: string; funeralId: string } }) {
-  const [condolenceText, setCondolenceText] = useState('');
-  const [authorName, setAuthorName] = useState('');
-  const [messages, setMessages] = useState([
-    { id: '1', name: 'Família Martins', text: 'Os nossos mais sentidos pêsames a toda a família e amigos neste momento de dor.', date: 'Há 2 horas' },
-    { id: '2', name: 'António & Maria Silva', text: 'Que a sua alma descanse em paz. Sentidas condolências.', date: 'Há 5 horas' },
-  ]);
-  const [submitted, setSubmitted] = useState(false);
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
-  const deceased = {
-    name: 'LUÍS FILIPE DA SILVA FREITAS',
-    age: 27,
-    funeralDate: 'Quarta-feira, dia 8 de julho, 17:00 horas',
-    parish: 'Igreja Paroquial da Ventosa, Braga',
-    cemetery: 'Ventosa, Vieira do Minho',
-    wake: 'Quarta-feira, dia 8 de julho, 15:30 horas, na Igreja Paroquial da Ventosa',
-    hospital: 'Hospital de Braga',
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800',
-    agency: 'Funerária Casa Hortas, Lda',
-    agencyAddress: 'Rua das Maceirinhas, Cabreiros, Braga',
-    agencyPhone: '+351 253 123 456',
+interface PublicFuneral {
+  funeral: {
+    id: string;
+    funeralDate: string;
+    funeralTime: string | null;
+    locationParish: string | null;
+    cemeteryLocation: string | null;
+    wakeLocation: string | null;
+    wakeDate: string | null;
+    wakeTime: string | null;
+    notes: string | null;
+    serviceType: string;
+    deceased: {
+      fullName: string;
+      age: number | null;
+      dateOfBirth: string | null;
+      dateOfDeath: string | null;
+      placeOfDeath: string | null;
+      photoUrl: string | null;
+    };
+    condolences: {
+      id: string;
+      authorName: string;
+      message: string;
+      createdAt: string;
+    }[];
   };
+  agency: {
+    name: string;
+    phone: string | null;
+    email: string | null;
+    address: string | null;
+    location: string | null;
+    website: string | null;
+  };
+}
 
-  const handleAddMessage = (e: React.FormEvent) => {
+function formatDate(dateStr: string, timeStr?: string | null) {
+  try {
+    const d = new Date(dateStr);
+    const formatted = d.toLocaleDateString('pt-PT', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    if (timeStr) return `${formatted}, às ${timeStr}`;
+    return formatted;
+  } catch {
+    return dateStr;
+  }
+}
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Agora mesmo';
+  if (mins < 60) return `Há ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `Há ${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return `Há ${days}d`;
+}
+
+export default function PublicObituaryPage() {
+  const params = useParams();
+  const agencySlug = params.agencySlug as string;
+  const funeralId = params.funeralId as string;
+
+  const [data, setData] = useState<PublicFuneral | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const [authorName, setAuthorName] = useState('');
+  const [condolenceText, setCondolenceText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const { data: result } = await axios.get(`${API_BASE}/public/${agencySlug}/${funeralId}`);
+        setData(result);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('Não foi possível carregar os dados deste funeral.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [agencySlug, funeralId]);
+
+  const handleAddMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authorName.trim() || !condolenceText.trim()) return;
-    setMessages([
-      { id: Date.now().toString(), name: authorName, text: condolenceText, date: 'Agora mesmo' },
-      ...messages,
-    ]);
-    setCondolenceText('');
-    setAuthorName('');
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      const { data: newCondolence } = await axios.post(
+        `${API_BASE}/public/${agencySlug}/${funeralId}/condolences`,
+        { authorName: authorName.trim(), message: condolenceText.trim() },
+      );
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              funeral: {
+                ...prev.funeral,
+                condolences: [newCondolence, ...prev.funeral.condolences],
+              },
+            }
+          : prev,
+      );
+      setCondolenceText('');
+      setAuthorName('');
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setSubmitError(err.response.data.message);
+      } else {
+        setSubmitError('Erro ao enviar. Tente novamente.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#040B16] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-gold-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-[#040B16] flex items-center justify-center p-4">
+        <div className="max-w-md text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto" />
+          <h1 className="text-xl font-bold text-white">Publicação não encontrada</h1>
+          <p className="text-sm text-navy-300">{error || 'Dados indisponíveis.'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { funeral, agency } = data;
+  const { deceased, condolences } = funeral;
 
   return (
     <div className="min-h-screen bg-[#040B16] text-white py-8 px-4 flex justify-center">
       <div className="max-w-2xl w-full space-y-6">
-        {/* Public Header Badge */}
+        {/* Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs font-semibold">
             <Heart className="w-3.5 h-3.5 fill-gold-400 text-gold-400" />
             <span>Participação Pública de Falecimento</span>
           </div>
-          <p className="text-xs text-navy-300">Publicado por {deceased.agency}</p>
+          <p className="text-xs text-navy-300">Publicado por {agency.name}</p>
         </div>
 
         {/* Obituary Card */}
         <div className="bg-navy-900 border border-gold-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
-          {/* Photo & Name */}
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-            <div className="w-32 h-40 rounded-2xl overflow-hidden border-2 border-gold-400 shadow-xl shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={deceased.photo} alt={deceased.name} className="w-full h-full object-cover" />
+            <div className="w-32 h-40 rounded-2xl overflow-hidden border-2 border-gold-400 shadow-xl shrink-0 bg-navy-800 flex items-center justify-center">
+              {deceased.photoUrl ? (
+                <img src={deceased.photoUrl} alt={deceased.fullName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl font-serif font-bold text-gold-400/40">
+                  {deceased.fullName.split(' ').map((w) => w[0]).join('').substring(0, 2)}
+                </span>
+              )}
             </div>
-
             <div className="space-y-2">
-              <span className="px-3 py-1 rounded-full bg-navy-950 text-gold-300 text-xs font-bold border border-gold-500/30 inline-block">
-                {deceased.age} ANOS
-              </span>
-              <h1 className="text-2xl font-black tracking-tight text-white uppercase">{deceased.name}</h1>
+              {deceased.age && (
+                <span className="px-3 py-1 rounded-full bg-navy-950 text-gold-300 text-xs font-bold border border-gold-500/30 inline-block">
+                  {deceased.age} ANOS
+                </span>
+              )}
+              <h1 className="text-2xl font-black tracking-tight text-white uppercase">{deceased.fullName}</h1>
+              {deceased.dateOfDeath && (
+                <p className="text-xs text-navy-300">
+                  Faleceu a {new Date(deceased.dateOfDeath).toLocaleDateString('pt-PT')}
+                  {deceased.placeOfDeath ? ` em ${deceased.placeOfDeath}` : ''}
+                </p>
+              )}
               <p className="text-xs text-navy-300">Comunica com profundo pesar o seu falecimento e convida para as exéquias fúnebres.</p>
             </div>
           </div>
 
-          {/* Ceremony Information */}
+          {/* Ceremony Info */}
           <div className="bg-navy-950 p-5 rounded-2xl border border-navy-800 space-y-4 text-xs">
-            <div>
-              <span className="text-gold-400 font-bold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
-                <Flame className="w-4 h-4" /> Cerimónia Funerária
-              </span>
-              <p className="text-white font-medium">{deceased.funeralDate}</p>
-              <p className="text-navy-300">{deceased.parish}</p>
-            </div>
-
-            <div>
-              <span className="text-gold-400 font-bold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
-                <Cross className="w-4 h-4" /> Cemitério
-              </span>
-              <p className="text-white font-medium">{deceased.cemetery}</p>
-            </div>
-
-            <div>
-              <span className="text-gold-400 font-bold uppercase tracking-wider block mb-1">Velório & Informações</span>
-              <p className="text-navy-200">{deceased.wake}</p>
-            </div>
+            {funeral.funeralDate && (
+              <div>
+                <span className="text-gold-400 font-bold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4" /> Cerimónia Funerária
+                </span>
+                <p className="text-white font-medium">{formatDate(funeral.funeralDate, funeral.funeralTime)}</p>
+                {funeral.locationParish && <p className="text-navy-300">{funeral.locationParish}</p>}
+              </div>
+            )}
+            {funeral.cemeteryLocation && (
+              <div>
+                <span className="text-gold-400 font-bold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
+                  <Cross className="w-4 h-4" /> Cemitério
+                </span>
+                <p className="text-white font-medium">{funeral.cemeteryLocation}</p>
+              </div>
+            )}
+            {funeral.wakeLocation && (
+              <div>
+                <span className="text-gold-400 font-bold uppercase tracking-wider block mb-1">Velório</span>
+                <p className="text-navy-200">
+                  {funeral.wakeLocation}
+                  {funeral.wakeDate && ` — ${formatDate(funeral.wakeDate, funeral.wakeTime)}`}
+                </p>
+              </div>
+            )}
+            {funeral.notes && (
+              <div>
+                <span className="text-gold-400 font-bold uppercase tracking-wider block mb-1">Informações Adicionais</span>
+                <p className="text-navy-200">{funeral.notes}</p>
+              </div>
+            )}
           </div>
 
-          {/* Share buttons */}
+          {/* Share */}
           <div className="flex items-center justify-between pt-2 border-t border-navy-800">
             <span className="text-xs text-navy-400 flex items-center gap-1">
               <Share2 className="w-4 h-4 text-gold-400" /> Partilhar anúncio:
             </span>
             <div className="flex gap-2">
-              <button onClick={() => alert('Ligação copiada para partilha!')} className="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-xs text-white border border-navy-700 font-medium">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-xs text-white border border-navy-700 font-medium"
+              >
                 Copiar Link
               </button>
-              <button onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`)} className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-bold">
+              <button
+                onClick={() =>
+                  window.open(
+                    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+                  )
+                }
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-bold"
+              >
                 Facebook
               </button>
             </div>
           </div>
         </div>
 
-        {/* Condolences Section */}
+        {/* Condolences */}
         <div className="bg-navy-900 border border-navy-800 rounded-3xl p-6 space-y-6 shadow-xl">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-gold-400" />
-            Livro de Condolências Digital ({messages.length})
+            Livro de Condolências Digital ({condolences.length})
           </h2>
 
           <form onSubmit={handleAddMessage} className="space-y-3">
@@ -141,14 +303,21 @@ export default function PublicObituaryPage({ params }: { params: { agencySlug: s
               placeholder="Escreva a sua mensagem de condolências para a família..."
               value={condolenceText}
               onChange={(e) => setCondolenceText(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none"
+              className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none resize-none"
               required
+              maxLength={1000}
             />
+            {submitError && (
+              <p className="text-xs text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" /> {submitError}
+              </p>
+            )}
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold text-xs flex items-center gap-2 shadow"
+              disabled={submitting}
+              className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold text-xs flex items-center gap-2 shadow disabled:opacity-50"
             >
-              <Send className="w-3.5 h-3.5" />
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               <span>Enviar Condolências</span>
             </button>
           </form>
@@ -160,22 +329,29 @@ export default function PublicObituaryPage({ params }: { params: { agencySlug: s
           )}
 
           <div className="space-y-3 pt-4 border-t border-navy-800">
-            {messages.map((m) => (
+            {condolences.length === 0 && (
+              <p className="text-xs text-navy-400 text-center py-4">Seja o primeiro a deixar uma mensagem de condolências.</p>
+            )}
+            {condolences.map((m) => (
               <div key={m.id} className="p-3.5 rounded-xl bg-navy-950 border border-navy-800 space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gold-300">{m.name}</span>
-                  <span className="text-[10px] text-navy-400">{m.date}</span>
+                  <span className="font-bold text-gold-300">{m.authorName}</span>
+                  <span className="text-[10px] text-navy-400">{timeAgo(m.createdAt)}</span>
                 </div>
-                <p className="text-xs text-navy-200 leading-relaxed">{m.text}</p>
+                <p className="text-xs text-navy-200 leading-relaxed">{m.message}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Agency Footer */}
-        <div className="text-center text-xs text-navy-400 space-y-1 pt-4">
-          <p className="font-bold text-white">{deceased.agency}</p>
-          <p>{deceased.agencyAddress} • {deceased.agencyPhone}</p>
+        <div className="text-center text-xs text-navy-400 space-y-1 pt-4 pb-8">
+          <p className="font-bold text-white">{agency.name}</p>
+          <p>
+            {agency.address || ''}
+            {agency.phone ? ` · ${agency.phone}` : ''}
+          </p>
+          {agency.email && <p>{agency.email}</p>}
         </div>
       </div>
     </div>

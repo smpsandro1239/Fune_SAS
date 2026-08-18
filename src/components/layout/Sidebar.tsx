@@ -105,7 +105,7 @@ export default function Sidebar() {
             Consulte a página pública de anúncios de falecimento para consulta familiar.
           </p>
           <Link
-            href="/public/casa-hortas/demo"
+            href="/public/casa-hortas/demo-funeral-luis-freitas"
             target="_blank"
             className="inline-block text-[11px] font-semibold text-gold-400 hover:text-gold-300 underline underline-offset-2"
           >
