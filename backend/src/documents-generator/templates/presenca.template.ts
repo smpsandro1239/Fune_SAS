@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, addParagraph } from '../pdf.helpers';
+import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addSignatureLine, addParagraph, addBox, addSeparator } from '../pdf.helpers';
 
 export interface PresencaData {
   presentName: string;
@@ -9,28 +9,59 @@ export interface PresencaData {
 export function generatePresenca(funeral: FuneralData, agency: AgencyData, extra: PresencaData): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
-  y = addTitle(doc, 'DECLARAÇÃO DE PRESENÇA', y + 4);
-  y += 6;
+  y = addTitle(doc, 'DECLARAÇÃO DE PRESENÇA', y);
+  y += 4;
 
-  const text = `A ${agency.name}, declara que o(a) Sr(a). ${extra.presentName}, na qualidade de ${extra.presentRelation}, esteve presente no funeral de ${funeral.deceasedName}, realizado(a) no dia ${formatDatePtBR(funeral.funeralDate)}${funeral.funeralTime ? ' às ' + funeral.funeralTime : ''}, em ${funeral.locationParish || 'local a definir'}.`;
-  y = addParagraph(doc, text, 25, y);
+  y = addParagraph(doc,
+    `A ${agency.name}, com sede em ${agency.address || '___'}, ${agency.location || '___'},`,
+    25, y);
+  y += 2;
 
-  y += 15;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Data: ____/____/________`, 25, y);
+  y = addParagraph(doc,
+    `declara para todos os efeitos legais que o(a) Sr(a). ${extra.presentName}, na qualidade de ${extra.presentRelation},`,
+    25, y);
+  y += 2;
 
+  y = addParagraph(doc,
+    `esteve presente no acto fúnebre de ${funeral.deceasedName}${funeral.age ? `, com ${funeral.age} anos de idade` : ''},`,
+    25, y);
+  y += 2;
+
+  y = addParagraph(doc,
+    `realizado no dia ${formatDateLong(funeral.funeralDate)}${funeral.funeralTime ? ', pelas ' + funeral.funeralTime : ''},`,
+    25, y);
+  y += 2;
+
+  y = addParagraph(doc,
+    `em ${funeral.locationParish || 'local a definir'}${funeral.cemeteryLocation ? ', com_sepultamento no ' + funeral.cemeteryLocation : ''}.`,
+    25, y);
+  y += 12;
+
+  y = addSeparator(doc, y);
+  y += 4;
+
+  y = addParagraph(doc, 'A presente declaração é emitida a pedido do interessado para os fins que se fizerem necessários.', 25, y);
+  y += 12;
+
+  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  y = addParagraph(doc, `${agency.location || '___'}, ${dateStr}.`, 25, y);
   y += 20;
-  y = addSignatureLine(doc, 'Assinatura', 60);
-  doc.text(agency.name, 60, y);
+
+  y = addSignatureLine(doc, 'Assinatura do Responsável', y, 55);
+  y += 4;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(40, 45, 65);
+  doc.text(agency.name, 85, y, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
 
   addFooter(doc, agency);
   return doc;
 }
 
-function formatDatePtBR(dateStr?: string | null): string {
-  if (!dateStr) return '___/___/______';
+function formatDateLong(dateStr?: string | null): string {
+  if (!dateStr) return '___ de __________ de ________';
   const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return '___/___/______';
-  return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
+  if (isNaN(d.getTime())) return '___ de __________ de ________';
+  return d.toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
 }

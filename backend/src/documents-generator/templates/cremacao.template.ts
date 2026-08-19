@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate } from '../pdf.helpers';
+import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate, addBox, addSeparator } from '../pdf.helpers';
 
 export interface CremacaoData {
   requesterName: string;
@@ -11,45 +11,53 @@ export interface CremacaoData {
 export function generateCremacao(funeral: FuneralData, agency: AgencyData, extra: CremacaoData): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
-  y = addTitle(doc, 'AUTORIZAÇÃO DE CREMAÇÃO', y + 4);
-  y += 8;
+  y = addTitle(doc, 'AUTORIZAÇÃO DE CREMAÇÃO', y);
+  y += 6;
 
-  const lines = doc.splitTextToSize(
-    `Eu, ${extra.requesterName}, portador do Cartão de Cidadão nº ${extra.requesterId}, residente em ${extra.requesterAddress}, na qualidade de ${extra.requesterRelation} do(a) falecido(a):`,
-    170
+  const introLines = doc.splitTextToSize(
+    `Eu, ${extra.requesterName}, portador(a) do Cartão de Cidadão nº ${extra.requesterId}, residente em ${extra.requesterAddress}, na qualidade de ${extra.requesterRelation} do(a) falecido(a):`,
+    160
   );
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
-  doc.text(lines, 20, y);
-  y += lines.length * 5 + 4;
+  doc.setTextColor(30, 30, 30);
+  doc.text(introLines, 25, y);
+  y += introLines.length * 5.5 + 6;
 
-  doc.setFontSize(13);
+  addBox(doc, 55, y - 4, 100, 14);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text(funeral.deceasedName.toUpperCase(), 105, y, { align: 'center' });
-  y += 8;
+  doc.setTextColor(40, 45, 65);
+  doc.text(funeral.deceasedName.toUpperCase(), 105, y + 5, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  y += 18;
 
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  y = addField(doc, 'Nascido(a) em', formatDate(funeral.dateOfBirth), 25, y);
-  y = addField(doc, 'Falecido(a) em', formatDate(funeral.dateOfDeath), 25, y);
-  y = addField(doc, 'Local do óbito', funeral.placeOfDeath || '___', 25, y);
-  y += 4;
+  y = addField(doc, 'Nascido(a) em', formatDate(funeral.dateOfBirth), 30, y);
+  y = addField(doc, 'Falecido(a) em', formatDate(funeral.dateOfDeath), 30, y);
+  y = addField(doc, 'Local do óbito', funeral.placeOfDeath || '___', 30, y);
+  y += 6;
 
-  const authText = 'Autorizo a cremação do corpo do(a) supracitado(a), em conformidade com a legislação em vigor.';
+  const authText = 'Autorizo a cremação do corpo do(a) supracitado(a), em conformidade com a legislação em vigor, cedendo todos os direitos sobre as cinzas à instituição acima referida.';
   doc.setFontSize(11);
   doc.setFont('helvetica', 'italic');
-  const authLines = doc.splitTextToSize(authText, 170);
+  doc.setTextColor(60, 65, 80);
+  const authLines = doc.splitTextToSize(authText, 160);
   doc.text(authLines, 25, y);
-  y += authLines.length * 5 + 6;
+  y += authLines.length * 5.5 + 10;
 
-  y = addField(doc, 'Data', formatDate(new Date().toISOString()), 25, y);
-  y += 6;
-  y = addSignatureLine(doc, 'Assinatura do Requerente', y);
+  y = addSeparator(doc, y);
+  y += 2;
 
-  y += 6;
+  y = addField(doc, 'Data', formatDate(new Date().toISOString()), 30, y);
+  y += 10;
+  y = addSignatureLine(doc, 'Assinatura do Requerente', y, 35);
+
+  y += 8;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
-  doc.text(`Presença da Agência: ${agency.name} — ${agency.phone || ''}`, 25, y);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Presença da Agência: ${agency.name}${agency.phone ? ' — ' + agency.phone : ''}`, 25, y);
+  doc.setTextColor(0, 0, 0);
 
   addFooter(doc, agency);
   return doc;
