@@ -10,7 +10,10 @@ export type SubscriptionPlan = 'FREE' | 'PRO' | 'ENTERPRISE';
 export type UserRole = 'ADMIN' | 'OPERATOR' | 'DESIGNER';
 export type FuneralStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
 export type ServiceType = 'CERIMONIA' | 'VELORIO' | 'CREMACAO' | 'TRANSPORTE' | 'ACOLHIMENTO' | 'OUTRO';
-export type DocumentType = 'CERTIFICATE' | 'AUTHORIZATION' | 'CONTRACT' | 'IDENTITY';
+export type DocumentType = 'CERTIFICATE' | 'AUTHORIZATION' | 'CONTRACT' | 'IDENTITY' | 'PRESENCA' | 'PROGRAMA' | 'CREMACAO' | 'TRANSPORTE_DOCS' | 'RELATORIO' | 'SEPULTURA' | 'CONDOLENCIA';
+
+export type PublicationPlatform = 'FACEBOOK' | 'INSTAGRAM' | 'LINKEDIN' | 'TWITTER' | 'TIKTOK' | 'YOUTUBE';
+export type PublicationStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHING' | 'PUBLISHED' | 'FAILED' | 'CANCELED';
 
 export interface ApiAgency {
   id: string;
@@ -24,6 +27,12 @@ export interface ApiAgency {
   foundedYear?: string | null;
   website?: string | null;
   subscriptionPlan: SubscriptionPlan;
+  facebookPageUrl?: string | null;
+  instagramPageUrl?: string | null;
+  linkedinUrl?: string | null;
+  twitterUrl?: string | null;
+  youtubeUrl?: string | null;
+  tiktokUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -139,6 +148,33 @@ export interface ApiSubscription {
   startedAt: string;
   createdAt: string;
   agency?: { subscriptionPlan: SubscriptionPlan };
+}
+
+export interface ApiPublication {
+  id: string;
+  agencyId: string;
+  funeralId?: string | null;
+  funeral?: { id: string; funeralDate: string; deceased: { fullName: string } } | null;
+  title: string;
+  caption: string;
+  imageUrl?: string | null;
+  platform: PublicationPlatform;
+  status: PublicationStatus;
+  scheduledFor?: string | null;
+  publishedAt?: string | null;
+  externalPostId?: string | null;
+  errorMessage?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SocialStatus {
+  facebook: { connected: boolean; pageId?: string; pageUrl?: string };
+  instagram: { connected: boolean; account?: string; pageUrl?: string };
+  linkedin: { connected: boolean; url?: string };
+  twitter: { connected: boolean; url?: string };
+  youtube: { connected: boolean; url?: string };
+  tiktok: { connected: boolean; url?: string };
 }
 
 export function getAccessToken(): string | null {
@@ -332,6 +368,37 @@ export const apiService = {
       api.put<{ id: string }>(`/drafts/${id}`, { name, layoutStyle, data }).then((r) => r.data),
     delete: (id: string) =>
       api.delete(`/drafts/${id}`).then((r) => r.data),
+  },
+
+  docGenerate: {
+    generate: async (funeralId: string, type: string, extraData?: Record<string, any>): Promise<Blob> => {
+      const response = await api.post('/documents/generate', { funeralId, type, extraData }, { responseType: 'blob' });
+      return response.data;
+    },
+  },
+
+  publications: {
+    list: (status?: string) =>
+      api.get<ApiPublication[]>('/publications', { params: status ? { status } : {} }).then((r) => r.data),
+    get: (id: string) =>
+      api.get<ApiPublication>(`/publications/${id}`).then((r) => r.data),
+    create: (data: { title: string; caption: string; platform: string; funeralId?: string; imageUrl?: string; scheduledFor?: string }) =>
+      api.post<ApiPublication>('/publications', data).then((r) => r.data),
+    update: (id: string, data: { title?: string; caption?: string; scheduledFor?: string; status?: string }) =>
+      api.patch<ApiPublication>(`/publications/${id}`, data).then((r) => r.data),
+    remove: (id: string) =>
+      api.delete<{ success: boolean }>(`/publications/${id}`).then((r) => r.data),
+    upcoming: () =>
+      api.get<ApiPublication[]>('/publications/upcoming').then((r) => r.data),
+  },
+
+  social: {
+    status: () =>
+      api.get<SocialStatus>('/social/status').then((r) => r.data),
+    publish: (publicationId: string, platform: string) =>
+      api.post<{ success: boolean; postId?: string; error?: string }>(`/social/publish/${publicationId}/${platform}`).then((r) => r.data),
+    processScheduled: () =>
+      api.post<{ processed: number }>('/social/process-scheduled').then((r) => r.data),
   },
 };
 

@@ -31,6 +31,13 @@ const TYPE_LABELS: Record<DocumentType, string> = {
   AUTHORIZATION: 'Autorização',
   CONTRACT: 'Contrato',
   IDENTITY: 'Identificação',
+  PRESENCA: 'Declaração de Presença',
+  PROGRAMA: 'Programa do Funeral',
+  CREMACAO: 'Autorização de Cremação',
+  TRANSPORTE_DOCS: 'Guia de Transporte',
+  RELATORIO: 'Relatório de Serviço',
+  SEPULTURA: 'Certidão de Sepultura',
+  CONDOLENCIA: 'Carta de Condolências',
 };
 
 export default function DocumentDetailPage() {

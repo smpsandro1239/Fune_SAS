@@ -32,7 +32,14 @@ const TYPE_LABELS: Record<DocumentType, string> = {
   CERTIFICATE: 'Certidões',
   AUTHORIZATION: 'Autorizações',
   CONTRACT: 'Contratos',
-  IDENTITY: 'Identificação',
+  IDENTITY: 'Identificações',
+  PRESENCA: 'Declarações de Presença',
+  PROGRAMA: 'Programas de Funeral',
+  CREMACAO: 'Autorizações de Cremação',
+  TRANSPORTE_DOCS: 'Guias de Transporte',
+  RELATORIO: 'Relatórios de Serviço',
+  SEPULTURA: 'Certidões de Sepultura',
+  CONDOLENCIA: 'Cartas de Condolências',
 };
 
 const TYPE_OPTIONS: { value: DocumentType | 'ALL'; label: string }[] = [

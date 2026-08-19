@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, IsUrl } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class UpdateAgencyDto {
   @ApiPropertyOptional({ example: 'Funerária Casa Hortas, Lda' })
@@ -14,7 +14,7 @@ export class UpdateAgencyDto {
 
   @ApiPropertyOptional({ example: 'https://cdn.exemplo.pt/logo.png' })
   @IsOptional()
-  @IsUrl()
+  @IsString()
   logoUrl?: string;
 
   @ApiPropertyOptional({ example: '+351 253 123 456' })
@@ -46,4 +46,34 @@ export class UpdateAgencyDto {
   @IsOptional()
   @IsString()
   website?: string;
+
+  @ApiPropertyOptional({ example: 'https://facebook.com/sua-pagina' })
+  @IsOptional()
+  @IsString()
+  facebookPageUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://instagram.com/seu-perfil' })
+  @IsOptional()
+  @IsString()
+  instagramPageUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://linkedin.com/company/...' })
+  @IsOptional()
+  @IsString()
+  linkedinUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://twitter.com/seu-perfil' })
+  @IsOptional()
+  @IsString()
+  twitterUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://youtube.com/@canal' })
+  @IsOptional()
+  @IsString()
+  youtubeUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://tiktok.com/@perfil' })
+  @IsOptional()
+  @IsString()
+  tiktokUrl?: string;
 }

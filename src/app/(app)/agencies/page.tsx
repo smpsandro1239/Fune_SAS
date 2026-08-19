@@ -18,6 +18,13 @@ import {
   Globe,
   Clock,
   CheckCircle2,
+  Facebook,
+  Instagram,
+  Link as LinkIcon,
+  Twitter,
+  Youtube,
+  Music2,
+  Megaphone,
 } from 'lucide-react';
 import { useAgency } from '@/context/AgencyContext';
 import { useAuth } from '@/context/AuthContext';
@@ -37,19 +44,34 @@ const ROLE_STYLES: Record<UserRole, string> = {
 
 const EMPTY_FORM = { name: '', email: '', password: '', role: 'OPERATOR' as UserRole };
 
+const SOCIAL_FIELDS = [
+  { key: 'facebookPageUrl', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/sua-pagina' },
+  { key: 'instagramPageUrl', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/seu-perfil' },
+  { key: 'linkedinUrl', label: 'LinkedIn', icon: LinkIcon, placeholder: 'https://linkedin.com/company/...' },
+  { key: 'twitterUrl', label: 'Twitter / X', icon: Twitter, placeholder: 'https://twitter.com/seu-perfil' },
+  { key: 'youtubeUrl', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@canal' },
+  { key: 'tiktokUrl', label: 'TikTok', icon: Music2, placeholder: 'https://tiktok.com/@perfil' },
+];
+
+const SOCIAL_FIELD_KEYS = SOCIAL_FIELDS.map(f => f.key);
+
 export default function AgenciesPage() {
-  const { currentAgency, loading: agencyLoading } = useAgency();
+  const { currentAgency, loading: agencyLoading, reload: reloadAgency } = useAgency();
   const { user: sessionUser } = useAuth();
 
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [busy, setBusy] = useState(false);
 
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<ApiUser | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [deletingUser, setDeletingUser] = useState<ApiUser | null>(null);
+
+  const [editingSocials, setEditingSocials] = useState(false);
+  const [socialForm, setSocialForm] = useState<Record<string, string>>({});
 
   const isAdmin = sessionUser?.role === 'ADMIN';
 
@@ -64,9 +86,15 @@ export default function AgenciesPage() {
     }
   }, []);
 
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    if (currentAgency && editingSocials) {
+      setSocialForm(
+        Object.fromEntries(SOCIAL_FIELD_KEYS.map(k => [k, (currentAgency as any)[k] || '']))
+      );
+    }
+  }, [currentAgency, editingSocials]);
 
   const openCreate = () => {
     setEditingUser(null);
@@ -125,12 +153,29 @@ export default function AgenciesPage() {
     }
   };
 
+  const handleSaveSocials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setBusy(true);
+    try {
+      await apiService.agencies.update(socialForm as any);
+      setEditingSocials(false);
+      setSuccess('Redes sociais guardadas com sucesso.');
+      reloadAgency();
+      setTimeout(() => setSuccess(''), 4000);
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Não foi possível guardar as redes sociais.'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const inputClass =
-    'w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none';
+    'w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none text-xs';
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
@@ -138,7 +183,7 @@ export default function AgenciesPage() {
             Agência & Utilizadores
           </h1>
           <p className="text-xs text-navy-300">
-            Perfil da agência, plano de subscrição e equipa com permissões.
+            Perfil da agência, redes sociais, plano e equipa.
           </p>
         </div>
         {isAdmin && (
@@ -156,6 +201,13 @@ export default function AgenciesPage() {
         <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
+          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{success}</span>
         </div>
       )}
 
@@ -232,6 +284,85 @@ export default function AgenciesPage() {
         )}
       </div>
 
+      {/* Redes Sociais */}
+      <div className="p-6 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-navy-800 pb-3">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Megaphone className="w-4 h-4 text-gold-400" />
+            Redes Sociais da Agência
+          </h3>
+          {isAdmin && !editingSocials && (
+            <button
+              onClick={() => setEditingSocials(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-xs text-navy-300 hover:text-gold-300 border border-navy-700"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              <span>Editar</span>
+            </button>
+          )}
+        </div>
+
+        {editingSocials ? (
+          <form onSubmit={handleSaveSocials} className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {SOCIAL_FIELDS.map(({ key, label, icon: Icon, placeholder }) => (
+                <div key={key}>
+                  <label className="flex items-center space-x-2 text-navy-200 mb-1 text-xs font-semibold">
+                    <Icon className="w-4 h-4 text-gold-400" />
+                    <span>{label}</span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder={placeholder}
+                    value={socialForm[key] || ''}
+                    onChange={(e) => setSocialForm({ ...socialForm, [key]: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-navy-800">
+              <button
+                type="button"
+                onClick={() => setEditingSocials(false)}
+                className="px-4 py-2 rounded-xl bg-navy-800 text-navy-300 font-semibold text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold text-xs shadow flex items-center space-x-1.5 disabled:opacity-60"
+              >
+                {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Guardar Redes Sociais</span>
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {SOCIAL_FIELDS.map(({ key, label, icon: Icon }) => {
+              const url = (currentAgency as any)?.[key] as string | null;
+              return (
+                <div key={key} className={`p-3 rounded-xl border ${url ? 'border-gold-500/30 bg-gold-500/5' : 'border-navy-700 bg-navy-950'}`}>
+                  <div className="flex items-center space-x-2 mb-1.5">
+                    <Icon className={`w-4 h-4 ${url ? 'text-gold-400' : 'text-navy-500'}`} />
+                    <span className="text-xs font-semibold text-navy-200">{label}</span>
+                  </div>
+                  {url ? (
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-gold-400 hover:text-gold-300 truncate block">
+                      {url.replace(/^https?:\/\//, '').substring(0, 35)}...
+                    </a>
+                  ) : (
+                    <span className="text-[11px] text-navy-500">Não configurado</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Lista de utilizadores */}
       <div className="bg-navy-900/80 border border-navy-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="p-4 border-b border-navy-800 flex items-center justify-between">
@@ -254,13 +385,7 @@ export default function AgenciesPage() {
               <div key={user.id} className="p-4 flex items-center justify-between hover:bg-navy-800/50 transition-colors">
                 <div className="flex items-center space-x-3 min-w-0">
                   <div className="w-9 h-9 rounded-full bg-navy-950 border border-gold-500/30 flex items-center justify-center text-xs font-bold text-gold-400 shrink-0">
-                    {user.name
-                      .split(' ')
-                      .filter(Boolean)
-                      .map((part) => part[0])
-                      .join('')
-                      .substring(0, 2)
-                      .toUpperCase()}
+                    {user.name.split(' ').filter(Boolean).map((part) => part[0]).join('').substring(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center space-x-2">
@@ -307,7 +432,7 @@ export default function AgenciesPage() {
       {!isAdmin && (
         <p className="flex items-center gap-1.5 text-[11px] text-navy-400">
           <ShieldCheck className="w-3.5 h-3.5 text-gold-500/70" />
-          Apenas administradores podem gerir utilizadores.
+          Apenas administradores podem gerir utilizadores e redes sociais.
         </p>
       )}
 
@@ -432,14 +557,6 @@ export default function AgenciesPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Confirmação silenciosa após sucesso */}
-      {!error && users.length > 0 && (
-        <p className="flex items-center gap-1.5 text-[11px] text-emerald-400/80">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          Dados sincronizados com a API.
-        </p>
       )}
     </div>
   );

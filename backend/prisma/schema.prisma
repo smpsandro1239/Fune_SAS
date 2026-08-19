@@ -46,6 +46,31 @@ enum DocumentType {
   AUTHORIZATION
   CONTRACT
   IDENTITY
+  PRESENCA
+  PROGRAMA
+  CREMACAO
+  TRANSPORTE_DOCS
+  RELATORIO
+  SEPULTURA
+  CONDOLENCIA
+}
+
+enum PublicationStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  CANCELED
+}
+
+enum PublicationPlatform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  TWITTER
+  TIKTOK
+  YOUTUBE
 }
 
 enum FlyerPlan {
@@ -74,6 +99,21 @@ model Agency {
   foundedYear      String?
   website          String?
   subscriptionPlan SubscriptionPlan @default(FREE)
+
+  // Redes sociais
+  facebookPageId   String?
+  facebookPageUrl  String?
+  instagramAccount String?
+  instagramPageUrl String?
+  linkedinUrl      String?
+  twitterUrl       String?
+  youtubeUrl       String?
+  tiktokUrl        String?
+
+  // Configuração de publicação
+  autoPublish      Boolean          @default(false)
+  publishDefaultMsg String?
+
   users            User[]
   deceaseds        Deceased[]
   funerals         Funeral[]
@@ -81,6 +121,8 @@ model Agency {
   subscriptions    Subscription[]
   notifications    Notification[]
   flyerDrafts      FlyerDraft[]
+  publications     Publication[]
+  publicationTemplates PublicationTemplate[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -152,6 +194,7 @@ model Funeral {
   publicNoticeEnabled Boolean       @default(true)
   documents           Document[]
   condolences        Condolence[]
+  publications       Publication[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 }
@@ -233,6 +276,47 @@ model FlyerDraft {
   data         Json
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([agencyId])
+}
+
+model Publication {
+  id              String              @id @default(cuid())
+  agencyId        String
+  agency          Agency              @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  funeralId       String?
+  funeral         Funeral?            @relation(fields: [funeralId], references: [id], onDelete: SetNull)
+  templateId      String?
+  title           String
+  caption         String
+  imageUrl        String?
+  imageBase64     String?
+  platform        PublicationPlatform
+  status          PublicationStatus   @default(DRAFT)
+  scheduledFor    DateTime?
+  publishedAt     DateTime?
+  externalPostId  String?
+  errorMessage    String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([agencyId, status])
+  @@index([scheduledFor])
+}
+
+model PublicationTemplate {
+  id              String   @id @default(cuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  captionTemplate String
+  hashtags        String?
+  imageTemplate   String?
+  platforms       Json     @default("[\"FACEBOOK\",\"INSTAGRAM\"]")
+  autoOnCreate    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([agencyId])
 }

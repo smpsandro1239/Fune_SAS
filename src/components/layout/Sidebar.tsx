@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, LayoutDashboard, Users, Palette, FileText, Calendar, BarChart3, Settings, ExternalLink, UserCircle, CreditCard } from 'lucide-react';
+import { X, LayoutDashboard, Users, Palette, FileText, Calendar, BarChart3, Settings, ExternalLink, UserCircle, CreditCard, Send, Megaphone } from 'lucide-react';
 import { useAgency } from '@/context/AgencyContext';
 
 const PLAN_LABELS: Record<string, string> = {
@@ -23,6 +23,8 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
     { name: 'Gestão Documental', href: '/documents', icon: FileText },
     { name: 'Agenda & Serviços', href: '/agenda', icon: Calendar },
     { name: 'Relatórios & Métricas', href: '/analytics', icon: BarChart3 },
+    { name: 'Gerar Documentos', href: '/documents/generate', icon: Send },
+    { name: 'Publicações Sociais', href: '/publications', icon: Megaphone },
     { name: 'Configurações Agência', href: '/agencies', icon: Settings },
   ];
 

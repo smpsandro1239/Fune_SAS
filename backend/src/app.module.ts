@@ -13,6 +13,9 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { HealthModule } from './health/health.module';
 import { PublicModule } from './public/public.module';
 import { DraftsModule } from './drafts/drafts.module';
+import { DocumentsGeneratorModule } from './documents-generator/documents-generator.module';
+import { PublicationsModule } from './publications/publications.module';
+import { SocialModule } from './social/social.module';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { DraftsModule } from './drafts/drafts.module';
     HealthModule,
     PublicModule,
     DraftsModule,
+    DocumentsGeneratorModule,
+    PublicationsModule,
+    SocialModule,
   ],
 })
 export class AppModule {}
