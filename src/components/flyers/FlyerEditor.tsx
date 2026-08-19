@@ -22,6 +22,7 @@ import {
   Palette,
   RefreshCw,
   Save,
+  Send,
   Sparkles,
   Trash2,
   Type,
@@ -77,6 +78,10 @@ export default function FlyerEditor() {
   const [draftName, setDraftName] = useState('');
   const [showDraftsModal, setShowDraftsModal] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
+
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareForm, setShareForm] = useState({ title: '', caption: '', platform: 'FACEBOOK', scheduledFor: '' });
+  const [shareBusy, setShareBusy] = useState(false);
 
   const previewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -331,6 +336,42 @@ export default function FlyerEditor() {
     }
   };
 
+  const openShare = () => {
+    setShareForm({
+      title: flyerData.deceasedName ? `Participação de ${flyerData.deceasedName}` : 'Participação Funerária',
+      caption: flyerData.deceasedName
+        ? `Falecimento de ${flyerData.deceasedName}.${flyerData.funeralDate ? ` Cerimónia no dia ${flyerData.funeralDate}.` : ''}${flyerData.parishLocation ? ` Local: ${flyerData.parishLocation}.` : ''} Pela presença de todos é honrado o seu nome.`
+        : 'Participação de falecimento.',
+      platform: 'FACEBOOK',
+      scheduledFor: '',
+    });
+    setShowShareModal(true);
+  };
+
+  const handleShare = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setShareBusy(true);
+    try {
+      await apiService.publications.create({
+        title: shareForm.title,
+        caption: shareForm.caption,
+        platform: shareForm.platform,
+        funeralId: selectedFuneralId || undefined,
+        scheduledFor: shareForm.scheduledFor || undefined,
+      });
+      setShowShareModal(false);
+      setExportMessage('Publicação criada com sucesso!');
+      setExportStatus('ok');
+      setTimeout(() => setExportMessage(null), 3000);
+    } catch (err) {
+      setExportMessage('Erro ao criar publicação.');
+      setExportStatus('error');
+      setTimeout(() => setExportMessage(null), 3000);
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return;
@@ -472,6 +513,16 @@ export default function FlyerEditor() {
               <Download className="w-4 h-4" />
             )}
             <span>Descarregar PDF</span>
+          </button>
+
+          <button
+            onClick={openShare}
+            disabled={isExporting !== null}
+            aria-label="Partilhar flyer nas redes sociais"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-blue-300 text-xs font-semibold transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Partilhar</span>
           </button>
         </div>
       </div>
@@ -1004,6 +1055,90 @@ export default function FlyerEditor() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Share modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <form onSubmit={handleShare} className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-navy-800 pb-3">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Send className="w-4 h-4 text-blue-400" />
+                Partilhar Flyer
+              </h2>
+              <button type="button" onClick={() => setShowShareModal(false)} className="text-navy-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-navy-300">
+              Criar uma publicação para partilhar o flyer nas redes sociais.
+            </p>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Plataforma</label>
+                <select
+                  value={shareForm.platform}
+                  onChange={(e) => setShareForm({ ...shareForm, platform: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                >
+                  <option value="FACEBOOK">Facebook</option>
+                  <option value="INSTAGRAM">Instagram</option>
+                  <option value="LINKEDIN">LinkedIn</option>
+                  <option value="TWITTER">Twitter / X</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Título</label>
+                <input
+                  type="text"
+                  value={shareForm.title}
+                  onChange={(e) => setShareForm({ ...shareForm, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Texto da publicação</label>
+                <textarea
+                  rows={4}
+                  value={shareForm.caption}
+                  onChange={(e) => setShareForm({ ...shareForm, caption: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Agendar (opcional)</label>
+                <input
+                  type="datetime-local"
+                  value={shareForm.scheduledFor}
+                  onChange={(e) => setShareForm({ ...shareForm, scheduledFor: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-navy-800 flex justify-end gap-2">
+              <button type="button" onClick={() => setShowShareModal(false)} className="px-4 py-2 rounded-xl bg-navy-800 text-navy-300 font-semibold text-xs">
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={shareBusy}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow flex items-center space-x-1.5 disabled:opacity-60"
+              >
+                {shareBusy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <Send className="w-3.5 h-3.5" />
+                <span>Criar Publicação</span>
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

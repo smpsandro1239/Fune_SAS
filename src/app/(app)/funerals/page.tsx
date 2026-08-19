@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   Flame,
   BookOpen,
+  Send,
+  Megaphone,
 } from 'lucide-react';
 import {
   ApiFuneral,
@@ -157,6 +159,10 @@ export default function FuneralsPage() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [notice, setNotice] = useState('');
 
+  const [sharing, setSharing] = useState<ApiFuneral | null>(null);
+  const [shareForm, setShareForm] = useState({ title: '', caption: '', platform: 'FACEBOOK', scheduledFor: '' });
+  const [shareBusy, setShareBusy] = useState(false);
+
   const loadFunerals = useCallback(async (search?: string, status?: FuneralStatus | 'ALL') => {
     setLoading(true);
     setError('');
@@ -274,6 +280,38 @@ export default function FuneralsPage() {
       setDeleting(null);
     } finally {
       setDeleteBusy(false);
+    }
+  };
+
+  const openShare = (funeral: ApiFuneral) => {
+    setSharing(funeral);
+    const pubUrl = currentAgency ? `/public/${currentAgency.slug}/${funeral.id}` : `/public/${funeral.id}`;
+    setShareForm({
+      title: `Funeral de ${funeral.deceased.fullName}`,
+      caption: `Cerimónia funerária de ${funeral.deceased.fullName}${funeral.locationParish ? ` em ${funeral.locationParish}` : ''}, no dia ${new Date(funeral.funeralDate).toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.${funeral.funeralTime ? ` às ${funeral.funeralTime}` : ''} Acompanhe a participação em: ${typeof window !== 'undefined' ? window.location.origin : ''}${pubUrl}`,
+      platform: 'FACEBOOK',
+      scheduledFor: '',
+    });
+  };
+
+  const handleShare = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sharing) return;
+    setShareBusy(true);
+    try {
+      await apiService.publications.create({
+        title: shareForm.title,
+        caption: shareForm.caption,
+        platform: shareForm.platform,
+        funeralId: sharing.id,
+        scheduledFor: shareForm.scheduledFor || undefined,
+      });
+      setNotice('Publicação criada com sucesso! Pode geri-la em Publicações Sociais.');
+      setSharing(null);
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Não foi possível criar a publicação.'));
+    } finally {
+      setShareBusy(false);
     }
   };
 
@@ -491,6 +529,15 @@ export default function FuneralsPage() {
                       <Palette className="w-3.5 h-3.5" />
                       <span>Flyer</span>
                     </Link>
+
+                    <button
+                      onClick={() => openShare(funeral)}
+                      className="px-3 py-1.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-blue-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
+                      title="Partilhar nas redes sociais"
+                    >
+                      <Megaphone className="w-3.5 h-3.5" />
+                      <span>Partilhar</span>
+                    </button>
 
                     <button
                       onClick={() => openEdit(funeral)}
@@ -787,6 +834,90 @@ export default function FuneralsPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Share modal */}
+      {sharing && (
+        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <form onSubmit={handleShare} className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-navy-800 pb-3">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-blue-400" />
+                Partilhar Funeral
+              </h2>
+              <button type="button" onClick={() => setSharing(null)} className="text-navy-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-navy-300">
+              Criar uma publicação para <span className="font-bold text-white">{sharing.deceased.fullName}</span> nas redes sociais.
+            </p>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Plataforma</label>
+                <select
+                  value={shareForm.platform}
+                  onChange={(e) => setShareForm({ ...shareForm, platform: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                >
+                  <option value="FACEBOOK">Facebook</option>
+                  <option value="INSTAGRAM">Instagram</option>
+                  <option value="LINKEDIN">LinkedIn</option>
+                  <option value="TWITTER">Twitter / X</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Título</label>
+                <input
+                  type="text"
+                  value={shareForm.title}
+                  onChange={(e) => setShareForm({ ...shareForm, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Texto da publicação</label>
+                <textarea
+                  rows={4}
+                  value={shareForm.caption}
+                  onChange={(e) => setShareForm({ ...shareForm, caption: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-navy-200 mb-1 font-semibold">Agendar (opcional)</label>
+                <input
+                  type="datetime-local"
+                  value={shareForm.scheduledFor}
+                  onChange={(e) => setShareForm({ ...shareForm, scheduledFor: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-navy-800 flex justify-end gap-2">
+              <button type="button" onClick={() => setSharing(null)} className="px-4 py-2 rounded-xl bg-navy-800 text-navy-300 font-semibold text-xs">
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={shareBusy}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow flex items-center space-x-1.5 disabled:opacity-60"
+              >
+                {shareBusy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <Send className="w-3.5 h-3.5" />
+                <span>Criar Publicação</span>
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
