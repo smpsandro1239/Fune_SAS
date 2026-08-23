@@ -28,7 +28,10 @@ export interface ApiAgency {
   website?: string | null;
   subscriptionPlan: SubscriptionPlan;
   facebookPageUrl?: string | null;
+  facebookPageId?: string | null;
+  facebookPageAccessToken?: string | null;
   instagramPageUrl?: string | null;
+  instagramBusinessId?: string | null;
   linkedinUrl?: string | null;
   twitterUrl?: string | null;
   youtubeUrl?: string | null;

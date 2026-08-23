@@ -103,8 +103,10 @@ model Agency {
   // Redes sociais
   facebookPageId   String?
   facebookPageUrl  String?
+  facebookPageAccessToken String?
   instagramAccount String?
   instagramPageUrl String?
+  instagramBusinessId     String?
   linkedinUrl      String?
   twitterUrl       String?
   youtubeUrl       String?

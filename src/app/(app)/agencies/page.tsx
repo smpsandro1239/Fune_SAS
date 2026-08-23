@@ -18,6 +18,8 @@ import {
   Globe,
   Clock,
   CheckCircle2,
+  XCircle,
+  Zap,
   Facebook,
   Instagram,
   Link as LinkIcon,
@@ -55,6 +57,17 @@ const SOCIAL_FIELDS = [
 
 const SOCIAL_FIELD_KEYS = SOCIAL_FIELDS.map(f => f.key);
 
+const API_FIELDS = [
+  { key: 'facebookPageId', label: 'Facebook Page ID', placeholder: 'Ex: 123456789012345', secret: false,
+    hint: 'ID numérico da página (encontra em About/Page Info ou via Graph API Explorer).' },
+  { key: 'facebookPageAccessToken', label: 'Facebook Page Access Token', placeholder: 'EAAG...', secret: true,
+    hint: 'Token com permissões pages_manage_posts + instagram_content_publish. Gerar no Meta for Developers.' },
+  { key: 'instagramBusinessId', label: 'Instagram Business Account ID', placeholder: 'Ex: 17841400000000000', secret: false,
+    hint: 'IG User ID da conta profissional ligada à página do Facebook.' },
+];
+
+const API_FIELD_KEYS = API_FIELDS.map(f => f.key);
+
 export default function AgenciesPage() {
   const { currentAgency, loading: agencyLoading, reload: reloadAgency } = useAgency();
   const { user: sessionUser } = useAuth();
@@ -91,7 +104,9 @@ export default function AgenciesPage() {
   useEffect(() => {
     if (currentAgency && editingSocials) {
       setSocialForm(
-        Object.fromEntries(SOCIAL_FIELD_KEYS.map(k => [k, (currentAgency as any)[k] || '']))
+        Object.fromEntries(
+          [...SOCIAL_FIELD_KEYS, ...API_FIELD_KEYS].map(k => [k, (currentAgency as any)[k] || ''])
+        )
       );
     }
   }, [currentAgency, editingSocials]);
@@ -321,6 +336,33 @@ export default function AgenciesPage() {
                 </div>
               ))}
             </div>
+
+            <div className="pt-4 border-t border-navy-800">
+              <p className="text-xs font-bold text-white flex items-center gap-2 mb-1">
+                <Zap className="w-3.5 h-3.5 text-gold-400" />
+                Publicação Automática (Meta Graph API)
+              </p>
+              <p className="text-[10px] text-navy-400 mb-3">
+                Preencha estes 3 campos para ativar a publicação REAL no Facebook e Instagram
+                diretamente da página Publicações Sociais.
+              </p>
+              <div className="space-y-3">
+                {API_FIELDS.map(({ key, label, placeholder, secret, hint }) => (
+                  <div key={key}>
+                    <label className="block text-navy-200 mb-1 text-xs font-semibold">{label}</label>
+                    <input
+                      type={secret ? 'password' : 'text'}
+                      placeholder={placeholder}
+                      value={socialForm[key] || ''}
+                      onChange={(e) => setSocialForm({ ...socialForm, [key]: e.target.value })}
+                      className={`${inputClass} ${secret ? 'font-mono' : ''}`}
+                    />
+                    <p className="text-[9px] text-navy-500 mt-1">{hint}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-3 border-t border-navy-800">
               <button
                 type="button"
@@ -335,31 +377,70 @@ export default function AgenciesPage() {
                 className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold text-xs shadow flex items-center space-x-1.5 disabled:opacity-60"
               >
                 {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>Guardar Redes Sociais</span>
+                <span>Guardar Configuração</span>
               </button>
             </div>
           </form>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {SOCIAL_FIELDS.map(({ key, label, icon: Icon }) => {
-              const url = (currentAgency as any)?.[key] as string | null;
-              return (
-                <div key={key} className={`p-3 rounded-xl border ${url ? 'border-gold-500/30 bg-gold-500/5' : 'border-navy-700 bg-navy-950'}`}>
-                  <div className="flex items-center space-x-2 mb-1.5">
-                    <Icon className={`w-4 h-4 ${url ? 'text-gold-400' : 'text-navy-500'}`} />
-                    <span className="text-xs font-semibold text-navy-200">{label}</span>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {SOCIAL_FIELDS.map(({ key, label, icon: Icon }) => {
+                const url = (currentAgency as any)?.[key] as string | null;
+                return (
+                  <div key={key} className={`p-3 rounded-xl border ${url ? 'border-gold-500/30 bg-gold-500/5' : 'border-navy-700 bg-navy-950'}`}>
+                    <div className="flex items-center space-x-2 mb-1.5">
+                      <Icon className={`w-4 h-4 ${url ? 'text-gold-400' : 'text-navy-500'}`} />
+                      <span className="text-xs font-semibold text-navy-200">{label}</span>
+                    </div>
+                    {url ? (
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-gold-400 hover:text-gold-300 truncate block">
+                        {url.replace(/^https?:\/\//, '').substring(0, 35)}...
+                      </a>
+                    ) : (
+                      <span className="text-[11px] text-navy-500">Não configurado</span>
+                    )}
                   </div>
-                  {url ? (
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-gold-400 hover:text-gold-300 truncate block">
-                      {url.replace(/^https?:\/\//, '').substring(0, 35)}...
-                    </a>
-                  ) : (
-                    <span className="text-[11px] text-navy-500">Não configurado</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+
+            {/* Estado da integração Meta */}
+            <div className="mt-4 pt-4 border-t border-navy-800">
+              <p className="text-[11px] font-bold text-navy-200 flex items-center gap-2 mb-2">
+                <Zap className="w-3.5 h-3.5 text-gold-400" />
+                Estado da Publicação Automática
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {(() => {
+                  const ag = currentAgency as any;
+                  const fbReady = !!ag?.facebookPageId && !!ag?.facebookPageAccessToken;
+                  const igReady = !!ag?.instagramBusinessId && !!ag?.facebookPageAccessToken;
+                  return [
+                    {
+                      name: 'Facebook', ready: fbReady,
+                      detail: fbReady ? 'Pronto para publicar' : 'Falta Page ID ou Access Token',
+                    },
+                    {
+                      name: 'Instagram', ready: igReady,
+                      detail: igReady ? 'Pronto para publicar' : 'Falta IG Business ID ou token',
+                    },
+                  ].map(({ name, ready, detail }) => (
+                    <div key={name} className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                      ready ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-navy-950 border-navy-700'
+                    }`}>
+                      <span className="text-xs font-semibold text-navy-200">{name}</span>
+                      <span className={`flex items-center gap-1.5 text-[10px] font-bold ${
+                        ready ? 'text-emerald-300' : 'text-navy-400'
+                      }`}>
+                        {ready ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                        {detail}
+                      </span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </>
         )}
       </div>
 

@@ -7,8 +7,25 @@ import { generateTransporte, TransporteData } from './templates/transporte.templ
 import { generateRelatorio, RelatorioData } from './templates/relatorio.template';
 import { generateSepultura, SepulturaData } from './templates/sepultura.template';
 import { generateCondolencia, CondolenciaData } from './templates/condolencia.template';
+import { generateAtestadoObito, AtestadoObitoData } from './templates/atestado-obito.template';
+import { generateAutorizacaoSepultamento, AutorizacaoSepultamentoData } from './templates/autorizacao-sepultamento.template';
+import { generateContratoServico, ContratoServicoData } from './templates/contrato-servico.template';
+import { generateGuiaPagamento, GuiaPagamentoData } from './templates/guia-pagamento.template';
+import { generateDeclaracaoHerdeiros, DeclaracaoHerdeirosData } from './templates/declaracao-herdeiros.template';
 
-export type DocType = 'PRESENCA' | 'PROGRAMA' | 'CREMACAO' | 'TRANSPORTE_DOCS' | 'RELATORIO' | 'SEPULTURA' | 'CONDOLENCIA';
+export type DocType =
+  | 'PRESENCA'
+  | 'PROGRAMA'
+  | 'CREMACAO'
+  | 'TRANSPORTE_DOCS'
+  | 'RELATORIO'
+  | 'SEPULTURA'
+  | 'CONDOLENCIA'
+  | 'ATESTADO_OBITO'
+  | 'AUTORIZACAO_SEPULTAMENTO'
+  | 'CONTRATO_SERVICO'
+  | 'GUIA_PAGAMENTO'
+  | 'DECLARACAO_HERDEIROS';
 
 @Injectable()
 export class DocumentsGeneratorService {
@@ -74,6 +91,29 @@ export class DocumentsGeneratorService {
       case 'CONDOLENCIA':
         doc = generateCondolencia(funeralData, agencyData, extraData as CondolenciaData || { familyName: '' });
         break;
+      case 'ATESTADO_OBITO':
+        doc = generateAtestadoObito(funeralData, agencyData, extraData as AtestadoObitoData || {});
+        break;
+      case 'AUTORIZACAO_SEPULTAMENTO':
+        doc = generateAutorizacaoSepultamento(funeralData, agencyData, extraData as AutorizacaoSepultamentoData || {
+          requesterName: '', requesterId: '', requesterRelation: '',
+        });
+        break;
+      case 'CONTRATO_SERVICO':
+        doc = generateContratoServico(funeralData, agencyData, extraData as ContratoServicoData || {
+          clientName: '', clientId: '', clientAddress: '', clientPhone: '', clientEmail: '', items: [],
+        });
+        break;
+      case 'GUIA_PAGAMENTO':
+        doc = generateGuiaPagamento(funeralData, agencyData, extraData as GuiaPagamentoData || {
+          clientName: '', clientId: '', paymentMethod: '', items: [],
+        });
+        break;
+      case 'DECLARACAO_HERDEIROS':
+        doc = generateDeclaracaoHerdeiros(funeralData, agencyData, extraData as DeclaracaoHerdeirosData || {
+          heirs: [],
+        });
+        break;
       default:
         throw new BadRequestException(`Tipo de documento não suportado: ${type}`);
     }
@@ -92,6 +132,11 @@ export class DocumentsGeneratorService {
       RELATORIO: `Relatorio_Servico_${safe}`,
       SEPULTURA: `Certidao_Sepultura_${safe}`,
       CONDOLENCIA: `Carta_Condolencia_${safe}`,
+      ATESTADO_OBITO: `Atestado_Obito_${safe}`,
+      AUTORIZACAO_SEPULTAMENTO: `Autorizacao_Sepultamento_${safe}`,
+      CONTRATO_SERVICO: `Contrato_Servico_${safe}`,
+      GUIA_PAGAMENTO: `Guia_Pagamento_${safe}`,
+      DECLARACAO_HERDEIROS: `Declaracao_Herdeiros_${safe}`,
     };
     return names[type] || `Documento_${safe}`;
   }

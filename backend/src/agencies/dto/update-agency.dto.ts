@@ -52,10 +52,25 @@ export class UpdateAgencyDto {
   @IsString()
   facebookPageUrl?: string;
 
+  @ApiPropertyOptional({ example: '123456789012345' })
+  @IsOptional()
+  @IsString()
+  facebookPageId?: string;
+
+  @ApiPropertyOptional({ description: 'Page Access Token para publicação via Graph API' })
+  @IsOptional()
+  @IsString()
+  facebookPageAccessToken?: string;
+
   @ApiPropertyOptional({ example: 'https://instagram.com/seu-perfil' })
   @IsOptional()
   @IsString()
   instagramPageUrl?: string;
+
+  @ApiPropertyOptional({ example: '17841400000000000' })
+  @IsOptional()
+  @IsString()
+  instagramBusinessId?: string;
 
   @ApiPropertyOptional({ example: 'https://linkedin.com/company/...' })
   @IsOptional()

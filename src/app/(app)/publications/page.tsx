@@ -396,12 +396,16 @@ export default function PublicationsPage() {
 
               <div>
                 <label className="block text-navy-200 mb-1 font-semibold">Agendar para (opcional)</label>
-                <input
-                  type="datetime-local"
-                  value={form.scheduledFor}
-                  onChange={(e) => setForm({ ...form, scheduledFor: e.target.value })}
-                  className={inputClass}
-                />
+                <div className="relative">
+                  <input
+                    type="datetime-local"
+                    value={form.scheduledFor}
+                    onChange={(e) => setForm({ ...form, scheduledFor: e.target.value })}
+                    className={`${inputClass} pr-10`}
+                    style={{ colorScheme: 'dark' }}
+                  />
+                  <Calendar className="w-4 h-4 text-gold-400 absolute right-3 top-2 pointer-events-none" />
+                </div>
                 {form.scheduledFor && (
                   <p className="text-[10px] text-blue-300 mt-1">
                     A publicação será processada automaticamente na data/hora indicada.
