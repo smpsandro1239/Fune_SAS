@@ -24,6 +24,16 @@ import {
   AquarelaUltraLayout,
   VideoUltraLayout,
 } from './layouts/UltraLayouts';
+import {
+  CruzDouradaLayout,
+  RosaEternaLayout,
+  PombaPazLayout,
+} from './layouts/ProLayoutsA';
+import {
+  HorizonteSerenoLayout,
+  NoiteEstreladaLayout,
+  MemoriaVivaLayout,
+} from './layouts/ProLayoutsB';
 
 interface FlyerCanvasPreviewProps {
   data: FlyerData;
@@ -55,6 +65,18 @@ export default function FlyerCanvasPreview({ data, template, previewRef }: Flyer
       return <AquarelaUltraLayout data={data} previewRef={previewRef} />;
     case 'video-ultra':
       return <VideoUltraLayout data={data} previewRef={previewRef} />;
+    case 'cruz-dourada':
+      return <CruzDouradaLayout data={data} previewRef={previewRef} />;
+    case 'rosa-eterna':
+      return <RosaEternaLayout data={data} previewRef={previewRef} />;
+    case 'pomba-paz':
+      return <PombaPazLayout data={data} previewRef={previewRef} />;
+    case 'horizonte-sereno':
+      return <HorizonteSerenoLayout data={data} previewRef={previewRef} />;
+    case 'noite-estrelada':
+      return <NoiteEstreladaLayout data={data} previewRef={previewRef} />;
+    case 'memoria-viva':
+      return <MemoriaVivaLayout data={data} previewRef={previewRef} />;
     case 'classico-ouro':
       return <ClassicoOuroLayout data={data} previewRef={previewRef} />;
     case 'sereno-minimal':

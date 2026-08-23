@@ -82,7 +82,13 @@ export type FlyerLayoutStyle =
   | 'velas-premium'
   | 'profundidade-3d'
   | 'aquarela-ultra'
-  | 'video-ultra';
+  | 'video-ultra'
+  | 'cruz-dourada'
+  | 'rosa-eterna'
+  | 'pomba-paz'
+  | 'horizonte-sereno'
+  | 'noite-estrelada'
+  | 'memoria-viva';
 
 export interface FlyerTemplateConfig {
   id: string;
