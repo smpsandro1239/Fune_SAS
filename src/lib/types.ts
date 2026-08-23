@@ -88,7 +88,14 @@ export type FlyerLayoutStyle =
   | 'pomba-paz'
   | 'horizonte-sereno'
   | 'noite-estrelada'
-  | 'memoria-viva';
+  | 'memoria-viva'
+  | 'anjo-guardiao'
+  | 'folhas-outono'
+  | 'cristal-azul'
+  | 'aurora-boreal'
+  | 'pergaminho-classico'
+  | 'ondas-serenidade'
+  | 'luz-eterna';
 
 export interface FlyerTemplateConfig {
   id: string;

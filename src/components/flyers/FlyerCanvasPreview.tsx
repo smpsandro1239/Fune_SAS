@@ -34,6 +34,17 @@ import {
   NoiteEstreladaLayout,
   MemoriaVivaLayout,
 } from './layouts/ProLayoutsB';
+import {
+  AnjoGuardiaoLayout,
+  FolhasOutonoLayout,
+  CristalAzulLayout,
+} from './layouts/ProLayoutsC';
+import {
+  AuroraBorealLayout,
+  PergaminhoClassicoLayout,
+  OndasSerenidadeLayout,
+  LuzEternaLayout,
+} from './layouts/ProLayoutsD';
 
 interface FlyerCanvasPreviewProps {
   data: FlyerData;
@@ -77,6 +88,20 @@ export default function FlyerCanvasPreview({ data, template, previewRef }: Flyer
       return <NoiteEstreladaLayout data={data} previewRef={previewRef} />;
     case 'memoria-viva':
       return <MemoriaVivaLayout data={data} previewRef={previewRef} />;
+    case 'anjo-guardiao':
+      return <AnjoGuardiaoLayout data={data} previewRef={previewRef} />;
+    case 'folhas-outono':
+      return <FolhasOutonoLayout data={data} previewRef={previewRef} />;
+    case 'cristal-azul':
+      return <CristalAzulLayout data={data} previewRef={previewRef} />;
+    case 'aurora-boreal':
+      return <AuroraBorealLayout data={data} previewRef={previewRef} />;
+    case 'pergaminho-classico':
+      return <PergaminhoClassicoLayout data={data} previewRef={previewRef} />;
+    case 'ondas-serenidade':
+      return <OndasSerenidadeLayout data={data} previewRef={previewRef} />;
+    case 'luz-eterna':
+      return <LuzEternaLayout data={data} previewRef={previewRef} />;
     case 'classico-ouro':
       return <ClassicoOuroLayout data={data} previewRef={previewRef} />;
     case 'sereno-minimal':
