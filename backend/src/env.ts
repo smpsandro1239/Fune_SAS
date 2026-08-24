@@ -11,7 +11,10 @@ export interface RequiredEnv {
  * Falha imediatamente com uma mensagem clara em vez de rebentar mais tarde
  * com erros crípticos (ex: JWT secret undefined).
  */
-export function validateEnv(logger: { error: (msg: string) => void }): RequiredEnv | never {
+export function validateEnv(logger: {
+  error: (msg: string) => void;
+  log?: (msg: string) => void;
+}): RequiredEnv | never {
   const required: (keyof RequiredEnv)[] = [
     'DATABASE_URL',
     'JWT_ACCESS_SECRET',
@@ -30,6 +33,18 @@ export function validateEnv(logger: { error: (msg: string) => void }): RequiredE
   // Avisos (não bloqueiam): funcionalidades opcionais
   if (!process.env.RESEND_API_KEY) {
     logger.error('RESEND_API_KEY não configurada — emails não serão enviados.');
+  }
+
+  // Storage de uploads: S3-compatível ou disco local
+  const s3Vars = ['S3_BUCKET', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'].filter(
+    (key) => !process.env[key],
+  );
+  if (s3Vars.length === 0) {
+    logger.log?.('Storage S3 ativo — uploads persistentes.');
+  } else if (s3Vars.length === 4) {
+    logger.log?.('S3 não configurado — uploads em disco local (efémero em produção!).');
+  } else {
+    logger.error(`Storage S3 parcialmente configurado — falta: ${s3Vars.join(', ')}.`);
   }
 
   return {

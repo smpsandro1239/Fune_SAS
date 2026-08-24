@@ -1,9 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DocumentType } from '@prisma/client';
+import { extname } from 'path';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/document.dto';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PlanLimitsService } from '../subscriptions/plan-limits.service';
+import { StorageService } from '../storage/storage.service';
 
 export interface DocumentQuery {
   search?: string;
@@ -17,6 +20,7 @@ export class DocumentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly planLimits: PlanLimitsService,
+    private readonly storage: StorageService,
   ) {}
 
   findAll(user: AuthenticatedUser, query: DocumentQuery) {
@@ -61,7 +65,7 @@ export class DocumentsService {
   }
 
   async create(user: AuthenticatedUser, dto: CreateDocumentDto, file: Express.Multer.File) {
-    if (!file) throw new NotFoundException('Ficheiro em falta.');
+    if (!file || !file.buffer) throw new NotFoundException('Ficheiro em falta.');
 
     await this.planLimits.assertCanCreateDocument(user.agencyId);
 
@@ -72,14 +76,18 @@ export class DocumentsService {
       if (!funeral) throw new NotFoundException('Funeral não encontrado.');
     }
 
+    // Nome único e seguro (ignora o nome original do cliente, que pode conter path traversal)
+    const fileName = `${Date.now()}-${randomUUID()}${extname(file.originalname).toLowerCase()}`;
+    await this.storage.save(fileName, file.buffer, file.mimetype);
+
     return this.prisma.document.create({
       data: {
         agencyId: user.agencyId,
         funeralId: dto.funeralId,
         title: dto.title,
         type: dto.type,
-        fileName: file.filename,
-        fileUrl: `/uploads/${file.filename}`,
+        fileName,
+        fileUrl: `/uploads/${fileName}`,
         fileSize: file.size,
         mimeType: file.mimetype,
         uploadedById: user.id,
@@ -93,6 +101,11 @@ export class DocumentsService {
     });
     if (!existing) throw new NotFoundException('Documento não encontrado.');
     await this.prisma.document.delete({ where: { id } });
+
+    // Best-effort: apagar também o ficheiro do storage (não falha se já não existir)
+    if (existing.fileName) {
+      await this.storage.remove(existing.fileName);
+    }
     return { success: true };
   }
 }

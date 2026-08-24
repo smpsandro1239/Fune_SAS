@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { readdir, unlink, stat } from 'fs/promises';
+import { existsSync } from 'fs';
 import { join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService, UPLOADS_DIR } from '../storage/storage.service';
 
-const UPLOADS_DIR = join(process.cwd(), 'uploads');
 /** Idade mínima antes de um ficheiro órfão ser removido (evita apagar uploads em curso) */
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -12,12 +13,18 @@ const MIN_AGE_MS = 24 * 60 * 60 * 1000;
 export class UploadsCleanupService {
   private readonly logger = new Logger(UploadsCleanupService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+  ) {}
 
-  /** Diariamente às 04:00 — remove ficheiros em /uploads sem documento associado */
+  /** Diariamente às 04:00 — remove ficheiros órfãos no disco local */
   @Cron('0 4 * * *')
   async cleanupOrphanUploads() {
+    // Com storage remoto ativo os ficheiros vivem no bucket — nada a limpar em disco
+    if (this.storage.configured) return;
     try {
+      if (!existsSync(UPLOADS_DIR)) return;
       const files = await readdir(UPLOADS_DIR);
       if (files.length === 0) return;
 

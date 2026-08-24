@@ -15,20 +15,17 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentType } from '@prisma/client';
-import { diskStorage } from 'multer';
-import { extname, join, basename } from 'path';
-import { existsSync } from 'fs';
-import { createReadStream } from 'fs';
+import { memoryStorage } from 'multer';
+import { extname } from 'path';
 import type { Response } from 'express';
-import { randomUUID } from 'crypto';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/document.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { StorageService } from '../storage/storage.service';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const UPLOADS_DIR = join(process.cwd(), 'uploads');
 
 /** Extensões permitidas — validadas pelo CONTEÚDO do nome do ficheiro */
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
@@ -46,12 +43,15 @@ const MIME_BY_EXT: Record<string, string> = {
 @UseGuards(RolesGuard)
 @Controller('documents')
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(
+    private readonly documentsService: DocumentsService,
+    private readonly storage: StorageService,
+  ) {}
 
   /**
    * Serve um ficheiro de upload com autenticação.
-   * Substitui o static público /uploads — apenas utilizadores autenticados
-   * da agência dona conseguem aceder.
+   * Lê do storage ativo (S3-compatível ou disco local) — apenas utilizadores
+   * autenticados da agência dona conseguem aceder.
    */
   @Get('file/:filename')
   @ApiOperation({ summary: 'Descarrega um ficheiro de upload (autenticado)' })
@@ -61,7 +61,7 @@ export class DocumentsController {
     @Res() res: Response,
   ) {
     // basename impede path traversal (../../etc/passwd)
-    const safeName = basename(filename);
+    const safeName = filename.split(/[\\/]/).pop()!;
     const ext = extname(safeName).toLowerCase();
 
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
@@ -72,13 +72,17 @@ export class DocumentsController {
     const doc = await this.documentsService.findByFilename(user, safeName);
     if (!doc) throw new NotFoundException('Ficheiro não encontrado.');
 
-    const filePath = join(UPLOADS_DIR, safeName);
-    if (!existsSync(filePath)) throw new NotFoundException('Ficheiro não encontrado.');
-
     res.setHeader('Content-Type', MIME_BY_EXT[ext]);
     res.setHeader('Content-Disposition', `inline; filename="${safeName}"`);
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    createReadStream(filePath).pipe(res);
+
+    if (this.storage.configured || !this.storage.existsLocal(safeName)) {
+      // Storage remoto (ou ficheiro que já não existe em disco local, ex: após redeploy)
+      const buffer = await this.storage.read(safeName);
+      res.end(buffer);
+      return;
+    }
+    this.storage.readLocalStream(safeName).pipe(res);
   }
 
   @Get()
@@ -120,12 +124,8 @@ export class DocumentsController {
   })
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (_req, file, cb) => {
-          cb(null, `${Date.now()}-${randomUUID()}${extname(file.originalname)}`);
-        },
-      }),
+      // Memória (máx. 10MB) — o StorageService decide se grava em S3 ou disco local
+      storage: memoryStorage(),
       limits: { fileSize: MAX_FILE_SIZE },
       fileFilter: (_req, file, cb) => {
         // Validar extensão REAL do ficheiro (não confiar no header Content-Type)
