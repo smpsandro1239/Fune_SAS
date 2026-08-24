@@ -3,6 +3,7 @@ import { DocumentType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/document.dto';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
+import { PlanLimitsService } from '../subscriptions/plan-limits.service';
 
 export interface DocumentQuery {
   search?: string;
@@ -13,7 +14,10 @@ export interface DocumentQuery {
 
 @Injectable()
 export class DocumentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly planLimits: PlanLimitsService,
+  ) {}
 
   findAll(user: AuthenticatedUser, query: DocumentQuery) {
     const from = query.from ? new Date(query.from) : undefined;
@@ -48,6 +52,8 @@ export class DocumentsService {
 
   async create(user: AuthenticatedUser, dto: CreateDocumentDto, file: Express.Multer.File) {
     if (!file) throw new NotFoundException('Ficheiro em falta.');
+
+    await this.planLimits.assertCanCreateDocument(user.agencyId);
 
     if (dto.funeralId) {
       const funeral = await this.prisma.funeral.findFirst({

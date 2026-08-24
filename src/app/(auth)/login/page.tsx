@@ -136,7 +136,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-navy-400">
+          <div className="flex items-center justify-between pt-1 text-[11px]">
+            <Link
+              href="/forgot-password"
+              className="text-navy-400 hover:text-gold-300 font-medium transition-colors"
+            >
+              Esqueceu a palavra-passe?
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-navy-400">
             <Info className="w-3.5 h-3.5 text-gold-500/70" />
             <span>
               Demo: <span className="text-navy-200 font-medium">admin@casahortas.com</span> /{' '}

@@ -1,11 +1,16 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { UserRole, SubscriptionPlan } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
+import { PLAN_LIMITS, PLAN_PRICES_CENTS, PlanLimits } from './plan-limits';
+import { PlanLimitsService } from './plan-limits.service';
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly planLimitsService: PlanLimitsService,
+  ) {}
 
   async getCurrent(user: AuthenticatedUser) {
     return this.prisma.subscription.findFirst({
@@ -27,7 +32,7 @@ export class SubscriptionsService {
       throw new ForbiddenException('Apenas o administrador pode alterar o plano.');
     }
 
-    const priceCents = plan === 'PRO' ? 2900 : plan === 'ENTERPRISE' ? 9900 : 0;
+    const priceCents = PLAN_PRICES_CENTS[plan];
 
     const subscription = await this.prisma.subscription.create({
       data: {
@@ -45,5 +50,40 @@ export class SubscriptionsService {
     });
 
     return subscription;
+  }
+
+  /** Uso atual vs limites do plano efetivo (para a UI de subscrição) */
+  async getUsage(user: AuthenticatedUser) {
+    const effectivePlan = await this.planLimitsService.getEffectivePlan(user.agencyId);
+    const limits = PLAN_LIMITS[effectivePlan];
+
+    const [funerals, users, documents] = await Promise.all([
+      this.prisma.funeral.count({ where: { agencyId: user.agencyId } }),
+      this.prisma.user.count({ where: { agencyId: user.agencyId } }),
+      this.prisma.document.count({ where: { agencyId: user.agencyId } }),
+    ]);
+
+    const latest = await this.getCurrent(user);
+
+    return {
+      plan: effectivePlan,
+      expired: latest ? !!(latest.validUntil && new Date(latest.validUntil).getTime() < Date.now()) : false,
+      validUntil: latest?.validUntil ?? null,
+      usage: { funerals, users, documents },
+      limits: {
+        maxFunerals: limits.maxFunerals,
+        maxUsers: limits.maxUsers,
+        maxDocuments: limits.maxDocuments,
+      },
+      allPlans: Object.fromEntries(
+        Object.entries(PLAN_LIMITS).map(([p, l]) => [
+          p,
+          {
+            priceCents: PLAN_PRICES_CENTS[p as SubscriptionPlan],
+            ...l,
+          } satisfies PlanLimits & { priceCents: number },
+        ]),
+      ),
+    };
   }
 }

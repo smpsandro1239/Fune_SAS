@@ -11,9 +11,24 @@ import {
   AlertCircle,
   Calendar,
   CheckCircle2,
+  TrendingUp,
 } from 'lucide-react';
 import { apiService, apiErrorMessage, SubscriptionPlan, ApiSubscription } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+
+interface UsageInfo {
+  plan: SubscriptionPlan;
+  expired: boolean;
+  validUntil: string | null;
+  usage: { funerals: number; users: number; documents: number };
+  limits: { maxFunerals: number; maxUsers: number; maxDocuments: number };
+}
+
+const USAGE_ROWS: { key: keyof UsageInfo['usage']; label: string; limitKey: keyof UsageInfo['limits'] }[] = [
+  { key: 'funerals', label: 'Funerais', limitKey: 'maxFunerals' },
+  { key: 'users', label: 'Utilizadores', limitKey: 'maxUsers' },
+  { key: 'documents', label: 'Documentos', limitKey: 'maxDocuments' },
+];
 
 const PLAN_META: Record<SubscriptionPlan, { label: string; price: string; icon: React.ReactNode; color: string; features: string[] }> = {
   FREE: {
@@ -21,21 +36,21 @@ const PLAN_META: Record<SubscriptionPlan, { label: string; price: string; icon: 
     price: '€0/mês',
     icon: <Star className="w-5 h-5" />,
     color: 'from-navy-600 to-navy-700',
-    features: ['Até 10 funerais/mês', '3 modelos de flyer básicos', 'Gestão documental', 'Agenda básica'],
+    features: ['Até 10 funerais', '1 utilizador', 'Até 25 documentos', '3 modelos de flyer básicos', 'Agenda básica'],
   },
   PRO: {
     label: 'Pro',
     price: '€29/mês',
     icon: <Crown className="w-5 h-5" />,
     color: 'from-gold-500 to-amber-400',
-    features: ['Funerais ilimitados', 'Todos os modelos de flyer', 'Relatórios analíticos', 'Suporte prioritário', 'Personalização de marca'],
+    features: ['Até 250 funerais', '8 utilizadores', '500 documentos', 'Todos os modelos de flyer', 'Publicação Facebook/Instagram', 'Relatórios analíticos', 'Suporte prioritário'],
   },
   ENTERPRISE: {
     label: 'Enterprise',
     price: '€99/mês',
     icon: <Gem className="w-5 h-5" />,
     color: 'from-purple-500 to-indigo-400',
-    features: ['Multi-agência', 'API completa', 'Modelos ultra exclusivos', 'Manager dedicado', 'SLA garantido', 'Integrações personalizadas'],
+    features: ['Funerais ilimitados', 'Utilizadores ilimitados', 'Documentos ilimitados', 'API completa', 'Modelos ultra exclusivos', 'Manager dedicado', 'SLA garantido', 'Integrações personalizadas'],
   },
 };
 
@@ -44,6 +59,7 @@ const PLAN_ORDER: SubscriptionPlan[] = ['FREE', 'PRO', 'ENTERPRISE'];
 export default function SubscriptionsPage() {
   const { user } = useAuth();
   const [current, setCurrent] = useState<ApiSubscription | null>(null);
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [changing, setChanging] = useState<SubscriptionPlan | null>(null);
@@ -52,8 +68,12 @@ export default function SubscriptionsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await apiService.subscriptions.current();
+        const [data, usageInfo] = await Promise.all([
+          apiService.subscriptions.current(),
+          apiService.subscriptions.usage(),
+        ]);
         setCurrent(data);
+        setUsage(usageInfo);
       } catch (err) {
         setError(apiErrorMessage(err));
       } finally {
@@ -71,6 +91,7 @@ export default function SubscriptionsPage() {
     try {
       const updated = await apiService.subscriptions.changePlan(plan);
       setCurrent(updated);
+      setUsage(usageInfo => usageInfo ? { ...usageInfo, plan } : usageInfo);
       setSuccess(`Plano alterado para ${PLAN_META[plan].label} com sucesso.`);
     } catch (err) {
       setError(apiErrorMessage(err, 'Não foi possível alterar o plano.'));
@@ -129,6 +150,51 @@ export default function SubscriptionsPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Uso vs limites */}
+      {usage && (
+        <div className="bg-navy-900/80 border border-navy-700/60 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-gold-400" />
+              Utilização do Plano
+            </h2>
+            {usage.expired && (
+              <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-300 text-[10px] font-bold">
+                SUBSCRIÇÃO EXPIRADA — LIMITES FREE ATIVOS
+              </span>
+            )}
+          </div>
+          <div className="space-y-3">
+            {USAGE_ROWS.map(({ key, label, limitKey }) => {
+              const used = usage.usage[key];
+              const max = usage.limits[limitKey];
+              const pct = max < 0 ? 0 : Math.min(100, Math.round((used / max) * 100));
+              const nearLimit = max >= 0 && pct >= 80;
+              return (
+                <div key={key} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-navy-200 font-semibold">{label}</span>
+                    <span className={nearLimit ? 'text-amber-300 font-bold' : 'text-navy-300'}>
+                      {used} / {max < 0 ? '∞' : max}
+                    </span>
+                  </div>
+                  {max >= 0 && (
+                    <div className="h-2 rounded-full bg-navy-800 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          pct >= 100 ? 'bg-red-400' : nearLimit ? 'bg-amber-400' : 'bg-gradient-to-r from-gold-500 to-amber-400'
+                        }`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -326,6 +326,10 @@ export const apiService = {
       api.patch<ApiUser>('/auth/me', data).then((r) => r.data),
     changePassword: (currentPassword: string, newPassword: string) =>
       api.post<{ success: boolean }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.data),
+    forgotPassword: (email: string) =>
+      api.post<{ message: string }>('/auth/forgot-password', { email }).then((r) => r.data),
+    resetPassword: (token: string, newPassword: string) =>
+      api.post<{ message: string }>('/auth/reset-password', { token, newPassword }).then((r) => r.data),
   },
 
   agencies: {
@@ -409,6 +413,14 @@ export const apiService = {
       api.get<ApiSubscription>('/subscriptions/current').then((r) => r.data),
     history: () =>
       api.get<ApiSubscription[]>('/subscriptions/history').then((r) => r.data),
+    usage: () =>
+      api.get<{
+        plan: SubscriptionPlan;
+        expired: boolean;
+        validUntil: string | null;
+        usage: { funerals: number; users: number; documents: number };
+        limits: { maxFunerals: number; maxUsers: number; maxDocuments: number };
+      }>('/subscriptions/usage').then((r) => r.data),
     changePlan: (plan: SubscriptionPlan) =>
       api.post<ApiSubscription>('/subscriptions/change-plan', { plan }).then((r) => r.data),
   },

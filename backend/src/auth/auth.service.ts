@@ -9,6 +9,7 @@ import { User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import {
   ForgotPasswordDto,
   LoginDto,
@@ -33,6 +34,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto): Promise<TokenPair> {
@@ -157,10 +159,18 @@ export class AuthService {
       },
     });
 
-    // O token nunca é devolvido na resposta — é entregue por email.
-    // Em desenvolvimento fica visível nos logs do servidor.
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[DEV] Reset token para ${dto.email}: ${rawToken}`);
+    // O token nunca é devolvido na resposta — é enviado por email.
+    const appUrl = process.env.APP_URL || 'https://fune-sas.vercel.app';
+    const resetUrl = `${appUrl}/reset-password?token=${rawToken}`;
+
+    const { sent } = await this.emailService.sendPasswordResetEmail(user.email, resetUrl);
+
+    if (!sent) {
+      // Sem serviço de email configurado (ou falha): em desenvolvimento
+      // o token fica visível nos logs do servidor para testes locais.
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[DEV] Reset URL para ${dto.email}: ${resetUrl}`);
+      }
     }
 
     return {

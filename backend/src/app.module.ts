@@ -3,6 +3,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
+import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { AgenciesModule } from './agencies/agencies.module';
 import { UsersModule } from './users/users.module';
@@ -32,6 +33,7 @@ import { SocialModule } from './social/social.module';
       },
     ]),
     PrismaModule,
+    EmailModule,
     ScheduleModule.forRoot(),
     AuthModule,
     AgenciesModule,

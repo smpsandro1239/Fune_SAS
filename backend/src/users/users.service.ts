@@ -9,10 +9,14 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
+import { PlanLimitsService } from '../subscriptions/plan-limits.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly planLimits: PlanLimitsService,
+  ) {}
 
   async findAll(user: AuthenticatedUser) {
     return this.prisma.user.findMany({
@@ -42,6 +46,8 @@ export class UsersService {
     if (user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Apenas o administrador pode criar utilizadores.');
     }
+
+    await this.planLimits.assertCanCreateUser(user.agencyId);
 
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email.toLowerCase() } });
     if (existing) throw new BadRequestException('Já existe um utilizador com este email.');

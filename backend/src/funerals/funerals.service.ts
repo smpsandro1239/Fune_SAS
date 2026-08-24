@@ -3,6 +3,7 @@ import { FuneralStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFuneralDto, UpdateFuneralDto } from './dto/funeral.dto';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
+import { PlanLimitsService } from '../subscriptions/plan-limits.service';
 
 export interface FuneralQuery {
   search?: string;
@@ -13,7 +14,10 @@ export interface FuneralQuery {
 
 @Injectable()
 export class FuneralsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly planLimits: PlanLimitsService,
+  ) {}
 
   findAll(user: AuthenticatedUser, query: FuneralQuery) {
     const from = query.from ? new Date(query.from) : undefined;
@@ -48,6 +52,8 @@ export class FuneralsService {
   }
 
   async create(user: AuthenticatedUser, dto: CreateFuneralDto) {
+    await this.planLimits.assertCanCreateFuneral(user.agencyId);
+
     const deceased = await this.prisma.deceased.findFirst({
       where: { id: dto.deceasedId, agencyId: user.agencyId },
     });

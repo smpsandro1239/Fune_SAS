@@ -28,6 +28,12 @@ export class SubscriptionsController {
     return this.subscriptionsService.getHistory(user);
   }
 
+  @Get('usage')
+  @ApiOperation({ summary: 'Uso atual vs limites do plano efetivo' })
+  getUsage(@CurrentUser() user: AuthenticatedUser) {
+    return this.subscriptionsService.getUsage(user);
+  }
+
   @Post('change-plan')
   @ApiOperation({ summary: 'Altera o plano da agência (apenas ADMIN)' })
   changePlan(@CurrentUser() user: AuthenticatedUser, @Body() dto: ChangePlanDto) {
