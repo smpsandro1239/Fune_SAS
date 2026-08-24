@@ -176,6 +176,9 @@ model Deceased {
   funerals     Funeral[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  @@index([agencyId])
+  @@index([fullName])
 }
 
 model Funeral {
@@ -200,6 +203,9 @@ model Funeral {
   publications       Publication[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
+
+  @@index([agencyId, funeralDate])
+  @@index([agencyId, status])
 }
 
 model Document {
@@ -216,6 +222,9 @@ model Document {
   mimeType        String
   uploadedById    String?
   createdAt       DateTime   @default(now())
+
+  @@index([agencyId, createdAt])
+  @@index([fileName])
 }
 
 model FlyerTemplate {
@@ -245,6 +254,8 @@ model Subscription {
   validUntil DateTime?
   startedAt  DateTime           @default(now())
   createdAt  DateTime           @default(now())
+
+  @@index([agencyId, createdAt])
 }
 
 model Notification {
@@ -268,6 +279,8 @@ model Condolence {
   message   String
   approved  Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  @@index([funeralId, approved, createdAt])
 }
 
 model FlyerDraft {

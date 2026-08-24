@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
+import { validateEnv } from './env';
 
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://fune-sas.vercel.app',
@@ -24,6 +25,10 @@ function getAllowedOrigins(): string[] {
 }
 
 async function bootstrap() {
+  // Falha imediatamente se faltar alguma env obrigatória
+  const bootLogger = new Logger('Env');
+  validateEnv(bootLogger);
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('Bootstrap');
 
