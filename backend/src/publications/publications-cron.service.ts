@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SocialService } from '../social/social.service';
 
@@ -7,7 +7,10 @@ export class PublicationsCronService {
   private readonly logger = new Logger(PublicationsCronService.name);
   private running = false;
 
-  constructor(private readonly socialService: SocialService) {}
+  constructor(
+    @Inject(forwardRef(() => SocialService))
+    private readonly socialService: SocialService,
+  ) {}
 
   /**
    * Processa publicações agendadas a cada minuto.

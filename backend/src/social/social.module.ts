@@ -7,5 +7,6 @@ import { PublicationsModule } from '../publications/publications.module';
   imports: [forwardRef(() => PublicationsModule)],
   controllers: [SocialController],
   providers: [SocialService],
+  exports: [SocialService],
 })
 export class SocialModule {}
