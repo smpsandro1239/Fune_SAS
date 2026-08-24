@@ -36,6 +36,9 @@ export interface ApiAgency {
   twitterUrl?: string | null;
   youtubeUrl?: string | null;
   tiktokUrl?: string | null;
+  autoPublish?: boolean | null;
+  publishDefaultMsg?: string | null;
+  condolenceModeration?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +65,22 @@ export interface ApiDeceased {
   photoUrl?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ApiCondolence {
+  id: string;
+  funeralId: string;
+  authorName: string;
+  message: string;
+  approved: boolean;
+  createdAt: string;
+}
+
+export interface ApiCondolenceWithFuneral extends ApiCondolence {
+  funeral?: {
+    id: string;
+    deceased: { fullName: string };
+  } | null;
 }
 
 export interface ApiDocument {
@@ -322,6 +341,23 @@ export const apiService = {
     update: (id: string, data: Record<string, unknown>) =>
       api.patch<ApiFuneral>(`/funerals/${id}`, data).then((r) => r.data),
     remove: (id: string) => api.delete<{ success: boolean }>(`/funerals/${id}`).then((r) => r.data),
+  },
+
+  condolences: {
+    queue: (approved?: boolean) =>
+      api.get<ApiCondolenceWithFuneral[]>('/funerals/condolences/queue', {
+        params: approved === undefined ? {} : { approved },
+      }).then((r) => r.data),
+    list: (funeralId: string, approved?: boolean) =>
+      api.get<ApiCondolence[]>(`/funerals/${funeralId}/condolences`, {
+        params: approved === undefined ? {} : { approved },
+      }).then((r) => r.data),
+    approve: (funeralId: string, id: string) =>
+      api.patch<ApiCondolence>(`/funerals/${funeralId}/condolences/${id}/approve`).then((r) => r.data),
+    reject: (funeralId: string, id: string) =>
+      api.patch<ApiCondolence>(`/funerals/${funeralId}/condolences/${id}/reject`).then((r) => r.data),
+    remove: (funeralId: string, id: string) =>
+      api.delete<{ success: boolean }>(`/funerals/${funeralId}/condolences/${id}`).then((r) => r.data),
   },
 
   deceased: {

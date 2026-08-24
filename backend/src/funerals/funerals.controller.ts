@@ -35,6 +35,19 @@ export class FuneralsController {
     return this.funeralsService.historyByAgency(user);
   }
 
+  // --- Moderação de condolências ---
+
+  @Get('condolences/queue')
+  @ApiOperation({ summary: 'Fila de moderação de condolências da agência' })
+  @ApiQuery({ name: 'approved', required: false, description: 'Filtra por estado de aprovação (true/false)' })
+  condolencesQueue(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('approved') approved?: string,
+  ) {
+    const approvedFilter = approved === 'true' ? true : approved === 'false' ? false : undefined;
+    return this.funeralsService.condolencesQueue(user, approvedFilter);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Detalhe de um funeral com documentos' })
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
@@ -57,5 +70,49 @@ export class FuneralsController {
   @ApiOperation({ summary: 'Remove um funeral' })
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.funeralsService.remove(user, id);
+  }
+
+  // --- Moderação de condolências ---
+
+  @Get(':id/condolences')
+  @ApiOperation({ summary: 'Lista as condolências de um funeral (inclui pendentes de aprovação)' })
+  @ApiQuery({ name: 'approved', required: false, description: 'Filtra por estado de aprovação (true/false)' })
+  listCondolences(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Query('approved') approved?: string,
+  ) {
+    const approvedFilter = approved === 'true' ? true : approved === 'false' ? false : undefined;
+    return this.funeralsService.listCondolences(user, id, approvedFilter);
+  }
+
+  @Patch(':id/condolences/:condolenceId/approve')
+  @ApiOperation({ summary: 'Aprova uma condolência' })
+  approveCondolence(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Param('condolenceId') condolenceId: string,
+  ) {
+    return this.funeralsService.setCondolenceApproval(user, id, condolenceId, true);
+  }
+
+  @Patch(':id/condolences/:condolenceId/reject')
+  @ApiOperation({ summary: 'Esconde uma condolência (rejeita)' })
+  rejectCondolence(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Param('condolenceId') condolenceId: string,
+  ) {
+    return this.funeralsService.setCondolenceApproval(user, id, condolenceId, false);
+  }
+
+  @Delete(':id/condolences/:condolenceId')
+  @ApiOperation({ summary: 'Remove definitivamente uma condolência' })
+  removeCondolence(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Param('condolenceId') condolenceId: string,
+  ) {
+    return this.funeralsService.removeCondolence(user, id, condolenceId);
   }
 }

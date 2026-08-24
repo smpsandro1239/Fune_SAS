@@ -31,6 +31,8 @@ import {
 import { useAgency } from '@/context/AgencyContext';
 import { useAuth } from '@/context/AuthContext';
 import { ApiUser, UserRole, apiErrorMessage, apiService } from '@/lib/api';
+import Link from 'next/link';
+import { MessageSquareHeart } from 'lucide-react';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: 'Administrador',
@@ -87,6 +89,28 @@ export default function AgenciesPage() {
   const [socialForm, setSocialForm] = useState<Record<string, string>>({});
 
   const isAdmin = sessionUser?.role === 'ADMIN';
+  const [moderationBusy, setModerationBusy] = useState(false);
+
+  const handleToggleModeration = async () => {
+    if (!currentAgency) return;
+    setModerationBusy(true);
+    setError('');
+    try {
+      await apiService.agencies.update({
+        condolenceModeration: !currentAgency.condolenceModeration,
+      } as Partial<typeof currentAgency>);
+      await reloadAgency();
+      setSuccess(
+        !currentAgency.condolenceModeration
+          ? 'Moderação de condolências ativada.'
+          : 'Moderação de condolências desativada.',
+      );
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Não foi possível alterar a moderação.'));
+    } finally {
+      setModerationBusy(false);
+    }
+  };
 
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
@@ -443,6 +467,53 @@ export default function AgenciesPage() {
           </>
         )}
       </div>
+
+      {/* Moderação de Condolências */}
+      {isAdmin && (
+        <div className="p-6 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-3 shadow-xl">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <MessageSquareHeart className="w-4 h-4 text-gold-400" />
+                Moderação de Condolências
+              </h3>
+              <p className="text-xs text-navy-300 mt-1 max-w-xl">
+                Quando ativo, as mensagens do livro de condolências público só ficam visíveis
+                depois de aprovadas na página{' '}
+                <Link href="/condolences" className="text-gold-400 hover:text-gold-300 font-semibold">
+                  Moderação de Condolências
+                </Link>
+                .
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!!currentAgency?.condolenceModeration}
+              disabled={moderationBusy}
+              onClick={handleToggleModeration}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${
+                currentAgency?.condolenceModeration ? 'bg-gold-500' : 'bg-navy-700'
+              }`}
+            >
+              {moderationBusy ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-navy-950 mx-auto" />
+              ) : (
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    currentAgency?.condolenceModeration ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              )}
+            </button>
+          </div>
+          <p className={`text-[10px] font-semibold ${currentAgency?.condolenceModeration ? 'text-emerald-300' : 'text-navy-400'}`}>
+            {currentAgency?.condolenceModeration
+              ? 'Ativo — novas condolências ficam pendentes até aprovação.'
+              : 'Inativo — as condolências são publicadas imediatamente.'}
+          </p>
+        </div>
+      )}
 
       {/* Lista de utilizadores */}
       <div className="bg-navy-900/80 border border-navy-800 rounded-2xl overflow-hidden shadow-xl">

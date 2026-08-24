@@ -98,4 +98,63 @@ export class FuneralsService {
       take: 50,
     });
   }
+
+  /** Fila de moderação: todas as condolências da agência com dados do funeral */
+  async condolencesQueue(user: AuthenticatedUser, approved?: boolean) {
+    return this.prisma.condolence.findMany({
+      where: {
+        funeral: { agencyId: user.agencyId },
+        ...(approved === undefined ? {} : { approved }),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: {
+        funeral: { select: { id: true, deceased: { select: { fullName: true } } } },
+      },
+    });
+  }
+
+  /** Lista de condolências de um funeral (moderação — inclui pendentes) */
+  async listCondolences(user: AuthenticatedUser, funeralId: string, approved?: boolean) {
+    await this.assertFuneralInAgency(user, funeralId);
+    return this.prisma.condolence.findMany({
+      where: { funeralId, ...(approved === undefined ? {} : { approved }) },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /** Aprova ou rejeita uma condolência */
+  async setCondolenceApproval(
+    user: AuthenticatedUser,
+    funeralId: string,
+    condolenceId: string,
+    approved: boolean,
+  ) {
+    await this.assertFuneralInAgency(user, funeralId);
+    const condolence = await this.prisma.condolence.findFirst({
+      where: { id: condolenceId, funeralId },
+    });
+    if (!condolence) throw new NotFoundException('Condolência não encontrada.');
+    return this.prisma.condolence.update({
+      where: { id: condolenceId },
+      data: { approved },
+    });
+  }
+
+  async removeCondolence(user: AuthenticatedUser, funeralId: string, condolenceId: string) {
+    await this.assertFuneralInAgency(user, funeralId);
+    const condolence = await this.prisma.condolence.findFirst({
+      where: { id: condolenceId, funeralId },
+    });
+    if (!condolence) throw new NotFoundException('Condolência não encontrada.');
+    await this.prisma.condolence.delete({ where: { id: condolenceId } });
+    return { success: true };
+  }
+
+  private async assertFuneralInAgency(user: AuthenticatedUser, funeralId: string) {
+    const funeral = await this.prisma.funeral.findFirst({
+      where: { id: funeralId, agencyId: user.agencyId },
+    });
+    if (!funeral) throw new NotFoundException('Funeral não encontrado.');
+  }
 }

@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class UpdateAgencyDto {
   @ApiPropertyOptional({ example: 'Funerária Casa Hortas, Lda' })
@@ -91,4 +91,11 @@ export class UpdateAgencyDto {
   @IsOptional()
   @IsString()
   tiktokUrl?: string;
+
+  @ApiPropertyOptional({
+    description: 'Quando ativo, as condolências públicas exigem aprovação antes de ficarem visíveis',
+  })
+  @IsOptional()
+  @IsBoolean()
+  condolenceModeration?: boolean;
 }

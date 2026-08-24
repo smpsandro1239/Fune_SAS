@@ -96,8 +96,10 @@ export default function PublicObituaryPage() {
 
   const [authorName, setAuthorName] = useState('');
   const [condolenceText, setCondolenceText] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
@@ -124,24 +126,42 @@ export default function PublicObituaryPage() {
     setSubmitting(true);
     setSubmitError('');
     try {
-      const { data: newCondolence } = await axios.post(
+      const { data: result } = await axios.post(
         `${API_BASE}/public/${agencySlug}/${funeralId}/condolences`,
-        { authorName: authorName.trim(), message: condolenceText.trim() },
+        {
+          authorName: authorName.trim(),
+          message: condolenceText.trim(),
+          ...(honeypot ? { website: honeypot } : {}),
+        },
       );
-      setData((prev) =>
-        prev
-          ? {
-              ...prev,
-              funeral: {
-                ...prev.funeral,
-                condolences: [newCondolence, ...prev.funeral.condolences],
-              },
-            }
-          : prev,
-      );
+      // Com moderação ativa a mensagem não aparece de imediato
+      if (result?.moderated) {
+        setSubmitted(false);
+      } else {
+        setData((prev) =>
+          prev
+            ? {
+                ...prev,
+                funeral: {
+                  ...prev.funeral,
+                  condolences: [
+                    {
+                      id: `local-${Date.now()}`,
+                      authorName: authorName.trim(),
+                      message: condolenceText.trim(),
+                      createdAt: new Date().toISOString(),
+                    },
+                    ...prev.funeral.condolences,
+                  ],
+                },
+              }
+            : prev,
+        );
+        setSubmitted(true);
+      }
+      setSubmitMessage(result?.message || 'Condolência registada.');
       setCondolenceText('');
       setAuthorName('');
-      setSubmitted(true);
       setTimeout(() => setSubmitted(false), 4000);
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.message) {
@@ -307,6 +327,19 @@ export default function PublicObituaryPage() {
               required
               maxLength={1000}
             />
+            {/* Honeypot anti-spam — invisível para humanos */}
+            <div aria-hidden="true" className="absolute opacity-0 pointer-events-none h-0 w-0 overflow-hidden">
+              <label htmlFor="website">Website</label>
+              <input
+                id="website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
             {submitError && (
               <p className="text-xs text-red-400 flex items-center gap-1">
                 <AlertCircle className="w-3.5 h-3.5" /> {submitError}
@@ -324,7 +357,7 @@ export default function PublicObituaryPage() {
 
           {submitted && (
             <p className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" /> A sua mensagem foi adicionada ao livro de condolências.
+              <CheckCircle2 className="w-4 h-4" /> {submitMessage || 'A sua mensagem foi adicionada ao livro de condolências.'}
             </p>
           )}
 

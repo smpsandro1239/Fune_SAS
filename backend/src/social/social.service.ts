@@ -217,19 +217,25 @@ export class SocialService {
 
   async processScheduled() {
     const pending = await this.publicationsService.getScheduledForCron();
+    let success = 0;
+    let failed = 0;
     for (const pub of pending) {
       try {
         if (pub.platform === 'FACEBOOK') {
-          await this.publishToFacebook(pub.agencyId, pub.id);
+          const result = await this.publishToFacebook(pub.agencyId, pub.id);
+          result.success ? success++ : failed++;
         } else if (pub.platform === 'INSTAGRAM') {
-          await this.publishToInstagram(pub.agencyId, pub.id);
+          const result = await this.publishToInstagram(pub.agencyId, pub.id);
+          result.success ? success++ : failed++;
         } else {
           await this.publicationsService.markPublished(pub.id, `manual_${Date.now()}`);
+          success++;
         }
       } catch (err) {
         await this.publicationsService.markFailed(pub.id, String(err));
+        failed++;
       }
     }
-    return { processed: pending.length };
+    return { processed: pending.length, success, failed };
   }
 }
