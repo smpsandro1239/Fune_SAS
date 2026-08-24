@@ -41,6 +41,16 @@ jobs:
           JWT_ACCESS_SECRET: ci-test-secret-access
           JWT_REFRESH_SECRET: ci-test-secret-refresh
 
+      - name: Tests E2E (contra base de dados real)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL não configurado nos segredos do repositório — E2E ignorado."
+            exit 0
+          fi
+          npx jest --config ./test/jest-e2e.json --ci --runInBand
+
   frontend:
     name: Frontend — typecheck & build
     runs-on: ubuntu-latest
