@@ -112,7 +112,8 @@ export default function AgendaPage() {
   }, [cursor]);
 
   const monthLabel = cursor.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
-  const today = new Date();
+  // useMemo para não recriar a data em cada render (estabiliza as deps do useMemo seguinte)
+  const today = useMemo(() => new Date(), []);
   const upcoming = useMemo(
     () =>
       funerals
