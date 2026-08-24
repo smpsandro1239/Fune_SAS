@@ -1,5 +1,6 @@
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { ChangePasswordDto, ForgotPasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto, UpdateProfileDto } from './dto/auth.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -12,6 +13,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('register')
   @ApiOperation({ summary: 'Regista uma nova agência com o primeiro utilizador administrador' })
   @ApiResponse({ status: 201, description: 'Agência e utilizador criados, tokens devolvidos.' })
@@ -20,6 +22,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post('login')
   @ApiOperation({ summary: 'Autentica um utilizador e devolve access/refresh tokens' })
   @ApiResponse({ status: 200, description: 'Tokens de acesso e atualização.' })
@@ -36,13 +39,15 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 300_000, limit: 3 } })
   @Post('forgot-password')
-  @ApiOperation({ summary: 'Inicia a recuperação de password (token devolvido para desenvolvimento)' })
+  @ApiOperation({ summary: 'Inicia a recuperação de password (token enviado por email)' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }
 
   @Public()
+  @Throttle({ default: { ttl: 300_000, limit: 5 } })
   @Post('reset-password')
   @ApiOperation({ summary: 'Define uma nova password usando o token de recuperação' })
   resetPassword(@Body() dto: ResetPasswordDto) {

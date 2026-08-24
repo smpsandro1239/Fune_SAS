@@ -4,9 +4,11 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -14,7 +16,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentType } from '@prisma/client';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join, basename } from 'path';
+import { existsSync } from 'fs';
+import { createReadStream } from 'fs';
+import type { Response } from 'express';
 import { randomUUID } from 'crypto';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/document.dto';
@@ -23,12 +28,58 @@ import { AuthenticatedUser } from '../common/types/authenticated-user';
 import { RolesGuard } from '../common/guards/roles.guard';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const UPLOADS_DIR = join(process.cwd(), 'uploads');
+
+/** Extensões permitidas — validadas pelo CONTEÚDO do nome do ficheiro */
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+
+/** Mimetype por extensão (fonte de verdade é a extensão, não o header do cliente) */
+const MIME_BY_EXT: Record<string, string> = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.pdf': 'application/pdf',
+};
 
 @ApiTags('Documentos')
 @UseGuards(RolesGuard)
 @Controller('documents')
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
+
+  /**
+   * Serve um ficheiro de upload com autenticação.
+   * Substitui o static público /uploads — apenas utilizadores autenticados
+   * da agência dona conseguem aceder.
+   */
+  @Get('file/:filename')
+  @ApiOperation({ summary: 'Descarrega um ficheiro de upload (autenticado)' })
+  async serveFile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('filename') filename: string,
+    @Res() res: Response,
+  ) {
+    // basename impede path traversal (../../etc/passwd)
+    const safeName = basename(filename);
+    const ext = extname(safeName).toLowerCase();
+
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      throw new NotFoundException('Ficheiro não encontrado.');
+    }
+
+    // Verificar que o ficheiro pertence a um documento da agência
+    const doc = await this.documentsService.findByFilename(user, safeName);
+    if (!doc) throw new NotFoundException('Ficheiro não encontrado.');
+
+    const filePath = join(UPLOADS_DIR, safeName);
+    if (!existsSync(filePath)) throw new NotFoundException('Ficheiro não encontrado.');
+
+    res.setHeader('Content-Type', MIME_BY_EXT[ext]);
+    res.setHeader('Content-Disposition', `inline; filename="${safeName}"`);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    createReadStream(filePath).pipe(res);
+  }
 
   @Get()
   @ApiOperation({ summary: 'Lista os documentos da própria agência com pesquisa' })
@@ -77,8 +128,14 @@ export class DocumentsController {
       }),
       limits: { fileSize: MAX_FILE_SIZE },
       fileFilter: (_req, file, cb) => {
-        const allowed = /jpeg|jpg|png|webp|pdf/.test(file.mimetype);
-        cb(allowed ? null : new Error('Formato não suportado. Use JPG, PNG, WebP ou PDF.'), allowed);
+        // Validar extensão REAL do ficheiro (não confiar no header Content-Type)
+        const ext = extname(file.originalname).toLowerCase();
+        const extOk = ALLOWED_EXTENSIONS.includes(ext);
+        const mimeOk = /jpeg|jpg|png|webp|pdf/.test(file.mimetype);
+        cb(
+          extOk && mimeOk ? null : new Error('Formato não suportado. Use JPG, PNG, WebP ou PDF.'),
+          extOk && mimeOk,
+        );
       },
     }),
   )

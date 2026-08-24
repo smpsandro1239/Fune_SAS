@@ -22,8 +22,8 @@ import {
   DocumentType,
   apiErrorMessage,
   apiService,
+  fetchFileBlobUrl,
   formatBytes,
-  resolveFileUrl,
 } from '@/lib/api';
 
 const TYPE_LABELS: Record<DocumentType, string> = {
@@ -48,13 +48,24 @@ export default function DocumentDetailPage() {
   const [error, setError] = useState('');
   const [showDelete, setShowDelete] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [blobUrl, setBlobUrl] = useState('');
 
   useEffect(() => {
     let cancelled = false;
     apiService.documents
       .get(params.id)
       .then((doc) => {
-        if (!cancelled) setDocument(doc);
+        if (cancelled) return;
+        setDocument(doc);
+        if (doc?.fileUrl) {
+          fetchFileBlobUrl(doc.fileUrl)
+            .then((url) => {
+              if (!cancelled) setBlobUrl(url);
+            })
+            .catch(() => {
+              /* pré-visualização fica vazia; download continua disponível via blob */
+            });
+        }
       })
       .catch((err) => {
         if (!cancelled) setError(apiErrorMessage(err, 'Documento não encontrado.'));
@@ -103,7 +114,6 @@ export default function DocumentDetailPage() {
   }
 
   const isPdf = document.mimeType === 'application/pdf';
-  const fileUrl = resolveFileUrl(document.fileUrl);
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -128,10 +138,10 @@ export default function DocumentDetailPage() {
 
         <div className="flex items-center space-x-2">
           <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow-lg transition-all hover:brightness-110"
+            href={blobUrl || undefined}
+            download={document.fileName}
+            aria-disabled={!blobUrl}
+            className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow-lg transition-all hover:brightness-110 ${blobUrl ? '' : 'opacity-60 pointer-events-none'}`}
           >
             <Download className="w-4 h-4" />
             <span>Descarregar</span>
@@ -195,15 +205,21 @@ export default function DocumentDetailPage() {
           <FileText className="w-4 h-4 text-gold-400" />
           Pré-visualização
         </h2>
-        {isPdf ? (
-          <iframe src={fileUrl} title={document.title} className="w-full h-[600px] rounded-xl border border-navy-700 bg-white" />
+        {blobUrl ? (
+          isPdf ? (
+            <iframe src={blobUrl} title={document.title} className="w-full h-[600px] rounded-xl border border-navy-700 bg-white" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={blobUrl}
+              alt={document.title}
+              className="max-h-[600px] mx-auto rounded-xl border border-navy-700 object-contain bg-navy-950"
+            />
+          )
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={fileUrl}
-            alt={document.title}
-            className="max-h-[600px] mx-auto rounded-xl border border-navy-700 object-contain bg-navy-950"
-          />
+          <div className="flex items-center justify-center h-[200px] rounded-xl border border-navy-700 bg-navy-950">
+            <Loader2 className="w-6 h-6 animate-spin text-gold-400" />
+          </div>
         )}
       </div>
 

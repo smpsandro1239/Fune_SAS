@@ -33,7 +33,9 @@ export class SocialService {
       return { success: false, error: 'Token de acesso do Facebook não configurado. Obtenha um Page Access Token no Meta for Developers.' };
     }
 
-    const pub = await this.prisma.publication.findUnique({ where: { id: publicationId } });
+    const pub = await this.prisma.publication.findFirst({
+      where: { id: publicationId, agencyId },
+    });
     if (!pub) return { success: false, error: 'Publicação não encontrada.' };
 
     try {
@@ -65,13 +67,12 @@ export class SocialService {
         };
         if (pub.imageUrl) body.link = pub.imageUrl;
         if (pub.funeralId) {
-          const funeral = await this.prisma.funeral.findUnique({
-            where: { id: pub.funeralId },
+          const funeral = await this.prisma.funeral.findFirst({
+            where: { id: pub.funeralId, agencyId },
           });
           if (funeral) {
-            const agencyFull = await this.prisma.agency.findUnique({ where: { id: agencyId } });
-            if (agencyFull?.slug) {
-              body.link = `https://fune-sas.vercel.app/public/${agencyFull.slug}/${funeral.id}`;
+            if (agency.slug) {
+              body.link = `https://fune-sas.vercel.app/public/${agency.slug}/${funeral.id}`;
             }
           }
         }
@@ -110,7 +111,9 @@ export class SocialService {
       return { success: false, error: 'Token de acesso do Facebook/Instagram não configurado.' };
     }
 
-    const pub = await this.prisma.publication.findUnique({ where: { id: publicationId } });
+    const pub = await this.prisma.publication.findFirst({
+      where: { id: publicationId, agencyId },
+    });
     if (!pub) return { success: false, error: 'Publicação não encontrada.' };
 
     if (!pub.imageUrl && !pub.imageBase64) {
@@ -118,7 +121,7 @@ export class SocialService {
     }
 
     try {
-      const imageUrl = pub.imageUrl || await this.uploadTempImage(pub.imageBase64!);
+      const imageUrl = pub.imageUrl || await this.uploadTempImage(agencyId, pub.imageBase64!);
 
       // Passo 1: criar media container
       const containerRes = await fetch(
@@ -162,15 +165,12 @@ export class SocialService {
 
   /**
    * Upload de imagem base64 para hospedagem temporária pública.
-   * O Instagram exige image_url público — usa o endpoint de photos do Facebook como host.
+   * O Instagram exige image_url público — usa a PRÓPRIA agência (não de outra) como host.
    */
-  private async uploadTempImage(base64Data: string): Promise<string> {
-    const agency = await this.prisma.agency.findFirst({
-      where: { facebookPageAccessToken: { not: null } },
-      orderBy: { createdAt: 'asc' },
-    });
+  private async uploadTempImage(agencyId: string, base64Data: string): Promise<string> {
+    const agency = await this.prisma.agency.findUnique({ where: { id: agencyId } });
     if (!agency?.facebookPageId || !agency.facebookPageAccessToken) {
-      throw new Error('Não foi possível hospedar a imagem: configure o Facebook primeiro.');
+      throw new Error('Não foi possível hospedar a imagem: configure o Facebook da sua agência primeiro.');
     }
 
     const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');

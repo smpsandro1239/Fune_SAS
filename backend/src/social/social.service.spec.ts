@@ -7,8 +7,8 @@ describe('SocialService', () => {
   let service: SocialService;
   let prisma: {
     agency: { findUnique: jest.Mock; findFirst: jest.Mock };
-    publication: { findUnique: jest.Mock };
-    funeral: { findUnique: jest.Mock };
+    publication: { findFirst: jest.Mock };
+    funeral: { findFirst: jest.Mock };
   };
   let publicationsService: {
     markPublished: jest.Mock;
@@ -27,8 +27,8 @@ describe('SocialService', () => {
   beforeEach(async () => {
     prisma = {
       agency: { findUnique: jest.fn(), findFirst: jest.fn() },
-      publication: { findUnique: jest.fn() },
-      funeral: { findUnique: jest.fn() },
+      publication: { findFirst: jest.fn() },
+      funeral: { findFirst: jest.fn() },
     };
     publicationsService = {
       markPublished: jest.fn().mockResolvedValue({}),
@@ -76,7 +76,7 @@ describe('SocialService', () => {
 
     it('should return error if publication not found', async () => {
       prisma.agency.findUnique.mockResolvedValue(fullAgency);
-      prisma.publication.findUnique.mockResolvedValue(null);
+      prisma.publication.findFirst.mockResolvedValue(null);
 
       const result = await service.publishToFacebook('agency-1', 'nonexistent');
       expect(result.success).toBe(false);
@@ -85,7 +85,7 @@ describe('SocialService', () => {
 
     it('should publish successfully via Graph API', async () => {
       prisma.agency.findUnique.mockResolvedValue(fullAgency);
-      prisma.publication.findUnique.mockResolvedValue({
+      prisma.publication.findFirst.mockResolvedValue({
         id: 'pub-1', title: 'Teste', caption: 'Legenda', imageBase64: null, imageUrl: null, funeralId: null,
       });
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -105,7 +105,7 @@ describe('SocialService', () => {
 
     it('should mark failed when Graph API returns error', async () => {
       prisma.agency.findUnique.mockResolvedValue(fullAgency);
-      prisma.publication.findUnique.mockResolvedValue({
+      prisma.publication.findFirst.mockResolvedValue({
         id: 'pub-1', title: 'Teste', caption: 'x', imageBase64: null, imageUrl: null, funeralId: null,
       });
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -134,7 +134,7 @@ describe('SocialService', () => {
         ...fullAgency,
         instagramBusinessId: '17841400000000000',
       });
-      prisma.publication.findUnique.mockResolvedValue({
+      prisma.publication.findFirst.mockResolvedValue({
         id: 'pub-1', title: 'Teste', caption: 'x', imageBase64: null, imageUrl: null,
       });
 
@@ -147,7 +147,7 @@ describe('SocialService', () => {
       prisma.agency.findUnique
         .mockResolvedValueOnce({ ...fullAgency, instagramBusinessId: '17841400000000000' })
         .mockResolvedValueOnce({ ...fullAgency, instagramBusinessId: '17841400000000000' });
-      prisma.publication.findUnique.mockResolvedValue({
+      prisma.publication.findFirst.mockResolvedValue({
         id: 'pub-1', title: 'Teste', caption: 'x', imageBase64: null,
         imageUrl: 'https://example.com/flyer.png', funeralId: null,
       });

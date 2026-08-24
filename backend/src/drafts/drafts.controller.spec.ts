@@ -59,7 +59,7 @@ describe('DraftsController', () => {
       const body = { name: 'Novo Rascunho', layoutStyle: 'elegante-minimal', data: { title: 'Teste' } };
       mockDraftsService.create.mockResolvedValue({ id: 'new-id', ...body });
 
-      const result = await controller.create(body, { user: { agencyId: 'agency-1', sub: 'user-1' } });
+      const result = await controller.create(body, { user: { agencyId: 'agency-1', id: 'user-1' } });
 
       expect(result).toHaveProperty('id', 'new-id');
       expect(mockDraftsService.create).toHaveBeenCalledWith(body, 'agency-1', 'user-1');

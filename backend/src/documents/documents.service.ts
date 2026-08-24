@@ -40,6 +40,12 @@ export class DocumentsService {
     return document;
   }
 
+  async findByFilename(user: AuthenticatedUser, filename: string) {
+    return this.prisma.document.findFirst({
+      where: { fileName: filename, agencyId: user.agencyId },
+    });
+  }
+
   async create(user: AuthenticatedUser, dto: CreateDocumentDto, file: Express.Multer.File) {
     if (!file) throw new NotFoundException('Ficheiro em falta.');
 

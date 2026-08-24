@@ -17,7 +17,7 @@ export class DraftsController {
 
   @Post()
   create(@Body() body: { name: string; layoutStyle: string; data: any }, @Request() req: any) {
-    return this.draftsService.create(body, req.user.agencyId, req.user.sub);
+    return this.draftsService.create(body, req.user.agencyId, req.user.id);
   }
 
   @Put(':id')

@@ -203,7 +203,24 @@ export function clearTokens() {
 export function resolveFileUrl(fileUrl?: string | null): string {
   if (!fileUrl) return '';
   if (fileUrl.startsWith('http')) return fileUrl;
+  // Uploads deixaram de ser estáticos: /uploads/X é servido por /documents/file/X (autenticado)
+  const uploadsMatch = fileUrl.match(/^\/uploads\/(.+)$/);
+  if (uploadsMatch) return `${API_ORIGIN}/documents/file/${uploadsMatch[1]}`;
   return `${API_ORIGIN}${fileUrl}`;
+}
+
+/**
+ * Descarrega um ficheiro de upload com autenticação e devolve um object URL
+ * utilizável em <iframe>/<img>/<a> (que não conseguem enviar headers Bearer).
+ */
+export async function fetchFileBlobUrl(fileUrl: string): Promise<string> {
+  const token = getAccessToken();
+  const res = await fetch(resolveFileUrl(fileUrl), {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!res.ok) throw new Error('Não foi possível carregar o ficheiro.');
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
 }
 
 export function formatBytes(bytes: number): string {

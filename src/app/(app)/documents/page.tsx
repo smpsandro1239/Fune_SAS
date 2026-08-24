@@ -24,8 +24,8 @@ import {
   DocumentType,
   apiErrorMessage,
   apiService,
+  fetchFileBlobUrl,
   formatBytes,
-  resolveFileUrl,
 } from '@/lib/api';
 
 const TYPE_LABELS: Record<DocumentType, string> = {
@@ -71,6 +71,22 @@ export default function DocumentsPage() {
 
   const [deleting, setDeleting] = useState<ApiDocument | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+
+  const handleDownload = async (doc: ApiDocument) => {
+    try {
+      const url = await fetchFileBlobUrl(doc.fileUrl);
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = doc.fileName;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      window.document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      setError('Não foi possível descarregar o ficheiro.');
+    }
+  };
 
   const loadDocuments = useCallback(async (search?: string, docType?: DocumentType | 'ALL') => {
     setLoading(true);
@@ -316,15 +332,13 @@ export default function DocumentsPage() {
                 </div>
 
                 <div className="flex items-center space-x-1.5 shrink-0 ml-2">
-                  <a
-                    href={resolveFileUrl(doc.fileUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => handleDownload(doc)}
                     className="p-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-gold-400 hover:text-gold-300 border border-navy-700"
                     title="Descarregar / Ver"
                   >
                     <Download className="w-4 h-4" />
-                  </a>
+                  </button>
                   <button
                     onClick={() => setDeleting(doc)}
                     className="p-2 rounded-lg bg-navy-800 hover:bg-red-500/20 text-navy-300 hover:text-red-300 border border-navy-700"

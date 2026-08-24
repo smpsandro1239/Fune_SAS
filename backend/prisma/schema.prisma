@@ -115,6 +115,7 @@ model Agency {
   // Configuração de publicação
   autoPublish      Boolean          @default(false)
   publishDefaultMsg String?
+  condolenceModeration Boolean      @default(false)
 
   users            User[]
   deceaseds        Deceased[]
@@ -265,6 +266,7 @@ model Condolence {
   funeral   Funeral  @relation(fields: [funeralId], references: [id], onDelete: Cascade)
   authorName String
   message   String
+  approved  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
 

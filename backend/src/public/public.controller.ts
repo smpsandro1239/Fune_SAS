@@ -1,5 +1,6 @@
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../common/decorators/public.decorator';
 import { PublicService } from './public.service';
 import { CreateCondolenceDto } from './dto/condolence.dto';
@@ -21,6 +22,7 @@ export class PublicController {
     return this.publicService.getFuneralBySlug(agencySlug, funeralId);
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post(':agencySlug/:funeralId/condolences')
   @ApiOperation({ summary: 'Adiciona uma mensagem de condolências ao livro digital' })
   @ApiResponse({ status: 201, description: 'Condolência registada.' })

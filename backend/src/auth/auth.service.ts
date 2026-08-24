@@ -157,9 +157,14 @@ export class AuthService {
       },
     });
 
+    // O token nunca é devolvido na resposta — é entregue por email.
+    // Em desenvolvimento fica visível nos logs do servidor.
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV] Reset token para ${dto.email}: ${rawToken}`);
+    }
+
     return {
       message: 'Se o email existir, receberá um link de recuperação.',
-      token: rawToken,
     };
   }
 
@@ -227,7 +232,11 @@ export class AuthService {
     if (!valid) throw new BadRequestException('A password atual está incorreta.');
 
     const passwordHash = await bcrypt.hash(dto.newPassword, 10);
-    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+      // Revoga todas as sessões ativas — tokens roubados deixam de valer
+      this.prisma.refreshToken.deleteMany({ where: { userId } }),
+    ]);
     return { success: true };
   }
 
