@@ -1,5 +1,16 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, formatDate, addBox, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addField,
+  formatDate,
+  addBox,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface TransporteData {
   origin: string;
@@ -9,7 +20,11 @@ export interface TransporteData {
   driverName: string;
 }
 
-export function generateTransporte(funeral: FuneralData, agency: AgencyData, extra: TransporteData): jsPDF {
+export function generateTransporte(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: TransporteData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'GUIA DE TRANSPORTE DE CADÁVER', y);

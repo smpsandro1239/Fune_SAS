@@ -21,7 +21,11 @@ export class DraftsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: { name?: string; layoutStyle?: string; data?: any }, @Request() req: any) {
+  update(
+    @Param('id') id: string,
+    @Body() body: { name?: string; layoutStyle?: string; data?: any },
+    @Request() req: any,
+  ) {
     return this.draftsService.update(id, body, req.user.agencyId);
   }
 

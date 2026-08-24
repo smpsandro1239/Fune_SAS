@@ -93,13 +93,17 @@ export class UpdateAgencyDto {
   tiktokUrl?: string;
 
   @ApiPropertyOptional({
-    description: 'Quando ativo, as condolências públicas exigem aprovação antes de ficarem visíveis',
+    description:
+      'Quando ativo, as condolências públicas exigem aprovação antes de ficarem visíveis',
   })
   @IsOptional()
   @IsBoolean()
   condolenceModeration?: boolean;
 
-  @ApiPropertyOptional({ example: '123456789012345', description: 'WhatsApp Business Phone Number ID' })
+  @ApiPropertyOptional({
+    example: '123456789012345',
+    description: 'WhatsApp Business Phone Number ID',
+  })
   @IsOptional()
   @IsString()
   whatsappPhoneNumberId?: string;
@@ -109,7 +113,10 @@ export class UpdateAgencyDto {
   @IsString()
   whatsappAccessToken?: string;
 
-  @ApiPropertyOptional({ example: '351912345678', description: 'Número que recebe as notificações WhatsApp' })
+  @ApiPropertyOptional({
+    example: '351912345678',
+    description: 'Número que recebe as notificações WhatsApp',
+  })
   @IsOptional()
   @IsString()
   whatsappNotifyNumber?: string;

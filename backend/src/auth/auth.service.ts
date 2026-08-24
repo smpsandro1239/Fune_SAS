@@ -232,7 +232,15 @@ export class AuthService {
     const updated = await this.prisma.user.update({
       where: { id: userId },
       data,
-      select: { id: true, agencyId: true, name: true, email: true, role: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        agencyId: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return updated;
   }

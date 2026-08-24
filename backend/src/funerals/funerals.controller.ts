@@ -1,5 +1,15 @@
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { FuneralStatus } from '@prisma/client';
 import { FuneralsService } from './funerals.service';
 import { CreateFuneralDto, UpdateFuneralDto } from './dto/funeral.dto';
@@ -39,11 +49,12 @@ export class FuneralsController {
 
   @Get('condolences/queue')
   @ApiOperation({ summary: 'Fila de moderação de condolências da agência' })
-  @ApiQuery({ name: 'approved', required: false, description: 'Filtra por estado de aprovação (true/false)' })
-  condolencesQueue(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query('approved') approved?: string,
-  ) {
+  @ApiQuery({
+    name: 'approved',
+    required: false,
+    description: 'Filtra por estado de aprovação (true/false)',
+  })
+  condolencesQueue(@CurrentUser() user: AuthenticatedUser, @Query('approved') approved?: string) {
     const approvedFilter = approved === 'true' ? true : approved === 'false' ? false : undefined;
     return this.funeralsService.condolencesQueue(user, approvedFilter);
   }
@@ -62,7 +73,11 @@ export class FuneralsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualiza um funeral' })
-  update(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateFuneralDto) {
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateFuneralDto,
+  ) {
     return this.funeralsService.update(user, id, dto);
   }
 
@@ -76,7 +91,11 @@ export class FuneralsController {
 
   @Get(':id/condolences')
   @ApiOperation({ summary: 'Lista as condolências de um funeral (inclui pendentes de aprovação)' })
-  @ApiQuery({ name: 'approved', required: false, description: 'Filtra por estado de aprovação (true/false)' })
+  @ApiQuery({
+    name: 'approved',
+    required: false,
+    description: 'Filtra por estado de aprovação (true/false)',
+  })
   listCondolences(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,

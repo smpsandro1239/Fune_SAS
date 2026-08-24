@@ -1,5 +1,16 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate, addParagraph, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addField,
+  addSignatureLine,
+  formatDate,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface AutorizacaoSepultamentoData {
   requesterName: string;
@@ -7,7 +18,11 @@ export interface AutorizacaoSepultamentoData {
   requesterRelation: string;
 }
 
-export function generateAutorizacaoSepultamento(funeral: FuneralData, agency: AgencyData, extra: AutorizacaoSepultamentoData): jsPDF {
+export function generateAutorizacaoSepultamento(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: AutorizacaoSepultamentoData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'AUTORIZAÇÃO DE SEPULTAMENTO', y);
@@ -45,7 +60,11 @@ export function generateAutorizacaoSepultamento(funeral: FuneralData, agency: Ag
   y = addField(doc, 'Contacto', agency.phone || '___', 30, y);
   y += 8;
 
-  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = new Date().toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 65, 80);

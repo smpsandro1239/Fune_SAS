@@ -11,13 +11,15 @@ export class DeceasedService {
     return this.prisma.deceased.findMany({
       where: {
         agencyId: user.agencyId,
-        ...(search
-          ? { fullName: { contains: search, mode: 'insensitive' } }
-          : {}),
+        ...(search ? { fullName: { contains: search, mode: 'insensitive' } } : {}),
       },
       include: {
         _count: { select: { funerals: true } },
-        funerals: { select: { id: true, funeralDate: true, status: true }, orderBy: { funeralDate: 'desc' }, take: 1 },
+        funerals: {
+          select: { id: true, funeralDate: true, status: true },
+          orderBy: { funeralDate: 'desc' },
+          take: 1,
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -39,13 +41,17 @@ export class DeceasedService {
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateDeceasedDto) {
-    const existing = await this.prisma.deceased.findFirst({ where: { id, agencyId: user.agencyId } });
+    const existing = await this.prisma.deceased.findFirst({
+      where: { id, agencyId: user.agencyId },
+    });
     if (!existing) throw new NotFoundException('Falecido não encontrado.');
     return this.prisma.deceased.update({ where: { id }, data: dto });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    const existing = await this.prisma.deceased.findFirst({ where: { id, agencyId: user.agencyId } });
+    const existing = await this.prisma.deceased.findFirst({
+      where: { id, agencyId: user.agencyId },
+    });
     if (!existing) throw new NotFoundException('Falecido não encontrado.');
     await this.prisma.deceased.delete({ where: { id } });
     return { success: true };

@@ -16,9 +16,16 @@ export class PublicService {
     const agency = await this.prisma.agency.findUnique({
       where: { slug: agencySlug },
       select: {
-        id: true, name: true, slug: true, phone: true,
-        email: true, address: true, location: true, website: true,
-        logoUrl: true, foundedYear: true,
+        id: true,
+        name: true,
+        slug: true,
+        phone: true,
+        email: true,
+        address: true,
+        location: true,
+        website: true,
+        logoUrl: true,
+        foundedYear: true,
       },
     });
     if (!agency) throw new NotFoundException('Agência não encontrada.');
@@ -70,8 +77,10 @@ export class PublicService {
     const agencyFull = await this.prisma.agency.findUnique({
       where: { slug: agencySlug },
       select: {
-        id: true, condolenceModeration: true,
-        name: true, email: true,
+        id: true,
+        condolenceModeration: true,
+        name: true,
+        email: true,
         whatsappNotifyNumber: true,
         whatsappPhoneNumberId: true,
         whatsappAccessToken: true,
@@ -104,7 +113,12 @@ export class PublicService {
     });
 
     // Notificar a agência (não-bloqueante para o visitante)
-    await this.notifyNewCondolence(agencyFull, funeral.id, condolence.authorName, condolence.message);
+    await this.notifyNewCondolence(
+      agencyFull,
+      funeral.id,
+      condolence.authorName,
+      condolence.message,
+    );
 
     return {
       success: true,

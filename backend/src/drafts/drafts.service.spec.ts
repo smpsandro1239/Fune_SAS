@@ -5,7 +5,15 @@ import { NotFoundException } from '@nestjs/common';
 
 describe('DraftsService', () => {
   let service: DraftsService;
-  let prisma: { flyerDraft: { findMany: jest.Mock; findFirst: jest.Mock; create: jest.Mock; update: jest.Mock; delete: jest.Mock } };
+  let prisma: {
+    flyerDraft: {
+      findMany: jest.Mock;
+      findFirst: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+      delete: jest.Mock;
+    };
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -19,10 +27,7 @@ describe('DraftsService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DraftsService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [DraftsService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<DraftsService>(DraftsService);

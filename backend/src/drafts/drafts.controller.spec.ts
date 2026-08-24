@@ -4,7 +4,6 @@ import { DraftsService } from './drafts.service';
 
 describe('DraftsController', () => {
   let controller: DraftsController;
-  let service: DraftsService;
 
   const mockDraftsService = {
     findAll: jest.fn(),
@@ -21,7 +20,6 @@ describe('DraftsController', () => {
     }).compile();
 
     controller = module.get<DraftsController>(DraftsController);
-    service = module.get<DraftsService>(DraftsService);
   });
 
   it('should be defined', () => {
@@ -31,7 +29,13 @@ describe('DraftsController', () => {
   describe('findAll', () => {
     it('should return drafts for the agency', async () => {
       const mockDrafts = [
-        { id: '1', name: 'Teste', layoutStyle: 'elegante-minimal', createdAt: new Date(), updatedAt: new Date() },
+        {
+          id: '1',
+          name: 'Teste',
+          layoutStyle: 'elegante-minimal',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       ];
       mockDraftsService.findAll.mockResolvedValue(mockDrafts);
 
@@ -56,10 +60,16 @@ describe('DraftsController', () => {
 
   describe('create', () => {
     it('should create a new draft', async () => {
-      const body = { name: 'Novo Rascunho', layoutStyle: 'elegante-minimal', data: { title: 'Teste' } };
+      const body = {
+        name: 'Novo Rascunho',
+        layoutStyle: 'elegante-minimal',
+        data: { title: 'Teste' },
+      };
       mockDraftsService.create.mockResolvedValue({ id: 'new-id', ...body });
 
-      const result = await controller.create(body, { user: { agencyId: 'agency-1', id: 'user-1' } });
+      const result = await controller.create(body, {
+        user: { agencyId: 'agency-1', id: 'user-1' },
+      });
 
       expect(result).toHaveProperty('id', 'new-id');
       expect(mockDraftsService.create).toHaveBeenCalledWith(body, 'agency-1', 'user-1');

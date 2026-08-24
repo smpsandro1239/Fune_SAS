@@ -27,10 +27,16 @@ export class DocumentsService {
       where: {
         agencyId: user.agencyId,
         ...(query.type ? { type: query.type } : {}),
-        ...(from || to ? { createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } } : {}),
+        ...(from || to
+          ? { createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
+          : {}),
         ...(query.search ? { title: { contains: query.search, mode: 'insensitive' } } : {}),
       },
-      include: { funeral: { select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } } } },
+      include: {
+        funeral: {
+          select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -38,7 +44,11 @@ export class DocumentsService {
   async findOne(user: AuthenticatedUser, id: string) {
     const document = await this.prisma.document.findFirst({
       where: { id, agencyId: user.agencyId },
-      include: { funeral: { select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } } } },
+      include: {
+        funeral: {
+          select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } },
+        },
+      },
     });
     if (!document) throw new NotFoundException('Documento não encontrado.');
     return document;

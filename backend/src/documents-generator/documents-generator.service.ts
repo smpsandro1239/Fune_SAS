@@ -8,10 +8,19 @@ import { generateRelatorio, RelatorioData } from './templates/relatorio.template
 import { generateSepultura, SepulturaData } from './templates/sepultura.template';
 import { generateCondolencia, CondolenciaData } from './templates/condolencia.template';
 import { generateAtestadoObito, AtestadoObitoData } from './templates/atestado-obito.template';
-import { generateAutorizacaoSepultamento, AutorizacaoSepultamentoData } from './templates/autorizacao-sepultamento.template';
-import { generateContratoServico, ContratoServicoData } from './templates/contrato-servico.template';
+import {
+  generateAutorizacaoSepultamento,
+  AutorizacaoSepultamentoData,
+} from './templates/autorizacao-sepultamento.template';
+import {
+  generateContratoServico,
+  ContratoServicoData,
+} from './templates/contrato-servico.template';
 import { generateGuiaPagamento, GuiaPagamentoData } from './templates/guia-pagamento.template';
-import { generateDeclaracaoHerdeiros, DeclaracaoHerdeirosData } from './templates/declaracao-herdeiros.template';
+import {
+  generateDeclaracaoHerdeiros,
+  DeclaracaoHerdeirosData,
+} from './templates/declaracao-herdeiros.template';
 
 export type DocType =
   | 'PRESENCA'
@@ -31,7 +40,12 @@ export type DocType =
 export class DocumentsGeneratorService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async generate(agencyId: string, funeralId: string, type: DocType, extraData?: Record<string, any>): Promise<Buffer> {
+  async generate(
+    agencyId: string,
+    funeralId: string,
+    type: DocType,
+    extraData?: Record<string, any>,
+  ): Promise<Buffer> {
     const funeral = await this.prisma.funeral.findFirst({
       where: { id: funeralId, agencyId },
       include: { deceased: true },
@@ -71,48 +85,109 @@ export class DocumentsGeneratorService {
 
     switch (type) {
       case 'PRESENCA':
-        doc = generatePresenca(funeralData, agencyData, extraData as PresencaData || { presentName: '', presentRelation: '' });
+        doc = generatePresenca(
+          funeralData,
+          agencyData,
+          (extraData as PresencaData) || { presentName: '', presentRelation: '' },
+        );
         break;
       case 'PROGRAMA':
-        doc = generatePrograma(funeralData, agencyData, extraData as ProgramaData || {});
+        doc = generatePrograma(funeralData, agencyData, (extraData as ProgramaData) || {});
         break;
       case 'CREMACAO':
-        doc = generateCremacao(funeralData, agencyData, extraData as CremacaoData || { requesterName: '', requesterId: '', requesterRelation: '', requesterAddress: '' });
+        doc = generateCremacao(
+          funeralData,
+          agencyData,
+          (extraData as CremacaoData) || {
+            requesterName: '',
+            requesterId: '',
+            requesterRelation: '',
+            requesterAddress: '',
+          },
+        );
         break;
       case 'TRANSPORTE_DOCS':
-        doc = generateTransporte(funeralData, agencyData, extraData as TransporteData || { origin: '', destination: '', vehicleType: '', vehiclePlate: '', driverName: '' });
+        doc = generateTransporte(
+          funeralData,
+          agencyData,
+          (extraData as TransporteData) || {
+            origin: '',
+            destination: '',
+            vehicleType: '',
+            vehiclePlate: '',
+            driverName: '',
+          },
+        );
         break;
       case 'RELATORIO':
-        doc = generateRelatorio(funeralData, agencyData, extraData as RelatorioData || { clientName: '', items: [] });
+        doc = generateRelatorio(
+          funeralData,
+          agencyData,
+          (extraData as RelatorioData) || { clientName: '', items: [] },
+        );
         break;
       case 'SEPULTURA':
-        doc = generateSepultura(funeralData, agencyData, extraData as SepulturaData || {});
+        doc = generateSepultura(funeralData, agencyData, (extraData as SepulturaData) || {});
         break;
       case 'CONDOLENCIA':
-        doc = generateCondolencia(funeralData, agencyData, extraData as CondolenciaData || { familyName: '' });
+        doc = generateCondolencia(
+          funeralData,
+          agencyData,
+          (extraData as CondolenciaData) || { familyName: '' },
+        );
         break;
       case 'ATESTADO_OBITO':
-        doc = generateAtestadoObito(funeralData, agencyData, extraData as AtestadoObitoData || {});
+        doc = generateAtestadoObito(
+          funeralData,
+          agencyData,
+          (extraData as AtestadoObitoData) || {},
+        );
         break;
       case 'AUTORIZACAO_SEPULTAMENTO':
-        doc = generateAutorizacaoSepultamento(funeralData, agencyData, extraData as AutorizacaoSepultamentoData || {
-          requesterName: '', requesterId: '', requesterRelation: '',
-        });
+        doc = generateAutorizacaoSepultamento(
+          funeralData,
+          agencyData,
+          (extraData as AutorizacaoSepultamentoData) || {
+            requesterName: '',
+            requesterId: '',
+            requesterRelation: '',
+          },
+        );
         break;
       case 'CONTRATO_SERVICO':
-        doc = generateContratoServico(funeralData, agencyData, extraData as ContratoServicoData || {
-          clientName: '', clientId: '', clientAddress: '', clientPhone: '', clientEmail: '', items: [],
-        });
+        doc = generateContratoServico(
+          funeralData,
+          agencyData,
+          (extraData as ContratoServicoData) || {
+            clientName: '',
+            clientId: '',
+            clientAddress: '',
+            clientPhone: '',
+            clientEmail: '',
+            items: [],
+          },
+        );
         break;
       case 'GUIA_PAGAMENTO':
-        doc = generateGuiaPagamento(funeralData, agencyData, extraData as GuiaPagamentoData || {
-          clientName: '', clientId: '', paymentMethod: '', items: [],
-        });
+        doc = generateGuiaPagamento(
+          funeralData,
+          agencyData,
+          (extraData as GuiaPagamentoData) || {
+            clientName: '',
+            clientId: '',
+            paymentMethod: '',
+            items: [],
+          },
+        );
         break;
       case 'DECLARACAO_HERDEIROS':
-        doc = generateDeclaracaoHerdeiros(funeralData, agencyData, extraData as DeclaracaoHerdeirosData || {
-          heirs: [],
-        });
+        doc = generateDeclaracaoHerdeiros(
+          funeralData,
+          agencyData,
+          (extraData as DeclaracaoHerdeirosData) || {
+            heirs: [],
+          },
+        );
         break;
       default:
         throw new BadRequestException(`Tipo de documento não suportado: ${type}`);

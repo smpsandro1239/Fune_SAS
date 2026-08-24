@@ -131,7 +131,13 @@ export function addSignatureLine(doc: jsPDF, label: string, y: number, x: number
   return y + 14;
 }
 
-export function addParagraph(doc: jsPDF, text: string, x: number, y: number, maxWidth: number = 160): number {
+export function addParagraph(
+  doc: jsPDF,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number = 160,
+): number {
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);

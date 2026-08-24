@@ -86,7 +86,12 @@ describe('SocialService', () => {
     it('should publish successfully via Graph API', async () => {
       prisma.agency.findUnique.mockResolvedValue(fullAgency);
       prisma.publication.findFirst.mockResolvedValue({
-        id: 'pub-1', title: 'Teste', caption: 'Legenda', imageBase64: null, imageUrl: null, funeralId: null,
+        id: 'pub-1',
+        title: 'Teste',
+        caption: 'Legenda',
+        imageBase64: null,
+        imageUrl: null,
+        funeralId: null,
       });
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -106,7 +111,12 @@ describe('SocialService', () => {
     it('should mark failed when Graph API returns error', async () => {
       prisma.agency.findUnique.mockResolvedValue(fullAgency);
       prisma.publication.findFirst.mockResolvedValue({
-        id: 'pub-1', title: 'Teste', caption: 'x', imageBase64: null, imageUrl: null, funeralId: null,
+        id: 'pub-1',
+        title: 'Teste',
+        caption: 'x',
+        imageBase64: null,
+        imageUrl: null,
+        funeralId: null,
       });
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
@@ -135,7 +145,11 @@ describe('SocialService', () => {
         instagramBusinessId: '17841400000000000',
       });
       prisma.publication.findFirst.mockResolvedValue({
-        id: 'pub-1', title: 'Teste', caption: 'x', imageBase64: null, imageUrl: null,
+        id: 'pub-1',
+        title: 'Teste',
+        caption: 'x',
+        imageBase64: null,
+        imageUrl: null,
       });
 
       const result = await service.publishToInstagram('agency-1', 'pub-1');
@@ -148,8 +162,12 @@ describe('SocialService', () => {
         .mockResolvedValueOnce({ ...fullAgency, instagramBusinessId: '17841400000000000' })
         .mockResolvedValueOnce({ ...fullAgency, instagramBusinessId: '17841400000000000' });
       prisma.publication.findFirst.mockResolvedValue({
-        id: 'pub-1', title: 'Teste', caption: 'x', imageBase64: null,
-        imageUrl: 'https://example.com/flyer.png', funeralId: null,
+        id: 'pub-1',
+        title: 'Teste',
+        caption: 'x',
+        imageBase64: null,
+        imageUrl: 'https://example.com/flyer.png',
+        funeralId: null,
       });
       (global.fetch as jest.Mock)
         .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'container-1' }) })
@@ -173,7 +191,9 @@ describe('SocialService', () => {
         instagramAccount: null,
         instagramPageUrl: null,
         linkedinUrl: 'https://linkedin.com/test',
-        twitterUrl: null, youtubeUrl: null, tiktokUrl: null,
+        twitterUrl: null,
+        youtubeUrl: null,
+        tiktokUrl: null,
       });
 
       const result = await service.getSocialStatus('agency-1');
@@ -212,7 +232,10 @@ describe('SocialService', () => {
 
       const result = await service.processScheduled();
       expect(result.processed).toBe(1);
-      expect(publicationsService.markPublished).toHaveBeenCalledWith('pub-2', expect.stringMatching(/^manual_/));
+      expect(publicationsService.markPublished).toHaveBeenCalledWith(
+        'pub-2',
+        expect.stringMatching(/^manual_/),
+      );
     });
   });
 });

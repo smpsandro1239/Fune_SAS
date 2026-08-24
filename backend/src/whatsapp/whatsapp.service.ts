@@ -19,14 +19,19 @@ export class WhatsAppService {
    * Envia mensagem via WhatsApp Cloud API (Meta) usando as credenciais da agência.
    * Nunca lança — falhas são registadas e devolvidas como { sent: false }.
    */
-  async sendForAgency(agencyId: string, { to, message }: SendWhatsAppOptions): Promise<{ sent: boolean }> {
+  async sendForAgency(
+    agencyId: string,
+    { to, message }: SendWhatsAppOptions,
+  ): Promise<{ sent: boolean }> {
     const agency = await this.prisma.agency.findUnique({
       where: { id: agencyId },
       select: { whatsappPhoneNumberId: true, whatsappAccessToken: true },
     });
 
     if (!agency?.whatsappPhoneNumberId || !agency.whatsappAccessToken) {
-      this.logger.warn(`WhatsApp não configurado para a agência ${agencyId} — mensagem não enviada.`);
+      this.logger.warn(
+        `WhatsApp não configurado para a agência ${agencyId} — mensagem não enviada.`,
+      );
       return { sent: false };
     }
 
@@ -39,20 +44,23 @@ export class WhatsAppService {
     { to, message }: SendWhatsAppOptions,
   ): Promise<{ sent: boolean }> {
     try {
-      const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+      const res = await fetch(
+        `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to,
+            type: 'text',
+            text: { preview_url: false, body: message },
+          }),
         },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to,
-          type: 'text',
-          text: { preview_url: false, body: message },
-        }),
-      });
+      );
 
       if (!res.ok) {
         const body = await res.text().catch(() => '');

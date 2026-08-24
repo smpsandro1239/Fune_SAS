@@ -27,10 +27,17 @@ export class SocialService {
   async publishToFacebook(agencyId: string, publicationId: string): Promise<PublishResult> {
     const agency = await this.prisma.agency.findUnique({ where: { id: agencyId } });
     if (!agency?.facebookPageId) {
-      return { success: false, error: 'Facebook Page não configurada. Defina o ID da página nas configurações.' };
+      return {
+        success: false,
+        error: 'Facebook Page não configurada. Defina o ID da página nas configurações.',
+      };
     }
     if (!agency.facebookPageAccessToken) {
-      return { success: false, error: 'Token de acesso do Facebook não configurado. Obtenha um Page Access Token no Meta for Developers.' };
+      return {
+        success: false,
+        error:
+          'Token de acesso do Facebook não configurado. Obtenha um Page Access Token no Meta for Developers.',
+      };
     }
 
     const pub = await this.prisma.publication.findFirst({
@@ -105,7 +112,10 @@ export class SocialService {
   async publishToInstagram(agencyId: string, publicationId: string): Promise<PublishResult> {
     const agency = await this.prisma.agency.findUnique({ where: { id: agencyId } });
     if (!agency?.instagramBusinessId) {
-      return { success: false, error: 'Instagram Business não configurado. Defina o IG User ID nas configurações.' };
+      return {
+        success: false,
+        error: 'Instagram Business não configurado. Defina o IG User ID nas configurações.',
+      };
     }
     if (!agency.facebookPageAccessToken) {
       return { success: false, error: 'Token de acesso do Facebook/Instagram não configurado.' };
@@ -117,11 +127,14 @@ export class SocialService {
     if (!pub) return { success: false, error: 'Publicação não encontrada.' };
 
     if (!pub.imageUrl && !pub.imageBase64) {
-      return { success: false, error: 'O Instagram exige uma imagem. Adicione uma imagem (ex: flyer PNG) à publicação.' };
+      return {
+        success: false,
+        error: 'O Instagram exige uma imagem. Adicione uma imagem (ex: flyer PNG) à publicação.',
+      };
     }
 
     try {
-      const imageUrl = pub.imageUrl || await this.uploadTempImage(agencyId, pub.imageBase64!);
+      const imageUrl = pub.imageUrl || (await this.uploadTempImage(agencyId, pub.imageBase64!));
 
       // Passo 1: criar media container
       const containerRes = await fetch(
@@ -137,7 +150,8 @@ export class SocialService {
         },
       );
       const containerData = await containerRes.json();
-      if (!containerRes.ok) throw new Error(containerData?.error?.message || `HTTP ${containerRes.status}`);
+      if (!containerRes.ok)
+        throw new Error(containerData?.error?.message || `HTTP ${containerRes.status}`);
 
       // Passo 2: publicar container
       const publishRes = await fetch(
@@ -152,7 +166,8 @@ export class SocialService {
         },
       );
       const publishData = await publishRes.json();
-      if (!publishRes.ok) throw new Error(publishData?.error?.message || `HTTP ${publishRes.status}`);
+      if (!publishRes.ok)
+        throw new Error(publishData?.error?.message || `HTTP ${publishRes.status}`);
 
       await this.publicationsService.markPublished(publicationId, publishData.id);
       return { success: true, postId: publishData.id };
@@ -170,7 +185,9 @@ export class SocialService {
   private async uploadTempImage(agencyId: string, base64Data: string): Promise<string> {
     const agency = await this.prisma.agency.findUnique({ where: { id: agencyId } });
     if (!agency?.facebookPageId || !agency.facebookPageAccessToken) {
-      throw new Error('Não foi possível hospedar a imagem: configure o Facebook da sua agência primeiro.');
+      throw new Error(
+        'Não foi possível hospedar a imagem: configure o Facebook da sua agência primeiro.',
+      );
     }
 
     const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
@@ -223,10 +240,12 @@ export class SocialService {
       try {
         if (pub.platform === 'FACEBOOK') {
           const result = await this.publishToFacebook(pub.agencyId, pub.id);
-          result.success ? success++ : failed++;
+          if (result.success) success++;
+          else failed++;
         } else if (pub.platform === 'INSTAGRAM') {
           const result = await this.publishToInstagram(pub.agencyId, pub.id);
-          result.success ? success++ : failed++;
+          if (result.success) success++;
+          else failed++;
         } else {
           await this.publicationsService.markPublished(pub.id, `manual_${Date.now()}`);
           success++;

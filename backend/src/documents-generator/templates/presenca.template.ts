@@ -1,49 +1,87 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addSignatureLine, addParagraph, addBox, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addSignatureLine,
+  addParagraph,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface PresencaData {
   presentName: string;
   presentRelation: string;
 }
 
-export function generatePresenca(funeral: FuneralData, agency: AgencyData, extra: PresencaData): jsPDF {
+export function generatePresenca(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: PresencaData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'DECLARAÇÃO DE PRESENÇA', y);
   y += 4;
 
-  y = addParagraph(doc,
+  y = addParagraph(
+    doc,
     `A ${agency.name}, com sede em ${agency.address || '___'}, ${agency.location || '___'},`,
-    25, y);
+    25,
+    y,
+  );
   y += 2;
 
-  y = addParagraph(doc,
+  y = addParagraph(
+    doc,
     `declara para todos os efeitos legais que o(a) Sr(a). ${extra.presentName}, na qualidade de ${extra.presentRelation},`,
-    25, y);
+    25,
+    y,
+  );
   y += 2;
 
-  y = addParagraph(doc,
+  y = addParagraph(
+    doc,
     `esteve presente no acto fúnebre de ${funeral.deceasedName}${funeral.age ? `, com ${funeral.age} anos de idade` : ''},`,
-    25, y);
+    25,
+    y,
+  );
   y += 2;
 
-  y = addParagraph(doc,
+  y = addParagraph(
+    doc,
     `realizado no dia ${formatDateLong(funeral.funeralDate)}${funeral.funeralTime ? ', pelas ' + funeral.funeralTime : ''},`,
-    25, y);
+    25,
+    y,
+  );
   y += 2;
 
-  y = addParagraph(doc,
+  y = addParagraph(
+    doc,
     `em ${funeral.locationParish || 'local a definir'}${funeral.cemeteryLocation ? ', com_sepultamento no ' + funeral.cemeteryLocation : ''}.`,
-    25, y);
+    25,
+    y,
+  );
   y += 12;
 
   y = addSeparator(doc, y);
   y += 4;
 
-  y = addParagraph(doc, 'A presente declaração é emitida a pedido do interessado para os fins que se fizerem necessários.', 25, y);
+  y = addParagraph(
+    doc,
+    'A presente declaração é emitida a pedido do interessado para os fins que se fizerem necessários.',
+    25,
+    y,
+  );
   y += 12;
 
-  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = new Date().toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   y = addParagraph(doc, `${agency.location || '___'}, ${dateStr}.`, 25, y);
   y += 20;
 

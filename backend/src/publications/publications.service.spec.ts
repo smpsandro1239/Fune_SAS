@@ -6,7 +6,14 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 describe('PublicationsService', () => {
   let service: PublicationsService;
   let prisma: {
-    publication: { findMany: jest.Mock; findFirst: jest.Mock; findUnique: jest.Mock; create: jest.Mock; update: jest.Mock; delete: jest.Mock };
+    publication: {
+      findMany: jest.Mock;
+      findFirst: jest.Mock;
+      findUnique: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+      delete: jest.Mock;
+    };
     funeral: { findFirst: jest.Mock };
   };
 
@@ -26,10 +33,7 @@ describe('PublicationsService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PublicationsService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [PublicationsService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<PublicationsService>(PublicationsService);
@@ -48,7 +52,11 @@ describe('PublicationsService', () => {
       expect(result).toEqual(mockPubs);
       expect(prisma.publication.findMany).toHaveBeenCalledWith({
         where: { agencyId: 'agency-1' },
-        include: { funeral: { select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } } } },
+        include: {
+          funeral: {
+            select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } },
+          },
+        },
         orderBy: { createdAt: 'desc' },
       });
     });
@@ -58,7 +66,7 @@ describe('PublicationsService', () => {
 
       await service.findAll('agency-1', 'SCHEDULED');
       expect(prisma.publication.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ status: 'SCHEDULED' }) })
+        expect.objectContaining({ where: expect.objectContaining({ status: 'SCHEDULED' }) }),
       );
     });
   });
@@ -89,7 +97,12 @@ describe('PublicationsService', () => {
     });
 
     it('should create a SCHEDULED publication when scheduledFor is provided', async () => {
-      const dto = { title: 'Test', caption: 'Caption', platform: 'FACEBOOK', scheduledFor: '2026-12-01T10:00:00Z' };
+      const dto = {
+        title: 'Test',
+        caption: 'Caption',
+        platform: 'FACEBOOK',
+        scheduledFor: '2026-12-01T10:00:00Z',
+      };
       prisma.publication.create.mockResolvedValue({ id: 'new', status: 'SCHEDULED' });
 
       const result = await service.create('agency-1', 'user-1', dto);
@@ -121,7 +134,9 @@ describe('PublicationsService', () => {
     it('should reject invalid status transitions', async () => {
       prisma.publication.findFirst.mockResolvedValue({ id: '1', agencyId: 'agency-1' });
 
-      await expect(service.update('agency-1', '1', { status: 'PUBLISHED' })).rejects.toThrow(BadRequestException);
+      await expect(service.update('agency-1', '1', { status: 'PUBLISHED' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -142,7 +157,11 @@ describe('PublicationsService', () => {
 
   describe('markPublished / markFailed', () => {
     it('should mark as published with externalPostId', async () => {
-      prisma.publication.update.mockResolvedValue({ id: '1', status: 'PUBLISHED', externalPostId: 'fb_123' });
+      prisma.publication.update.mockResolvedValue({
+        id: '1',
+        status: 'PUBLISHED',
+        externalPostId: 'fb_123',
+      });
 
       const result = await service.markPublished('1', 'fb_123');
       expect(result.status).toBe('PUBLISHED');
@@ -150,7 +169,11 @@ describe('PublicationsService', () => {
     });
 
     it('should mark as failed with error message', async () => {
-      prisma.publication.update.mockResolvedValue({ id: '1', status: 'FAILED', errorMessage: 'API error' });
+      prisma.publication.update.mockResolvedValue({
+        id: '1',
+        status: 'FAILED',
+        errorMessage: 'API error',
+      });
 
       const result = await service.markFailed('1', 'API error');
       expect(result.status).toBe('FAILED');

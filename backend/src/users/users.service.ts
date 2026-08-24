@@ -49,7 +49,9 @@ export class UsersService {
 
     await this.planLimits.assertCanCreateUser(user.agencyId);
 
-    const existing = await this.prisma.user.findUnique({ where: { email: dto.email.toLowerCase() } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+    });
     if (existing) throw new BadRequestException('Já existe um utilizador com este email.');
 
     const passwordHash = await bcrypt.hash(dto.password, 10);

@@ -1,17 +1,35 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addSignatureLine, formatDate, addParagraph, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addSignatureLine,
+  formatDate,
+  addParagraph,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface CondolenciaData {
   familyName: string;
   message?: string;
 }
 
-export function generateCondolencia(funeral: FuneralData, agency: AgencyData, extra: CondolenciaData): jsPDF {
+export function generateCondolencia(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: CondolenciaData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y += 4;
 
-  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = new Date().toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
@@ -44,10 +62,11 @@ export function generateCondolencia(funeral: FuneralData, agency: AgencyData, ex
   y = addParagraph(doc, opening, 25, y);
   y += 6;
 
-  const msg = extra.message ||
+  const msg =
+    extra.message ||
     `Neste momento difícil, gostaríamos de lhe assegurar a nossa total disponibilidade e proximidade. ` +
-    `Que a recordação de ${funeral.deceasedName} lhe traga conforto e paz, e que possam encontrar forças ` +
-    `nas palavras de conforto e no apoio de todos quantos os rodeiam.`;
+      `Que a recordação de ${funeral.deceasedName} lhe traga conforto e paz, e que possam encontrar forças ` +
+      `nas palavras de conforto e no apoio de todos quantos os rodeiam.`;
   y = addParagraph(doc, msg, 25, y);
   y += 16;
 

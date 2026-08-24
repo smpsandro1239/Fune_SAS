@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { SubscriptionPlan } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { LimitExceededException, PLAN_LIMITS } from './plan-limits';
+import { PLAN_LIMITS } from './plan-limits';
 
 @Injectable()
 export class PlanLimitsService {
@@ -39,7 +39,8 @@ export class PlanLimitsService {
   ): Promise<void> {
     const plan = await this.getEffectivePlan(agencyId);
     const limits = PLAN_LIMITS[plan];
-    const max = limits[`max${resource[0].toUpperCase()}${resource.slice(1)}` as keyof typeof limits];
+    const max =
+      limits[`max${resource[0].toUpperCase()}${resource.slice(1)}` as keyof typeof limits];
     if (max < 0) return; // ilimitado
 
     let count: number;

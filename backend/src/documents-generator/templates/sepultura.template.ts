@@ -1,12 +1,28 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addSignatureLine, formatDate, addParagraph, addBox, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addSignatureLine,
+  formatDate,
+  addParagraph,
+  addBox,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface SepulturaData {
   plotNumber?: string;
   graveType?: string;
 }
 
-export function generateSepultura(funeral: FuneralData, agency: AgencyData, extra: SepulturaData): jsPDF {
+export function generateSepultura(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: SepulturaData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'CERTIDÃO DE SEPULTURA', y);
@@ -33,7 +49,9 @@ export function generateSepultura(funeral: FuneralData, agency: AgencyData, extr
   fy += 7;
   doc.text(`Local de Sepultamento: ${funeral.cemeteryLocation || '___'}`, 32, fy);
   fy += 7;
-  const graveInfo = [extra.graveType, extra.plotNumber ? `nº ${extra.plotNumber}` : ''].filter(Boolean).join(' ');
+  const graveInfo = [extra.graveType, extra.plotNumber ? `nº ${extra.plotNumber}` : '']
+    .filter(Boolean)
+    .join(' ');
   if (graveInfo) {
     doc.text(`Sepultura: ${graveInfo}`, 32, fy);
   }
@@ -43,15 +61,22 @@ export function generateSepultura(funeral: FuneralData, agency: AgencyData, extr
   y = addSeparator(doc, y);
   y += 4;
 
-  y = addParagraph(doc,
+  y = addParagraph(
+    doc,
     `Certificamos que o(a) Sr(a). ${funeral.deceasedName}${funeral.age ? `, com ${funeral.age} anos de idade` : ''}, ` +
-    `nascido(a) em ${formatDate(funeral.dateOfBirth)}, falecido(a) em ${formatDate(funeral.dateOfDeath)}, ` +
-    `encontra-se sepultado(a) no Cemitério de ${funeral.cemeteryLocation || '___'} ` +
-    `${graveInfo ? '(' + graveInfo + ') ' : ''}desde ${formatDate(funeral.funeralDate)}.`,
-    25, y);
+      `nascido(a) em ${formatDate(funeral.dateOfBirth)}, falecido(a) em ${formatDate(funeral.dateOfDeath)}, ` +
+      `encontra-se sepultado(a) no Cemitério de ${funeral.cemeteryLocation || '___'} ` +
+      `${graveInfo ? '(' + graveInfo + ') ' : ''}desde ${formatDate(funeral.funeralDate)}.`,
+    25,
+    y,
+  );
   y += 16;
 
-  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = new Date().toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 65, 80);

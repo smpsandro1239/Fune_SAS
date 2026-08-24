@@ -1,5 +1,15 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate, addParagraph, addSeparator, addBox } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addSignatureLine,
+  formatDate,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface Herdeiro {
   name: string;
@@ -13,7 +23,11 @@ export interface DeclaracaoHerdeirosData {
   deceasedAddress?: string;
 }
 
-export function generateDeclaracaoHerdeiros(funeral: FuneralData, agency: AgencyData, extra: DeclaracaoHerdeirosData): jsPDF {
+export function generateDeclaracaoHerdeiros(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: DeclaracaoHerdeirosData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'DECLARAÇÃO DE HERDEIROS', y);
@@ -63,16 +77,20 @@ export function generateDeclaracaoHerdeiros(funeral: FuneralData, agency: Agency
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text('Declaro, ainda, que a presente declaração é emitida para todos os efeitos legais, nomeadamente para:', 25, y);
+  doc.text(
+    'Declaro, ainda, que a presente declaração é emitida para todos os efeitos legais, nomeadamente para:',
+    25,
+    y,
+  );
   y += 8;
 
   const purposes = [
     'Abertura de processo de inventário ou certidão de óbito',
     'Registo da transferência de bens e direitos',
     'Liquidação de impostos e demais obrigações fiscais',
-    'Outros efeitos legais que se apliquem'
+    'Outros efeitos legais que se apliquem',
   ];
-  purposes.forEach(p => {
+  purposes.forEach((p) => {
     doc.setFontSize(10);
     doc.text(`• ${p}`, 30, y);
     y += 6;
@@ -80,7 +98,11 @@ export function generateDeclaracaoHerdeiros(funeral: FuneralData, agency: Agency
 
   y += 10;
 
-  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = new Date().toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   doc.setFontSize(10);
   doc.text(`${agency.location || '___'}, ${dateStr}.`, 25, y);
   y += 14;
@@ -91,7 +113,11 @@ export function generateDeclaracaoHerdeiros(funeral: FuneralData, agency: Agency
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
-  doc.text('A presente declaração é assinada a oral e sob compromisso de honra do declarante, sob pena de responsabilidade civil e criminal.', 25, y);
+  doc.text(
+    'A presente declaração é assinada a oral e sob compromisso de honra do declarante, sob pena de responsabilidade civil e criminal.',
+    25,
+    y,
+  );
   doc.setTextColor(0, 0, 0);
   y += 16;
 

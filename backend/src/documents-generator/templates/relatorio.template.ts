@@ -1,5 +1,14 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, formatDate, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  formatDate,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface RelatorioItem {
   description: string;
@@ -13,7 +22,11 @@ export interface RelatorioData {
   notes?: string;
 }
 
-export function generateRelatorio(funeral: FuneralData, agency: AgencyData, extra: RelatorioData): jsPDF {
+export function generateRelatorio(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: RelatorioData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'RELATÓRIO DE SERVIÇO', y);
@@ -34,7 +47,6 @@ export function generateRelatorio(funeral: FuneralData, agency: AgencyData, extr
 
   const headers = ['Descrição', 'Qtd', 'Preço Unit.', 'Subtotal'];
   const colX = [25, 120, 140, 162];
-  const colW = [95, 20, 22, 23];
 
   doc.setFillColor(40, 45, 65);
   doc.roundedRect(25, y - 4, 160, 9, 2, 2, 'F');

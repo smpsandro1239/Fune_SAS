@@ -12,7 +12,11 @@ export interface RequiredEnv {
  * com erros crípticos (ex: JWT secret undefined).
  */
 export function validateEnv(logger: { error: (msg: string) => void }): RequiredEnv | never {
-  const required: (keyof RequiredEnv)[] = ['DATABASE_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+  const required: (keyof RequiredEnv)[] = [
+    'DATABASE_URL',
+    'JWT_ACCESS_SECRET',
+    'JWT_REFRESH_SECRET',
+  ];
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {

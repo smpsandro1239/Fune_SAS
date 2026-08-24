@@ -12,12 +12,18 @@ export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private buildDateRange(query: ReportQuery) {
-    const from = query.from ? new Date(query.from) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+    const from = query.from
+      ? new Date(query.from)
+      : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
     const to = query.to ? new Date(query.to) : new Date();
     return { from, to };
   }
 
-  async funeralsPerPeriod(user: AuthenticatedUser, groupBy: 'day' | 'month' | 'year', query: ReportQuery) {
+  async funeralsPerPeriod(
+    user: AuthenticatedUser,
+    groupBy: 'day' | 'month' | 'year',
+    query: ReportQuery,
+  ) {
     const { from, to } = this.buildDateRange(query);
     const funerals = await this.prisma.funeral.findMany({
       where: { agencyId: user.agencyId, funeralDate: { gte: from, lte: to } },
@@ -26,7 +32,8 @@ export class ReportsService {
 
     const fmt = (date: Date) => {
       if (groupBy === 'year') return `${date.getFullYear()}`;
-      if (groupBy === 'month') return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (groupBy === 'month')
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     };
 

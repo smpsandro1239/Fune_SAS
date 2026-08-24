@@ -67,7 +67,9 @@ export class SubscriptionsService {
 
     return {
       plan: effectivePlan,
-      expired: latest ? !!(latest.validUntil && new Date(latest.validUntil).getTime() < Date.now()) : false,
+      expired: latest
+        ? !!(latest.validUntil && new Date(latest.validUntil).getTime() < Date.now())
+        : false,
       validUntil: latest?.validUntil ?? null,
       usage: { funerals, users, documents },
       limits: {

@@ -13,7 +13,9 @@ export class PublicationsService {
         ...(status ? { status: status as any } : {}),
       },
       include: {
-        funeral: { select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } } },
+        funeral: {
+          select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -23,7 +25,9 @@ export class PublicationsService {
     const pub = await this.prisma.publication.findFirst({
       where: { id, agencyId },
       include: {
-        funeral: { select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } } },
+        funeral: {
+          select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } },
+        },
       },
     });
     if (!pub) throw new NotFoundException('Publicação não encontrada.');
@@ -87,7 +91,9 @@ export class PublicationsService {
         scheduledFor: { gte: new Date() },
       },
       include: {
-        funeral: { select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } } },
+        funeral: {
+          select: { id: true, funeralDate: true, deceased: { select: { fullName: true } } },
+        },
       },
       orderBy: { scheduledFor: 'asc' },
     });

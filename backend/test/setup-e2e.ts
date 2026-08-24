@@ -4,10 +4,11 @@
  * DATABASE_URL é injetada pelo workflow) e que os segredos JWT têm fallback,
  * para o arranque do AppModule nunca falhar por env em falta.
  */
+import * as dotenv from 'dotenv';
+
 process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require('dotenv').config();
+dotenv.config();
 
 process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'e2e-access-secret';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'e2e-refresh-secret';

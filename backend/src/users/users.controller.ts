@@ -32,7 +32,11 @@ export class UsersController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualiza um utilizador (apenas ADMIN)' })
-  update(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateUserDto) {
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+  ) {
     return this.usersService.update(user, id, dto);
   }
 

@@ -1,5 +1,18 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate, addParagraph, addSeparator, addBox } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addField,
+  addSignatureLine,
+  formatDate,
+  addParagraph,
+  addSeparator,
+  addBox,
+} from '../pdf.helpers';
 
 export interface ContratoServicoData {
   clientName: string;
@@ -12,7 +25,11 @@ export interface ContratoServicoData {
   notes?: string;
 }
 
-export function generateContratoServico(funeral: FuneralData, agency: AgencyData, extra: ContratoServicoData): jsPDF {
+export function generateContratoServico(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: ContratoServicoData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'CONTRATO DE PRESTAÇÃO DE SERVIÇOS', y);
@@ -25,7 +42,11 @@ export function generateContratoServico(funeral: FuneralData, agency: AgencyData
   doc.setTextColor(0, 0, 0);
   y += 2;
 
-  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = new Date().toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
@@ -52,7 +73,11 @@ export function generateContratoServico(funeral: FuneralData, agency: AgencyData
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
   doc.text(`${extra.clientName} — CCº ${extra.clientId}`, 32, y + 14);
-  doc.text(`${extra.clientAddress} | Tel: ${extra.clientPhone} | Email: ${extra.clientEmail}`, 32, y + 21);
+  doc.text(
+    `${extra.clientAddress} | Tel: ${extra.clientPhone} | Email: ${extra.clientEmail}`,
+    32,
+    y + 21,
+  );
   doc.setTextColor(0, 0, 0);
   y += 34;
 
@@ -119,9 +144,11 @@ export function generateContratoServico(funeral: FuneralData, agency: AgencyData
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 65, 80);
-  doc.text('Subtotal:', 120, y); doc.text(`€${subtotal.toFixed(2)}`, 165, y, { align: 'right' });
+  doc.text('Subtotal:', 120, y);
+  doc.text(`€${subtotal.toFixed(2)}`, 165, y, { align: 'right' });
   y += 7;
-  doc.text('IVA (23%):', 120, y); doc.text(`€${iva.toFixed(2)}`, 165, y, { align: 'right' });
+  doc.text('IVA (23%):', 120, y);
+  doc.text(`€${iva.toFixed(2)}`, 165, y, { align: 'right' });
   y += 8;
   doc.setDrawColor(40, 45, 65);
   doc.setLineWidth(0.8);
@@ -130,7 +157,8 @@ export function generateContratoServico(funeral: FuneralData, agency: AgencyData
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(40, 45, 65);
-  doc.text('TOTAL:', 120, y); doc.text(`€${total.toFixed(2)}`, 165, y, { align: 'right' });
+  doc.text('TOTAL:', 120, y);
+  doc.text(`€${total.toFixed(2)}`, 165, y, { align: 'right' });
   doc.setTextColor(0, 0, 0);
   y += 10;
 
@@ -154,7 +182,8 @@ export function generateContratoServico(funeral: FuneralData, agency: AgencyData
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
-  const legalText = 'O presente contrato regula a prestação de serviços funerários nos termos do Decreto-Lei nº 190/2003, de 22 de agosto. O cliente declara ter tomado conhecimento e aceitar todas as condições aqui descritas.';
+  const legalText =
+    'O presente contrato regula a prestação de serviços funerários nos termos do Decreto-Lei nº 190/2003, de 22 de agosto. O cliente declara ter tomado conhecimento e aceitar todas as condições aqui descritas.';
   const legalLines = doc.splitTextToSize(legalText, 160);
   doc.text(legalLines, 25, y);
   y += legalLines.length * 4.5 + 10;

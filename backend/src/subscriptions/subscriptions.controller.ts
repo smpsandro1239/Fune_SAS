@@ -1,5 +1,15 @@
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { BadRequestException, Body, Controller, Get, Headers, Post, RawBodyRequest, Req, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Post,
+  RawBodyRequest,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import Stripe from 'stripe';
 import { SubscriptionPlan } from '@prisma/client';
@@ -74,10 +84,7 @@ export class SubscriptionsController {
 
   @Post('checkout')
   @ApiOperation({ summary: 'Inicia checkout Stripe para upgrade de plano (apenas ADMIN)' })
-  checkout(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: ChangePlanDto,
-  ) {
+  checkout(@CurrentUser() user: AuthenticatedUser, @Body() dto: ChangePlanDto) {
     return this.billingService.createCheckoutSession(user, dto.plan);
   }
 

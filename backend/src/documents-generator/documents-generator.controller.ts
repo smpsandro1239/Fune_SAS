@@ -4,7 +4,15 @@ import { DocumentsGeneratorService, DocType } from './documents-generator.servic
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
 
-const VALID_TYPES: DocType[] = ['PRESENCA', 'PROGRAMA', 'CREMACAO', 'TRANSPORTE_DOCS', 'RELATORIO', 'SEPULTURA', 'CONDOLENCIA'];
+const VALID_TYPES: DocType[] = [
+  'PRESENCA',
+  'PROGRAMA',
+  'CREMACAO',
+  'TRANSPORTE_DOCS',
+  'RELATORIO',
+  'SEPULTURA',
+  'CONDOLENCIA',
+];
 
 @Controller('documents')
 export class DocumentsGeneratorController {
@@ -25,8 +33,16 @@ export class DocumentsGeneratorController {
       throw new BadRequestException(`Tipo inválido. Use: ${VALID_TYPES.join(', ')}`);
     }
 
-    const buffer = await this.generatorService.generate(user.agencyId, body.funeralId, type, body.extraData);
-    const filename = this.generatorService.getFilename(type, body.extraData?.deceasedName || 'documento');
+    const buffer = await this.generatorService.generate(
+      user.agencyId,
+      body.funeralId,
+      type,
+      body.extraData,
+    );
+    const filename = this.generatorService.getFilename(
+      type,
+      body.extraData?.deceasedName || 'documento',
+    );
 
     res.set({
       'Content-Type': 'application/pdf',

@@ -1,5 +1,14 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, formatDate, addBox } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  formatDate,
+  addBox,
+} from '../pdf.helpers';
 
 export interface ProgramaData {
   officiant?: string;
@@ -7,7 +16,11 @@ export interface ProgramaData {
   songs?: string[];
 }
 
-export function generatePrograma(funeral: FuneralData, agency: AgencyData, extra: ProgramaData): jsPDF {
+export function generatePrograma(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: ProgramaData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y += 2;
@@ -59,15 +72,30 @@ export function generatePrograma(funeral: FuneralData, agency: AgencyData, extra
 
   const order = [
     { icon: '1.', text: 'Abertura e Boas-vindas' },
-    { icon: '2.', text: extra.officiant ? `Oficiante: ${extra.officiant}` : 'Oficiante: _______________' },
-    { icon: '3.', text: extra.readings && extra.readings.length > 0 ? `Leitura: ${extra.readings[0]}` : 'Leitura: _______________' },
-    { icon: '4.', text: extra.songs && extra.songs.length > 0 ? `Música: ${extra.songs[0]}` : 'Música: _______________' },
+    {
+      icon: '2.',
+      text: extra.officiant ? `Oficiante: ${extra.officiant}` : 'Oficiante: _______________',
+    },
+    {
+      icon: '3.',
+      text:
+        extra.readings && extra.readings.length > 0
+          ? `Leitura: ${extra.readings[0]}`
+          : 'Leitura: _______________',
+    },
+    {
+      icon: '4.',
+      text:
+        extra.songs && extra.songs.length > 0
+          ? `Música: ${extra.songs[0]}`
+          : 'Música: _______________',
+    },
     { icon: '5.', text: 'Oração' },
     { icon: '6.', text: 'Homenagem e Palavras de Despedida' },
     { icon: '7.', text: 'Última Despedida' },
   ];
 
-  order.forEach((item, i) => {
+  order.forEach((item) => {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(180, 155, 80);

@@ -15,7 +15,6 @@ const PASSWORD = 'E2ePassword123!';
 describe('Fune_SAS API (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
-  let agencyId: string;
   let deceasedId: string;
   let funeralId: string;
 
@@ -102,7 +101,7 @@ describe('Fune_SAS API (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    agencyId = res.body.id;
+    expect(res.body.id).toBeTruthy();
     expect(res.body.slug).toBe(SLUG);
     expect(res.body.subscriptionPlan).toBe('FREE');
   });
@@ -236,7 +235,9 @@ describe('Fune_SAS API (e2e)', () => {
       .get(`/api/public/${SLUG}/${funeralId}`)
       .expect(200)
       .expect((res) => {
-        const names: string[] = res.body.funeral.condolences.map((c: { authorName: string }) => c.authorName);
+        const names: string[] = res.body.funeral.condolences.map(
+          (c: { authorName: string }) => c.authorName,
+        );
         expect(names).toContain('Família E2E');
         expect(names).toContain('Vizinho E2E');
         expect(names).not.toContain('Bot');

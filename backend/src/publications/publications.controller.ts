@@ -29,7 +29,11 @@ export class PublicationsController {
   }
 
   @Put(':id')
-  update(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdatePublicationDto) {
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: UpdatePublicationDto,
+  ) {
     return this.publicationsService.update(user.agencyId, id, dto);
   }
 

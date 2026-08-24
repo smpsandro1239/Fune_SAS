@@ -1,5 +1,17 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate, addBox, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addField,
+  addSignatureLine,
+  formatDate,
+  addBox,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface CremacaoData {
   requesterName: string;
@@ -8,7 +20,11 @@ export interface CremacaoData {
   requesterAddress: string;
 }
 
-export function generateCremacao(funeral: FuneralData, agency: AgencyData, extra: CremacaoData): jsPDF {
+export function generateCremacao(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: CremacaoData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'AUTORIZAÇÃO DE CREMAÇÃO', y);
@@ -16,7 +32,7 @@ export function generateCremacao(funeral: FuneralData, agency: AgencyData, extra
 
   const introLines = doc.splitTextToSize(
     `Eu, ${extra.requesterName}, portador(a) do Cartão de Cidadão nº ${extra.requesterId}, residente em ${extra.requesterAddress}, na qualidade de ${extra.requesterRelation} do(a) falecido(a):`,
-    160
+    160,
   );
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
@@ -37,7 +53,8 @@ export function generateCremacao(funeral: FuneralData, agency: AgencyData, extra
   y = addField(doc, 'Local do óbito', funeral.placeOfDeath || '___', 30, y);
   y += 6;
 
-  const authText = 'Autorizo a cremação do corpo do(a) supracitado(a), em conformidade com a legislação em vigor, cedendo todos os direitos sobre as cinzas à instituição acima referida.';
+  const authText =
+    'Autorizo a cremação do corpo do(a) supracitado(a), em conformidade com a legislação em vigor, cedendo todos os direitos sobre as cinzas à instituição acima referida.';
   doc.setFontSize(11);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(60, 65, 80);

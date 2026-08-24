@@ -119,9 +119,11 @@ export class BillingService {
     if (!agencyId || !plan || !PAID_PLANS.includes(plan)) return;
 
     const subscriptionId =
-      typeof session.subscription === 'string' ? session.subscription : session.subscription?.id ?? null;
+      typeof session.subscription === 'string'
+        ? session.subscription
+        : (session.subscription?.id ?? null);
     const customerId =
-      typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null;
+      typeof session.customer === 'string' ? session.customer : (session.customer?.id ?? null);
 
     await this.activatePlan(agencyId, plan, {
       stripeSessionId: session.id,
@@ -134,7 +136,7 @@ export class BillingService {
   private async onInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
     // Em versões recentes da API Stripe o campo subscription já não faz parte do tipo Invoice
     const rawSub = (invoice as unknown as { subscription?: string | { id?: string } }).subscription;
-    const subscriptionId = typeof rawSub === 'string' ? rawSub : rawSub?.id ?? null;
+    const subscriptionId = typeof rawSub === 'string' ? rawSub : (rawSub?.id ?? null);
     if (!subscriptionId) return;
 
     // Renovação: encontrar a subscrição anterior da agência
@@ -154,7 +156,7 @@ export class BillingService {
         validUntil: new Date(Date.now() + CYCLE_DAYS * 24 * 60 * 60 * 1000),
         stripeSubscriptionId: subscriptionId,
         stripeCustomerId:
-          typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id ?? null,
+          typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? null),
       },
     });
     await this.prisma.agency.update({
@@ -180,7 +182,9 @@ export class BillingService {
       where: { id: latest.agencyId },
       data: { subscriptionPlan: SubscriptionPlan.FREE },
     });
-    this.logger.log(`Stripe: subscrição cancelada — agência ${latest.agencyId} revertida para FREE.`);
+    this.logger.log(
+      `Stripe: subscrição cancelada — agência ${latest.agencyId} revertida para FREE.`,
+    );
   }
 
   private async activatePlan(

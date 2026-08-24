@@ -1,5 +1,17 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate, addBox, addSeparator } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addField,
+  addSignatureLine,
+  formatDate,
+  addBox,
+  addSeparator,
+} from '../pdf.helpers';
 
 export interface AtestadoObitoData {
   doctorName?: string;
@@ -7,7 +19,11 @@ export interface AtestadoObitoData {
   causeOfDeath?: string;
 }
 
-export function generateAtestadoObito(funeral: FuneralData, agency: AgencyData, extra: AtestadoObitoData): jsPDF {
+export function generateAtestadoObito(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: AtestadoObitoData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'ATESTADO DE ÓBITO', y);
@@ -63,13 +79,22 @@ export function generateAtestadoObito(funeral: FuneralData, agency: AgencyData, 
   doc.text(lines, 25, y);
   y += lines.length * 5.5 + 12;
 
-  const dateStr = new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = new Date().toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   doc.setFontSize(10);
   doc.text(`${agency.location || '___'}, ${dateStr}.`, 25, y);
   y += 20;
 
   if (extra.doctorName) {
-    y = addSignatureLine(doc, `Dr(a). ${extra.doctorName}${extra.doctorLicense ? ' — Mº ' + extra.doctorLicense : ''}`, y, 35);
+    y = addSignatureLine(
+      doc,
+      `Dr(a). ${extra.doctorName}${extra.doctorLicense ? ' — Mº ' + extra.doctorLicense : ''}`,
+      y,
+      35,
+    );
   } else {
     y = addSignatureLine(doc, 'Assinatura do Declarante', y, 35);
   }

@@ -58,7 +58,7 @@ export class AgenciesService {
       throw new ForbiddenException('Apenas o administrador pode alterar os dados da agência.');
     }
     // Nunca devolver o token na resposta do update
-    const updated = await this.prisma.agency.update({
+    await this.prisma.agency.update({
       where: { id: user.agencyId },
       data: dto,
     });

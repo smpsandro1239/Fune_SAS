@@ -18,8 +18,10 @@ export class SocialController {
     @Param('publicationId') publicationId: string,
     @Param('platform') platform: string,
   ) {
-    if (platform === 'facebook') return this.socialService.publishToFacebook(user.agencyId, publicationId);
-    if (platform === 'instagram') return this.socialService.publishToInstagram(user.agencyId, publicationId);
+    if (platform === 'facebook')
+      return this.socialService.publishToFacebook(user.agencyId, publicationId);
+    if (platform === 'instagram')
+      return this.socialService.publishToInstagram(user.agencyId, publicationId);
     return this.socialService.publishToFacebook(user.agencyId, publicationId);
   }
 

@@ -15,10 +15,7 @@ export class PublicController {
   @ApiOperation({ summary: 'Dados públicos do funeral (participação de falecimento)' })
   @ApiResponse({ status: 200, description: 'Dados do funeral e agência.' })
   @ApiResponse({ status: 404, description: 'Funeral não encontrado ou não público.' })
-  getFuneral(
-    @Param('agencySlug') agencySlug: string,
-    @Param('funeralId') funeralId: string,
-  ) {
+  getFuneral(@Param('agencySlug') agencySlug: string, @Param('funeralId') funeralId: string) {
     return this.publicService.getFuneralBySlug(agencySlug, funeralId);
   }
 

@@ -1,5 +1,16 @@
 import jsPDF from 'jspdf';
-import { AgencyData, FuneralData, createDoc, addLetterhead, addFooter, addTitle, addField, addSignatureLine, formatDate, addSeparator, addBox } from '../pdf.helpers';
+import {
+  AgencyData,
+  FuneralData,
+  createDoc,
+  addLetterhead,
+  addFooter,
+  addTitle,
+  addField,
+  addSignatureLine,
+  addSeparator,
+  addBox,
+} from '../pdf.helpers';
 
 export interface GuiaPagamentoData {
   clientName: string;
@@ -10,7 +21,11 @@ export interface GuiaPagamentoData {
   notes?: string;
 }
 
-export function generateGuiaPagamento(funeral: FuneralData, agency: AgencyData, extra: GuiaPagamentoData): jsPDF {
+export function generateGuiaPagamento(
+  funeral: FuneralData,
+  agency: AgencyData,
+  extra: GuiaPagamentoData,
+): jsPDF {
   const doc = createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'GUIA DE PAGAMENTO', y);
@@ -79,9 +94,11 @@ export function generateGuiaPagamento(funeral: FuneralData, agency: AgencyData, 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 65, 80);
-  doc.text('Subtotal:', 120, y); doc.text(`€${subtotal.toFixed(2)}`, 165, y, { align: 'right' });
+  doc.text('Subtotal:', 120, y);
+  doc.text(`€${subtotal.toFixed(2)}`, 165, y, { align: 'right' });
   y += 7;
-  doc.text('IVA (23%):', 120, y); doc.text(`€${iva.toFixed(2)}`, 165, y, { align: 'right' });
+  doc.text('IVA (23%):', 120, y);
+  doc.text(`€${iva.toFixed(2)}`, 165, y, { align: 'right' });
   y += 8;
   doc.setDrawColor(40, 45, 65);
   doc.setLineWidth(0.8);
@@ -90,7 +107,8 @@ export function generateGuiaPagamento(funeral: FuneralData, agency: AgencyData, 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(40, 45, 65);
-  doc.text('TOTAL PAGO:', 120, y); doc.text(`€${total.toFixed(2)}`, 165, y, { align: 'right' });
+  doc.text('TOTAL PAGO:', 120, y);
+  doc.text(`€${total.toFixed(2)}`, 165, y, { align: 'right' });
   doc.setTextColor(0, 0, 0);
   y += 12;
 

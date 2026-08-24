@@ -48,10 +48,7 @@ describe('DocumentsGeneratorService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DocumentsGeneratorService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [DocumentsGeneratorService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<DocumentsGeneratorService>(DocumentsGeneratorService);
@@ -70,21 +67,30 @@ describe('DocumentsGeneratorService', () => {
     it('should throw NotFoundException if funeral not found', async () => {
       prisma.funeral.findFirst.mockResolvedValue(null);
 
-      await expect(service.generate('agency-1', 'bad-id', 'PRESENCA')).rejects.toThrow(NotFoundException);
+      await expect(service.generate('agency-1', 'bad-id', 'PRESENCA')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException if agency not found', async () => {
       prisma.agency.findUnique.mockResolvedValue(null);
 
-      await expect(service.generate('agency-1', 'funeral-1', 'PRESENCA')).rejects.toThrow(NotFoundException);
+      await expect(service.generate('agency-1', 'funeral-1', 'PRESENCA')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException for unsupported type', async () => {
-      await expect(service.generate('agency-1', 'funeral-1', 'INVALID' as any)).rejects.toThrow(BadRequestException);
+      await expect(service.generate('agency-1', 'funeral-1', 'INVALID' as any)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should generate a PRESENCA document', async () => {
-      const buffer = await service.generate('agency-1', 'funeral-1', 'PRESENCA', { presentName: 'João Silva', presentRelation: 'Sobrinho' });
+      const buffer = await service.generate('agency-1', 'funeral-1', 'PRESENCA', {
+        presentName: 'João Silva',
+        presentRelation: 'Sobrinho',
+      });
       expect(buffer).toBeInstanceOf(Buffer);
       expect(buffer.length).toBeGreaterThan(0);
     });
@@ -134,7 +140,9 @@ describe('DocumentsGeneratorService', () => {
     });
 
     it('should generate a CONDOLENCIA document', async () => {
-      const buffer = await service.generate('agency-1', 'funeral-1', 'CONDOLENCIA', { familyName: 'Família Silva' });
+      const buffer = await service.generate('agency-1', 'funeral-1', 'CONDOLENCIA', {
+        familyName: 'Família Silva',
+      });
       expect(buffer).toBeInstanceOf(Buffer);
       expect(buffer.length).toBeGreaterThan(0);
     });
@@ -142,13 +150,25 @@ describe('DocumentsGeneratorService', () => {
 
   describe('getFilename', () => {
     it('should return correct filenames for all types', () => {
-      expect(service.getFilename('PRESENCA', 'Manuel Silva')).toBe('Declaracao_Presenca_Manuel_Silva');
+      expect(service.getFilename('PRESENCA', 'Manuel Silva')).toBe(
+        'Declaracao_Presenca_Manuel_Silva',
+      );
       expect(service.getFilename('PROGRAMA', 'Manuel Silva')).toBe('Programa_Funeral_Manuel_Silva');
-      expect(service.getFilename('CREMACAO', 'Manuel Silva')).toBe('Autorizacao_Cremacao_Manuel_Silva');
-      expect(service.getFilename('TRANSPORTE_DOCS', 'Manuel Silva')).toBe('Guia_Transporte_Manuel_Silva');
-      expect(service.getFilename('RELATORIO', 'Manuel Silva')).toBe('Relatorio_Servico_Manuel_Silva');
-      expect(service.getFilename('SEPULTURA', 'Manuel Silva')).toBe('Certidao_Sepultura_Manuel_Silva');
-      expect(service.getFilename('CONDOLENCIA', 'Manuel Silva')).toBe('Carta_Condolencia_Manuel_Silva');
+      expect(service.getFilename('CREMACAO', 'Manuel Silva')).toBe(
+        'Autorizacao_Cremacao_Manuel_Silva',
+      );
+      expect(service.getFilename('TRANSPORTE_DOCS', 'Manuel Silva')).toBe(
+        'Guia_Transporte_Manuel_Silva',
+      );
+      expect(service.getFilename('RELATORIO', 'Manuel Silva')).toBe(
+        'Relatorio_Servico_Manuel_Silva',
+      );
+      expect(service.getFilename('SEPULTURA', 'Manuel Silva')).toBe(
+        'Certidao_Sepultura_Manuel_Silva',
+      );
+      expect(service.getFilename('CONDOLENCIA', 'Manuel Silva')).toBe(
+        'Carta_Condolencia_Manuel_Silva',
+      );
     });
 
     it('should handle unknown type gracefully', () => {

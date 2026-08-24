@@ -1,5 +1,15 @@
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { DeceasedService } from './deceased.service';
 import { CreateDeceasedDto, UpdateDeceasedDto } from './dto/deceased.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -33,7 +43,11 @@ export class DeceasedController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualiza os dados de um falecido' })
-  update(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateDeceasedDto) {
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateDeceasedDto,
+  ) {
     return this.deceasedService.update(user, id, dto);
   }
 

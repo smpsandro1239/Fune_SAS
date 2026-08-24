@@ -31,7 +31,11 @@ export class DraftsService {
     });
   }
 
-  async update(id: string, body: { name?: string; layoutStyle?: string; data?: any }, agencyId: string) {
+  async update(
+    id: string,
+    body: { name?: string; layoutStyle?: string; data?: any },
+    agencyId: string,
+  ) {
     const draft = await this.prisma.flyerDraft.findFirst({ where: { id, agencyId } });
     if (!draft) throw new NotFoundException('Rascunho não encontrado');
     return this.prisma.flyerDraft.update({
