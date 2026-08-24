@@ -117,6 +117,11 @@ model Agency {
   publishDefaultMsg String?
   condolenceModeration Boolean      @default(false)
 
+  // WhatsApp Cloud API (Meta)
+  whatsappPhoneNumberId String?
+  whatsappAccessToken   String?
+  whatsappNotifyNumber  String?
+
   users            User[]
   deceaseds        Deceased[]
   funerals         Funeral[]
@@ -255,7 +260,13 @@ model Subscription {
   startedAt  DateTime           @default(now())
   createdAt  DateTime           @default(now())
 
+  // Stripe
+  stripeSessionId      String?
+  stripeSubscriptionId String?
+  stripeCustomerId     String?
+
   @@index([agencyId, createdAt])
+  @@index([stripeSubscriptionId])
 }
 
 model Notification {

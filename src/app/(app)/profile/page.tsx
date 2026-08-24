@@ -110,22 +110,22 @@ export default function ProfilePage() {
 
       {/* Profile Card */}
       <div className="bg-navy-900/80 border border-navy-700/60 rounded-2xl p-6 md:p-8">
-        <div className="flex items-center space-x-5 mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-gold-600 via-gold-500 to-amber-300 p-0.5 shadow-lg shadow-gold-500/10">
+        <div className="flex items-center space-x-4 sm:space-x-5 mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-gold-600 via-gold-500 to-amber-300 p-0.5 shadow-lg shadow-gold-500/10 shrink-0">
             <div className="w-full h-full bg-navy-950 rounded-[14px] flex items-center justify-center text-xl font-serif font-bold text-gold-400">
               {initials}
             </div>
           </div>
-          <div>
-            <div className="text-lg font-semibold text-white">{user?.name || '...'}</div>
-            <div className="text-sm text-navy-300">{user?.email || '...'}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gold-500/20 text-gold-300 border border-gold-500/30">
+          <div className="min-w-0">
+            <div className="text-lg font-semibold text-white truncate">{user?.name || '...'}</div>
+            <div className="text-sm text-navy-300 truncate">{user?.email || '...'}</div>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gold-500/20 text-gold-300 border border-gold-500/30 shrink-0">
                 {user ? ROLE_LABELS[user.role] || user.role : ''}
               </span>
-              <span className="text-[11px] text-navy-400 flex items-center gap-1">
-                <Building2 className="w-3 h-3" />
-                {currentAgency?.name || '...'}
+              <span className="text-[11px] text-navy-400 flex items-center gap-1 min-w-0">
+                <Building2 className="w-3 h-3 shrink-0" />
+                <span className="truncate">{currentAgency?.name || '...'}</span>
               </span>
             </div>
           </div>

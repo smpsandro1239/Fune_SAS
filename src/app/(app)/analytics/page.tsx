@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
                   />
                   <Legend
                     verticalAlign="bottom"
-                    height={36}
+                    wrapperStyle={{ maxHeight: 72, overflowY: 'auto', lineHeight: '18px', fontSize: 11 }}
                     iconType="circle"
                     formatter={(value) => <span style={{ color: '#cbd5e1', fontSize: 11 }}>{value}</span>}
                   />

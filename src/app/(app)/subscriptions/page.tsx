@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   CreditCard,
   Check,
@@ -56,7 +57,7 @@ const PLAN_META: Record<SubscriptionPlan, { label: string; price: string; icon: 
 
 const PLAN_ORDER: SubscriptionPlan[] = ['FREE', 'PRO', 'ENTERPRISE'];
 
-export default function SubscriptionsPage() {
+function SubscriptionsPageInner() {
   const { user } = useAuth();
   const [current, setCurrent] = useState<ApiSubscription | null>(null);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
@@ -83,18 +84,65 @@ export default function SubscriptionsPage() {
     load();
   }, []);
 
+  const searchParams = useSearchParams();
+  const [justPaid, setJustPaid] = useState(false);
+
+  // Volta do checkout Stripe
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'success') {
+      setJustPaid(true);
+      setSuccess(
+        'Pagamento recebido! O plano será ativado em segundos — se ainda não aparecer, recarregue a página.',
+      );
+      // A ativação acontece via webhook; recarrega os dados após uns segundos
+      const timers = [3000, 8000, 15000].map((ms) =>
+        setTimeout(async () => {
+          try {
+            const [data, usageInfo] = await Promise.all([
+              apiService.subscriptions.current(),
+              apiService.subscriptions.usage(),
+            ]);
+            setCurrent(data);
+            setUsage(usageInfo);
+          } catch {
+            /* silencioso */
+          }
+        }, ms),
+      );
+      return () => timers.forEach(clearTimeout);
+    }
+    if (searchParams.get('checkout') === 'cancel') {
+      setError('Checkout cancelado — nenhuma alteração foi feita.');
+    }
+    return undefined;
+  }, [searchParams]);
+
   const handleChangePlan = async (plan: SubscriptionPlan) => {
-    if (plan === current?.plan) return;
+    if (plan === current?.plan || justPaid) return;
     setChanging(plan);
     setSuccess('');
     setError('');
     try {
-      const updated = await apiService.subscriptions.changePlan(plan);
-      setCurrent(updated);
-      setUsage(usageInfo => usageInfo ? { ...usageInfo, plan } : usageInfo);
-      setSuccess(`Plano alterado para ${PLAN_META[plan].label} com sucesso.`);
+      const result = await apiService.subscriptions.checkout(plan);
+      if (result.url) {
+        // Redireciona para o Stripe Checkout
+        window.location.href = result.url;
+        return;
+      }
+      if (result.demoMode) {
+        const isFree = plan === 'FREE';
+        const confirmed = window.confirm(
+          isFree
+            ? `Reverter para o plano FREE?`
+            : 'Stripe não está configurado no servidor. Ativar o plano diretamente em modo demo?',
+        );
+        if (!confirmed) return;
+        const updated = await apiService.subscriptions.changePlan(plan);
+        setCurrent(updated);
+        setSuccess(`Plano alterado para ${PLAN_META[plan].label} com sucesso.`);
+      }
     } catch (err) {
-      setError(apiErrorMessage(err, 'Não foi possível alterar o plano.'));
+      setError(apiErrorMessage(err, 'Não foi possível iniciar o checkout.'));
     } finally {
       setChanging(null);
     }
@@ -250,5 +298,19 @@ export default function SubscriptionsPage() {
         })}
       </div>
     </div>
+  );
+}
+
+export default function SubscriptionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 text-gold-400 animate-spin" />
+        </div>
+      }
+    >
+      <SubscriptionsPageInner />
+    </Suspense>
   );
 }

@@ -212,7 +212,7 @@ export default function PublicationsPage() {
       )}
 
       {/* Filtros */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {(['', 'DRAFT', 'SCHEDULED', 'PUBLISHED', 'FAILED'] as const).map((status) => (
           <button
             key={status}

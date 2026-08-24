@@ -66,6 +66,12 @@ const API_FIELDS = [
     hint: 'Token com permissões pages_manage_posts + instagram_content_publish. Gerar no Meta for Developers.' },
   { key: 'instagramBusinessId', label: 'Instagram Business Account ID', placeholder: 'Ex: 17841400000000000', secret: false,
     hint: 'IG User ID da conta profissional ligada à página do Facebook.' },
+  { key: 'whatsappPhoneNumberId', label: 'WhatsApp Phone Number ID', placeholder: 'Ex: 123456789012345', secret: false,
+    hint: 'Phone Number ID do produto WhatsApp no Meta for Developers.' },
+  { key: 'whatsappAccessToken', label: 'WhatsApp Access Token', placeholder: 'EAAG...', secret: true,
+    hint: 'Token do utilizador de sistema com permissão whatsapp_business_messaging.' },
+  { key: 'whatsappNotifyNumber', label: 'WhatsApp Notificações (número)', placeholder: '351912345678', secret: false,
+    hint: 'Número que recebe alertas de novas condolências. Formato internacional, sem +.' },
 ];
 
 const API_FIELD_KEYS = API_FIELDS.map(f => f.key);
@@ -439,6 +445,7 @@ export default function AgenciesPage() {
                   const ag = currentAgency as any;
                   const fbReady = !!ag?.facebookPageId && !!ag?.facebookPageAccessToken;
                   const igReady = !!ag?.instagramBusinessId && !!ag?.facebookPageAccessToken;
+                  const waReady = !!ag?.whatsappPhoneNumberId && !!ag?.whatsappAccessToken;
                   return [
                     {
                       name: 'Facebook', ready: fbReady,
@@ -447,6 +454,12 @@ export default function AgenciesPage() {
                     {
                       name: 'Instagram', ready: igReady,
                       detail: igReady ? 'Pronto para publicar' : 'Falta IG Business ID ou token',
+                    },
+                    {
+                      name: 'WhatsApp', ready: waReady,
+                      detail: waReady
+                        ? (ag?.whatsappNotifyNumber ? `Notificações → ${ag.whatsappNotifyNumber}` : 'Pronto (falta nº de notificações)')
+                        : 'Falta Phone Number ID ou token',
                     },
                   ].map(({ name, ready, detail }) => (
                     <div key={name} className={`flex items-center justify-between p-2.5 rounded-lg border ${
@@ -534,7 +547,7 @@ export default function AgenciesPage() {
         ) : (
           <div className="divide-y divide-navy-800">
             {users.map((user) => (
-              <div key={user.id} className="p-4 flex items-center justify-between hover:bg-navy-800/50 transition-colors">
+              <div key={user.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between hover:bg-navy-800/50 transition-colors">
                 <div className="flex items-center space-x-3 min-w-0">
                   <div className="w-9 h-9 rounded-full bg-navy-950 border border-gold-500/30 flex items-center justify-center text-xs font-bold text-gold-400 shrink-0">
                     {user.name.split(' ').filter(Boolean).map((part) => part[0]).join('').substring(0, 2).toUpperCase()}
@@ -550,7 +563,7 @@ export default function AgenciesPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 shrink-0">
+                <div className="flex items-center space-x-2 shrink-0 self-start sm:self-auto">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${ROLE_STYLES[user.role]}`}>
                     {ROLE_LABELS[user.role]}
                   </span>

@@ -84,6 +84,9 @@ export class AuthService {
       });
     });
 
+    // Boas-vindas (não bloqueia o registo se o email falhar)
+    await this.emailService.sendWelcomeEmail(user.email, dto.agencyName);
+
     return this.issueTokens(user);
   }
 

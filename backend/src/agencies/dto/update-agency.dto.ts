@@ -98,4 +98,19 @@ export class UpdateAgencyDto {
   @IsOptional()
   @IsBoolean()
   condolenceModeration?: boolean;
+
+  @ApiPropertyOptional({ example: '123456789012345', description: 'WhatsApp Business Phone Number ID' })
+  @IsOptional()
+  @IsString()
+  whatsappPhoneNumberId?: string;
+
+  @ApiPropertyOptional({ description: 'Token de acesso do WhatsApp Cloud API (Meta)' })
+  @IsOptional()
+  @IsString()
+  whatsappAccessToken?: string;
+
+  @ApiPropertyOptional({ example: '351912345678', description: 'Número que recebe as notificações WhatsApp' })
+  @IsOptional()
+  @IsString()
+  whatsappNotifyNumber?: string;
 }

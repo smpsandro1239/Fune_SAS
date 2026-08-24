@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from './email/email.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 import { AuthModule } from './auth/auth.module';
 import { AgenciesModule } from './agencies/agencies.module';
 import { UsersModule } from './users/users.module';
@@ -34,6 +35,7 @@ import { SocialModule } from './social/social.module';
     ]),
     PrismaModule,
     EmailModule,
+    WhatsAppModule,
     ScheduleModule.forRoot(),
     AuthModule,
     AgenciesModule,

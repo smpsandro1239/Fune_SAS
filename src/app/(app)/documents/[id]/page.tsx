@@ -207,7 +207,7 @@ export default function DocumentDetailPage() {
         </h2>
         {blobUrl ? (
           isPdf ? (
-            <iframe src={blobUrl} title={document.title} className="w-full h-[600px] rounded-xl border border-navy-700 bg-white" />
+            <iframe src={blobUrl} title={document.title} className="w-full h-[60vh] min-h-[400px] rounded-xl border border-navy-700 bg-white" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img

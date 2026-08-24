@@ -32,6 +32,9 @@ export interface ApiAgency {
   facebookPageAccessToken?: string | null;
   instagramPageUrl?: string | null;
   instagramBusinessId?: string | null;
+  whatsappPhoneNumberId?: string | null;
+  whatsappAccessToken?: string | null;
+  whatsappNotifyNumber?: string | null;
   linkedinUrl?: string | null;
   twitterUrl?: string | null;
   youtubeUrl?: string | null;
@@ -421,6 +424,8 @@ export const apiService = {
         usage: { funerals: number; users: number; documents: number };
         limits: { maxFunerals: number; maxUsers: number; maxDocuments: number };
       }>('/subscriptions/usage').then((r) => r.data),
+    checkout: (plan: SubscriptionPlan) =>
+      api.post<{ url?: string; demoMode?: boolean }>('/subscriptions/checkout', { plan }).then((r) => r.data),
     changePlan: (plan: SubscriptionPlan) =>
       api.post<ApiSubscription>('/subscriptions/change-plan', { plan }).then((r) => r.data),
   },

@@ -683,21 +683,21 @@ export default function GenerateDocumentsPage() {
         /* ===== PREVIEW MODE ===== */
         <div className="space-y-4">
           {/* Toolbar */}
-          <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-navy-900/80 border border-navy-800 shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 p-4 rounded-2xl bg-navy-900/80 border border-navy-800 shadow-xl">
             <button
               onClick={handleBack}
-              className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-navy-300 hover:text-white text-xs font-semibold border border-navy-700 transition-all"
+              className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-navy-300 hover:text-white text-xs font-semibold border border-navy-700 transition-all order-1"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Gerar Outro</span>
             </button>
 
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 order-3 sm:order-2 w-full sm:w-auto justify-center">
               <FileText className="w-4 h-4 text-gold-400 shrink-0" />
               <span className="text-xs font-semibold text-white truncate">{currentFilename}</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 order-2 sm:order-3">
               <button
                 onClick={() => setFullscreen(true)}
                 className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-navy-300 hover:text-white text-xs font-semibold border border-navy-700 transition-all"

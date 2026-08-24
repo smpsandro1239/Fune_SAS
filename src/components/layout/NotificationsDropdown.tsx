@@ -85,7 +85,7 @@ export default function NotificationsDropdown() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-80 bg-navy-900 border border-navy-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-navy-900 border border-navy-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-navy-800">
               <h3 className="text-xs font-bold text-white">Notificações</h3>
               {unreadCount > 0 && (

@@ -275,7 +275,7 @@ export default function PublicObituaryPage() {
           </div>
 
           {/* Share */}
-          <div className="flex items-center justify-between pt-2 border-t border-navy-800">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-navy-800">
             <span className="text-xs text-navy-400 flex items-center gap-1">
               <Share2 className="w-4 h-4 text-gold-400" /> Partilhar anúncio:
             </span>

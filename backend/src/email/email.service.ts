@@ -73,4 +73,31 @@ export class EmailService {
       `,
     });
   }
+
+  async sendWelcomeEmail(to: string, agencyName: string): Promise<{ sent: boolean }> {
+    return this.send({
+      to,
+      subject: 'Bem-vindo ao Fune_SAS',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#040B16;color:#fff;border-radius:12px;">
+          <h1 style="color:#EAB308;font-size:20px;margin-bottom:8px;">Fune_SAS</h1>
+          <p style="color:#cbd5e1;font-size:14px;line-height:1.6;">
+            A sua agência <strong style="color:#fff;">${agencyName}</strong> está pronta.
+          </p>
+          <p style="color:#cbd5e1;font-size:14px;line-height:1.6;">Pode começar por:</p>
+          <ul style="color:#cbd5e1;font-size:13px;line-height:1.8;padding-left:20px;">
+            <li>Criar o primeiro funeral e anúncio público</li>
+            <li>Desenhar flyers com os 27 modelos disponíveis</li>
+            <li>Configurar a publicação no Facebook e Instagram</li>
+          </ul>
+          <p style="margin:20px 0;">
+            <a href="https://fune-sas.vercel.app"
+               style="background:#EAB308;color:#040B16;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:bold;font-size:14px;display:inline-block;">
+              Abrir o painel
+            </a>
+          </p>
+        </div>
+      `,
+    });
+  }
 }

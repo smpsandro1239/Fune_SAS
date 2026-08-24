@@ -245,7 +245,7 @@ export default function DocumentsPage() {
           />
         </div>
 
-        <div className="flex items-center space-x-1 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
           {TYPE_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -302,13 +302,13 @@ export default function DocumentsPage() {
                     >
                       {doc.title}
                     </Link>
-                    <div className="flex items-center space-x-2 text-[10px] text-navy-400 mt-0.5">
-                      <span className="flex items-center gap-1">
-                        <FileCheck className="w-3 h-3 text-emerald-400" />
+                    <div className="flex items-center gap-1 min-w-0 text-[10px] text-navy-400 mt-0.5">
+                      <span className="flex items-center gap-1 truncate">
+                        <FileCheck className="w-3 h-3 shrink-0 text-emerald-400" />
                         {TYPE_LABELS[doc.type] || doc.type}
                       </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
+                      <span className="shrink-0">•</span>
+                      <span className="flex items-center gap-1 shrink-0">
                         <Calendar className="w-3 h-3" />
                         {new Date(doc.createdAt).toLocaleDateString('pt-PT')}
                       </span>
@@ -355,8 +355,8 @@ export default function DocumentsPage() {
 
       {/* Modal: upload */}
       {showUpload && (
-        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95 my-4">
             <div className="flex items-center justify-between border-b border-navy-800 pb-3">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <UploadCloud className="w-4 h-4 text-gold-400" />

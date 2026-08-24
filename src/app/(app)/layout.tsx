@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Navbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-1">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-[73px]">{children}</main>
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden pt-[73px]">{children}</main>
       </div>
     </AgencyProvider>
   );

@@ -162,12 +162,12 @@ export default function AgendaPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Calendário */}
         <div className="lg:col-span-9 p-4 rounded-2xl bg-navy-900/80 border border-navy-800 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
+            <div className="flex items-center space-x-1.5">
               <button onClick={() => moveMonth(-1)} className="p-1.5 rounded-lg bg-navy-950 text-navy-300 hover:text-white border border-navy-700">
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <h2 className="text-base font-bold text-white capitalize min-w-[160px] text-center">{monthLabel}</h2>
+              <h2 className="text-base font-bold text-white capitalize min-w-[110px] text-center">{monthLabel}</h2>
               <button onClick={() => moveMonth(1)} className="p-1.5 rounded-lg bg-navy-950 text-navy-300 hover:text-white border border-navy-700">
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -192,7 +192,8 @@ export default function AgendaPage() {
               <Loader2 className="w-7 h-7 animate-spin text-gold-400" />
             </div>
           ) : (
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="overflow-x-auto -mx-1 px-1 pb-1">
+              <div className="grid grid-cols-7 gap-1.5 min-w-[520px]">
               {WEEKDAYS.map((wd) => (
                 <div key={wd} className="text-center text-[10px] font-bold text-navy-400 uppercase tracking-wider py-1">
                   {wd}
@@ -249,6 +250,7 @@ export default function AgendaPage() {
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
         </div>

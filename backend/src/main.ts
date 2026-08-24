@@ -29,7 +29,8 @@ async function bootstrap() {
   const bootLogger = new Logger('Env');
   validateEnv(bootLogger);
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // rawBody é necessário para verificar a assinatura do webhook Stripe
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const logger = new Logger('Bootstrap');
 
   app.setGlobalPrefix('api');

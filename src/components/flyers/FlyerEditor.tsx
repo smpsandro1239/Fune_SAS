@@ -66,7 +66,11 @@ export default function FlyerEditor() {
   const [isExporting, setIsExporting] = useState<null | 'png' | 'pdf'>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<'ok' | 'error' | null>(null);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 700
+      ? Math.max(0.35, (window.innerWidth - 96) / 544)
+      : 1,
+  );
 
   const [funerals, setFunerals] = useState<ApiFuneral[]>([]);
   const [funeralsLoading, setFuneralsLoading] = useState(true);
@@ -404,8 +408,8 @@ export default function FlyerEditor() {
             <Palette className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white flex items-center gap-2">
-              Editor Visual de Flyers & Participações
+            <h1 className="text-base font-bold text-white flex items-center gap-2 flex-wrap">
+              Editor Visual de Flyers &amp; Participações
               <span className="px-2 py-0.5 rounded text-[10px] bg-gold-500/20 text-gold-300 font-semibold border border-gold-500/30">
                 Flyer Studio HD
               </span>
@@ -625,7 +629,7 @@ export default function FlyerEditor() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="flyer-age" className="block text-xs font-semibold text-navy-200 mb-1">
                         Idade (Anos)
@@ -861,7 +865,7 @@ export default function FlyerEditor() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="flyer-agency-address" className="block text-xs font-semibold text-navy-200 mb-1">
                         Endereço
@@ -898,7 +902,7 @@ export default function FlyerEditor() {
                     <label className="block text-xs font-bold text-gold-400 uppercase tracking-wider">
                       Tipografia do Flyer
                     </label>
-                    <div role="radiogroup" aria-label="Família tipográfica" className="grid grid-cols-3 gap-2">
+                    <div role="radiogroup" aria-label="Família tipográfica" className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {FONT_OPTIONS.map((font) => (
                         <button
                           key={font.value}
@@ -923,7 +927,7 @@ export default function FlyerEditor() {
                     <label className="block text-xs font-bold text-gold-400 uppercase tracking-wider">
                       Paleta de Cores do Modelo
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="flyer-primary-color" className="block text-xs font-semibold text-navy-200 mb-1.5">
                           Cor Principal
@@ -1060,9 +1064,9 @@ export default function FlyerEditor() {
 
       {/* Share modal */}
       {showShareModal && (
-        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleShare} className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-navy-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+          <form onSubmit={handleShare} className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95 my-4">
+             <div className="flex items-center justify-between border-b border-navy-800 pb-3">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Send className="w-4 h-4 text-blue-400" />
                 Partilhar Flyer
