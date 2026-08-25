@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Heart,
   Flame,
@@ -101,6 +102,12 @@ export default function PublicObituaryPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [showQr, setShowQr] = useState(false);
+  const [pageUrl, setPageUrl] = useState('');
+
+  useEffect(() => {
+    setPageUrl(window.location.href);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -279,7 +286,7 @@ export default function PublicObituaryPage() {
             <span className="text-xs text-navy-400 flex items-center gap-1">
               <Share2 className="w-4 h-4 text-gold-400" /> Partilhar anúncio:
             </span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
@@ -298,8 +305,32 @@ export default function PublicObituaryPage() {
               >
                 Facebook
               </button>
+              <button
+                onClick={() => setShowQr((v) => !v)}
+                aria-expanded={showQr}
+                className="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-xs text-gold-300 border border-gold-500/30 font-medium"
+              >
+                Código QR
+              </button>
             </div>
           </div>
+
+          {/* QR Code — para imprimir no velório */}
+          {showQr && (
+            <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-white/5 border border-navy-800">
+              <div className="bg-white p-2.5 rounded-xl shadow-lg shrink-0">
+                {pageUrl && <QRCodeSVG value={pageUrl} size={112} level="M" />}
+              </div>
+              <div className="space-y-1.5 text-center sm:text-left">
+                <p className="text-sm font-bold text-white">Aponte a câmara do telemóvel</p>
+                <p className="text-xs text-navy-300 leading-relaxed">
+                  Mostre este código no velório: os convidados acedem ao anúncio completo e ao
+                  livro de condolências digital sem instalar nada.
+                </p>
+                <p className="text-[10px] text-navy-500 break-all">{pageUrl}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Condolences */}

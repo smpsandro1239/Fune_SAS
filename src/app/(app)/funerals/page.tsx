@@ -22,6 +22,7 @@ import {
   BookOpen,
   Send,
   Megaphone,
+  Download,
 } from 'lucide-react';
 import {
   ApiFuneral,
@@ -140,6 +141,52 @@ function formatFuneralDate(funeral: ApiFuneral): string {
 
 const inputClass =
   'w-full px-3 py-2 rounded-lg bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-gold-400';
+
+/** Escapa um valor para CSV (ponto e vírgula, compatível com Excel PT) */
+function csvCell(value: string | number | null | undefined): string {
+  const s = String(value ?? '');
+  return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function exportFuneralsCsv(funerals: ApiFuneral[]) {
+  const header = [
+    'Falecido',
+    'Idade',
+    'Estado',
+    'Servico',
+    'Data Funeral',
+    'Hora',
+    'Paroquia/Igreja',
+    'Cemiterio',
+    'Velorio',
+    'Data Obito',
+  ];
+  const rows = funerals.map((f) =>
+    [
+      f.deceased.fullName,
+      f.deceased.age ?? '',
+      STATUS_META[f.status]?.label ?? f.status,
+      f.serviceType ? (SERVICE_LABELS[f.serviceType] ?? f.serviceType) : '',
+      f.funeralDate ? new Date(f.funeralDate).toLocaleDateString('pt-PT') : '',
+      f.funeralTime ?? '',
+      f.locationParish ?? '',
+      f.cemeteryLocation ?? '',
+      f.wakeLocation ?? '',
+      f.deceased.dateOfDeath ? new Date(f.deceased.dateOfDeath).toLocaleDateString('pt-PT') : '',
+    ]
+      .map(csvCell)
+      .join(';'),
+  );
+  // BOM para o Excel respeitar os acentos
+  const csv = '\uFEFF' + [header.join(';'), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `funerais-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function FuneralsPage() {
   const { currentAgency } = useAgency();
@@ -339,13 +386,24 @@ export default function FuneralsPage() {
           </p>
         </div>
 
-        <button
-          onClick={openCreate}
-          className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow-lg shadow-gold-500/10 transition-all hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-300"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Registar Novo Funeral</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => exportFuneralsCsv(funerals)}
+            disabled={funerals.length === 0}
+            title="Exporta a lista filtrada para Excel/CSV"
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-navy-900 border border-navy-700 text-navy-200 font-semibold text-xs transition-all hover:border-gold-500/40 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            <span>Exportar CSV</span>
+          </button>
+          <button
+            onClick={openCreate}
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow-lg shadow-gold-500/10 transition-all hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-300"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Registar Novo Funeral</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats chips */}
