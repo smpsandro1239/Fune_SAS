@@ -268,6 +268,58 @@ describe('Fune_SAS API (e2e)', () => {
   it('POST /api/subscriptions/webhook sem assinatura é rejeitado (400)', () =>
     request(app.getHttpServer()).post('/api/subscriptions/webhook').send({}).expect(400));
 
+  describe('Documentos (upload/download via StorageService)', () => {
+    // PNG 1x1 válido
+    const PNG = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    let uploadedFileName: string;
+    let documentId: string;
+
+    it('POST /api/documents faz upload de um PDF/PNG', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .field('title', 'E2E Certidão')
+        .field('type', 'CERTIFICATE')
+        .attach('file', PNG, { filename: 'e2e-test.png', contentType: 'image/png' })
+        .expect(201);
+
+      expect(res.body.fileName).toMatch(/\.png$/);
+      expect(res.body.fileSize).toBe(PNG.length);
+      expect(res.body.mimeType).toBe('image/png');
+      uploadedFileName = res.body.fileName;
+      documentId = res.body.id;
+    });
+
+    it('GET /api/documents/file/:filename descarrega o ficheiro autenticado', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/api/documents/file/${uploadedFileName}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(res.headers['content-type']).toBe('image/png');
+      expect(Buffer.compare(res.body as Buffer, PNG)).toBe(0);
+    });
+
+    it('GET ficheiro sem token é rejeitado (401)', () =>
+      request(app.getHttpServer()).get(`/api/documents/file/${uploadedFileName}`).expect(401));
+
+    it('DELETE /api/documents/:id remove o documento e o ficheiro', async () => {
+      await request(app.getHttpServer())
+        .delete(`/api/documents/${documentId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200)
+        .expect({ success: true });
+
+      await request(app.getHttpServer())
+        .get(`/api/documents/file/${uploadedFileName}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
+    });
+  });
+
   it('DELETE /api/funerals/:id remove o funeral', () =>
     request(app.getHttpServer())
       .delete(`/api/funerals/${funeralId}`)
