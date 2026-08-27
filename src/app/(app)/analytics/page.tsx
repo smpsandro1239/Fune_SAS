@@ -11,6 +11,7 @@ import {
   FileText,
   Palette,
   Sparkles,
+  Download,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -51,6 +52,28 @@ export default function AnalyticsPage() {
   const [usage, setUsage] = useState<ServicesUsage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    setError('');
+    try {
+      const data = await apiService.reports.export();
+      const blob = new Blob([data.content], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Não foi possível exportar o relatório.'));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -112,14 +135,28 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6 animate-in fade-in">
       {/* Cabeçalho */}
-      <div>
-        <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-gold-400" />
-          Relatórios & Métricas
-        </h1>
-        <p className="text-xs text-navy-300">
-          Estatísticas reais da agência: funerais, documentos e distribuição de serviços.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-gold-400" />
+            Relatórios & Métricas
+          </h1>
+          <p className="text-xs text-navy-300">
+            Estatísticas reais da agência: funerais, documentos e distribuição de serviços.
+          </p>
+        </div>
+        <button
+          onClick={handleExportCsv}
+          disabled={exporting}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 text-xs font-bold shadow-lg transition-all disabled:opacity-60 self-start sm:self-auto"
+        >
+          {exporting ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Download className="w-3.5 h-3.5" />
+          )}
+          Exportar CSV
+        </button>
       </div>
 
       {error && (

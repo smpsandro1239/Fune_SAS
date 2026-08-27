@@ -404,6 +404,10 @@ export const apiService = {
     funeralsPerPeriod: (groupBy: 'day' | 'month' | 'year' = 'month') =>
       api.get<FuneralsPerPeriod>('/reports/funerals-per-period', { params: { groupBy } }).then((r) => r.data),
     servicesUsage: () => api.get<ServicesUsage>('/reports/services-usage').then((r) => r.data),
+    export: (params?: { from?: string; to?: string }) =>
+      api
+        .get<{ filename: string; content: string; count: number }>('/reports/export', { params })
+        .then((r) => r.data),
   },
 
   notifications: {

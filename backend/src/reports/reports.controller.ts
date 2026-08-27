@@ -42,4 +42,16 @@ export class ReportsController {
   dashboard(@CurrentUser() user: AuthenticatedUser) {
     return this.reportsService.dashboardSummary(user);
   }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Exporta todos os funerais da agência em CSV (download Excel-PT)' })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  export(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.exportFunerals(user, { from, to });
+  }
 }

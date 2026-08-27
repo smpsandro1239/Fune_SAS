@@ -84,4 +84,86 @@ export class ReportsService {
 
     return { funerals, completed, scheduled, documents, templates };
   }
+
+  /**
+   * Gera um CSV completo dos funerais da agência no intervalo (todos os registos,
+   * sem paginação), pronto para download em Excel/planilhas (BOM + separador ;).
+   */
+  async exportFunerals(user: AuthenticatedUser, query: ReportQuery) {
+    const { from, to } = this.buildDateRange(query);
+
+    const funerals = await this.prisma.funeral.findMany({
+      where: { agencyId: user.agencyId, funeralDate: { gte: from, lte: to } },
+      orderBy: { funeralDate: 'asc' },
+      select: {
+        id: true,
+        serviceType: true,
+        status: true,
+        funeralDate: true,
+        funeralTime: true,
+        locationParish: true,
+        cemeteryLocation: true,
+        wakeLocation: true,
+        publicNoticeEnabled: true,
+        createdAt: true,
+        deceased: { select: { fullName: true, age: true, dateOfDeath: true } },
+        _count: { select: { condolences: true, documents: true } },
+      },
+    });
+
+    const csv = (value: unknown): string => {
+      const s = value === null || value === undefined ? '' : String(value);
+      if (/[";\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+
+    const headers = [
+      'ID',
+      'Falecido',
+      'Idade',
+      'Data de Falecimento',
+      'Tipo de Serviço',
+      'Estado',
+      'Data do Funeral',
+      'Hora',
+      'Paróquia',
+      'Cemitério',
+      'Velório',
+      'Nota Pública',
+      'Condolências',
+      'Documentos',
+      'Criado em',
+    ];
+
+    const rows = funerals.map((f) =>
+      [
+        f.id,
+        f.deceased.fullName,
+        f.deceased.age ?? '',
+        f.deceased.dateOfDeath ? new Date(f.deceased.dateOfDeath).toISOString().slice(0, 10) : '',
+        f.serviceType,
+        f.status,
+        f.funeralDate.toISOString().slice(0, 10),
+        f.funeralTime ?? '',
+        f.locationParish ?? '',
+        f.cemeteryLocation ?? '',
+        f.wakeLocation ?? '',
+        f.publicNoticeEnabled ? 'Sim' : 'Não',
+        f._count.condolences,
+        f._count.documents,
+        f.createdAt.toISOString().slice(0, 10),
+      ]
+        .map(csv)
+        .join(';'),
+    );
+
+    const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\r\n');
+    return {
+      filename: `funerais-${from.toISOString().slice(0, 10)}-${to.toISOString().slice(0, 10)}.csv`,
+      content: csvContent,
+      count: funerals.length,
+      from,
+      to,
+    };
+  }
 }
