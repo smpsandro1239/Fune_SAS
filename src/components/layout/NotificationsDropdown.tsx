@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Bell, Check, CheckCheck, Loader2 } from 'lucide-react';
 import { ApiNotification, apiService } from '@/lib/api';
 
@@ -140,6 +141,13 @@ export default function NotificationsDropdown() {
                 ))
               )}
             </div>
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="block text-center px-4 py-2.5 text-xs font-semibold text-gold-400 hover:text-gold-300 hover:bg-navy-800 border-t border-navy-800 transition-colors"
+            >
+              Ver todas as notificações
+            </Link>
           </div>
         </>
       )}

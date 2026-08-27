@@ -15,6 +15,7 @@ const PASSWORD = 'E2ePassword123!';
 describe('Fune_SAS API (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
+  let agencyId: string;
   let deceasedId: string;
   let funeralId: string;
 
@@ -133,6 +134,7 @@ describe('Fune_SAS API (e2e)', () => {
     expect(res.body.id).toBeTruthy();
     expect(res.body.slug).toBe(SLUG);
     expect(res.body.subscriptionPlan).toBe('FREE');
+    agencyId = res.body.id;
   });
 
   it('POST /api/deceased cria um falecido', async () => {
@@ -221,6 +223,15 @@ describe('Fune_SAS API (e2e)', () => {
     // Agências novas têm moderação desligada → aprovada de imediato
     expect(res.body.success).toBe(true);
     expect(res.body.moderated).toBe(false);
+
+    // A condolência deve disparar uma notificação interna para a agência
+    const prisma = app.get(PrismaService);
+    const notification = await prisma.notification.findFirst({
+      where: { agencyId, title: 'Nova condolência' },
+      orderBy: { sentAt: 'desc' },
+    });
+    expect(notification).toBeTruthy();
+    expect(notification.message).toContain('Família E2E');
   });
 
   it('POST condolência com honeypot preenchido é rejeitada (400)', () =>

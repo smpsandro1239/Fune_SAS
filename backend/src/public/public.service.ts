@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { WhatsAppService } from '../whatsapp/whatsapp.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateCondolenceDto } from './dto/condolence.dto';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class PublicService {
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
     private readonly whatsappService: WhatsAppService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async getFuneralBySlug(agencySlug: string, funeralId: string) {
@@ -134,6 +136,7 @@ export class PublicService {
       id: string;
       name: string;
       email: string | null;
+      condolenceModeration: boolean;
       whatsappNotifyNumber: string | null;
       whatsappPhoneNumberId: string | null;
       whatsappAccessToken: string | null;
@@ -143,6 +146,14 @@ export class PublicService {
     message: string,
   ): Promise<void> {
     const preview = message.length > 200 ? `${message.slice(0, 200)}…` : message;
+
+    // Notificação interna (painel de notificações da agência)
+    await this.notificationsService.create({
+      agencyId: agency.id,
+      type: 'SISTEMA',
+      title: 'Nova condolência',
+      message: `${authorName} deixou uma nova mensagem no livro de condolências.${agency.condolenceModeration ? ' Aguarda aprovação.' : ''}`,
+    });
 
     if (agency.email) {
       await this.emailService.send({
