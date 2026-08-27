@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -31,6 +32,8 @@ export interface TokenPair {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -119,15 +122,27 @@ export class AuthService {
       include: { user: true },
     });
 
-    if (!stored || stored.expiresAt < new Date()) {
+    const hash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
+    // ---------- Deteção de reutilização ----------
+    // Se o token já não existe na BD, houve reutilização de um token já rotacionado:
+    // sinal de roubo/comprometimento → revoga TODAS as sessões do utilizador.
+    if (!stored || stored.tokenHash !== hash) {
+      const userId = stored?.userId ?? payload.sub;
+      if (userId) {
+        await this.prisma.refreshToken.deleteMany({ where: { userId } }).catch(() => undefined);
+        this.logger.warn(
+          `Possível reutilização de refresh token — sessões revogadas para o utilizador ${userId}`,
+        );
+      }
       throw new UnauthorizedException('Sessão expirada, faça login novamente.');
     }
 
-    const hash = crypto.createHash('sha256').update(refreshToken).digest('hex');
-    if (stored.tokenHash !== hash) {
-      throw new UnauthorizedException('Refresh token não reconhecido.');
+    if (stored.expiresAt < new Date()) {
+      throw new UnauthorizedException('Sessão expirada, faça login novamente.');
     }
 
+    // Rotação normal: elimina o token usado antes de emitir um novo
     await this.prisma.refreshToken.delete({ where: { id: stored.id } });
     return this.issueTokens(stored.user);
   }

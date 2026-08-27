@@ -75,6 +75,35 @@ describe('Fune_SAS API (e2e)', () => {
     accessToken = res.body.accessToken;
   });
 
+  it('POST /api/auth/refresh rotaciona e rejeita reutilização (401 + sessões revogadas)', async () => {
+    // Login para obter um refresh token dedicado
+    const login = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: EMAIL, password: PASSWORD })
+      .expect((res) => expect(res.status).toBeGreaterThanOrEqual(200));
+    const rt = login.body.refreshToken;
+    expect(typeof rt).toBe('string');
+
+    // 1. Refresh válido → novo par, o anterior fica queimado
+    const ok = await request(app.getHttpServer())
+      .post('/api/auth/refresh')
+      .send({ refreshToken: rt })
+      .expect((res) => expect(res.status).toBeGreaterThanOrEqual(200));
+    expect(typeof ok.body.accessToken).toBe('string');
+
+    // 2. Reutilizar o MESMO token já usado → revoga todas as sessões → 401
+    await request(app.getHttpServer())
+      .post('/api/auth/refresh')
+      .send({ refreshToken: rt })
+      .expect(401);
+
+    // 3. Até o token gerado pelo refresh válido deixa de valer (todas revogadas)
+    await request(app.getHttpServer())
+      .post('/api/auth/refresh')
+      .send({ refreshToken: ok.body.refreshToken })
+      .expect(401);
+  });
+
   it('POST /api/auth/register rejeita email duplicado (400)', () =>
     request(app.getHttpServer())
       .post('/api/auth/register')
