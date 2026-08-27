@@ -27,6 +27,7 @@ import {
   Youtube,
   Music2,
   Megaphone,
+  Send,
 } from 'lucide-react';
 import { useAgency } from '@/context/AgencyContext';
 import { useAuth } from '@/context/AuthContext';
@@ -96,6 +97,27 @@ export default function AgenciesPage() {
 
   const isAdmin = sessionUser?.role === 'ADMIN';
   const [moderationBusy, setModerationBusy] = useState(false);
+
+  const [whatsappTestBusy, setWhatsappTestBusy] = useState(false);
+
+  const handleWhatsAppTest = async () => {
+    if (!isAdmin) return;
+    setWhatsappTestBusy(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await apiService.agencies.testWhatsApp();
+      if (res.sent) {
+        setSuccess(`Mensagem de teste enviada para ${res.to}.`);
+      } else {
+        setError(res.error || 'Não foi possível enviar a mensagem de teste.');
+      }
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Não foi possível enviar a mensagem de teste.'));
+    } finally {
+      setWhatsappTestBusy(false);
+    }
+  };
 
   const handleToggleModeration = async () => {
     if (!currentAgency) return;
@@ -476,6 +498,32 @@ export default function AgenciesPage() {
                   ));
                 })()}
               </div>
+
+              {(() => {
+                const ag = currentAgency as any;
+                const waReady = !!ag?.whatsappPhoneNumberId && !!ag?.whatsappAccessToken;
+                if (!waReady) return null;
+                return (
+                  <div className="mt-3 flex items-center justify-between gap-3 p-3 rounded-xl bg-navy-950 border border-navy-700">
+                    <span className="text-[10px] text-navy-300">
+                      WhatsApp configurado. Envie uma mensagem de teste para o número de notificações.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleWhatsAppTest}
+                      disabled={whatsappTestBusy}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-all disabled:opacity-60 shrink-0"
+                    >
+                      {whatsappTestBusy ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                      Enviar Teste WhatsApp
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           </>
         )}

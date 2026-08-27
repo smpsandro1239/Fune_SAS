@@ -137,6 +137,16 @@ describe('Fune_SAS API (e2e)', () => {
     agencyId = res.body.id;
   });
 
+  it('POST /api/agencies/me/whatsapp/test sem config devolve sent:false', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/agencies/me/whatsapp/test')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(201);
+
+    expect(res.body.sent).toBe(false);
+    expect(res.body.error).toBeTruthy();
+  });
+
   it('POST /api/deceased cria um falecido', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/deceased')

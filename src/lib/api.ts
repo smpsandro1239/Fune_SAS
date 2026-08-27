@@ -338,6 +338,10 @@ export const apiService = {
   agencies: {
     me: () => api.get<ApiAgency>('/agencies/me').then((r) => r.data),
     update: (data: Partial<ApiAgency>) => api.patch<ApiAgency>('/agencies/me', data).then((r) => r.data),
+    testWhatsApp: () =>
+      api
+        .post<{ sent: boolean; to?: string; error?: string | null }>('/agencies/me/whatsapp/test')
+        .then((r) => r.data),
   },
 
   funerals: {

@@ -1,5 +1,5 @@
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { AgenciesService } from './agencies.service';
 import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -22,5 +22,13 @@ export class AgenciesController {
   @ApiOperation({ summary: 'Atualiza os dados da própria agência (apenas ADMIN)' })
   update(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateAgencyDto) {
     return this.agenciesService.update(user, dto);
+  }
+
+  @Post('me/whatsapp/test')
+  @ApiOperation({
+    summary: 'Envia uma mensagem de teste WhatsApp para validar a configuração (apenas ADMIN)',
+  })
+  testWhatsApp(@CurrentUser() user: AuthenticatedUser) {
+    return this.agenciesService.testWhatsApp(user);
   }
 }
