@@ -80,6 +80,9 @@ jobs:
       - name: Lint
         run: npx next lint
 
+      - name: Unit tests
+        run: npx jest --ci
+
       - name: Typecheck
         run: npx tsc --noEmit
 
