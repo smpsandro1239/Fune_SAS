@@ -39,7 +39,7 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
           </button>
         )}
 
-        <Link href="/" className="flex items-center space-x-2.5">
+        <Link href="/dashboard" className="flex items-center space-x-2.5">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-gold-600 via-gold-500 to-amber-300 p-0.5 shadow-lg shadow-gold-500/10">
             <div className="w-full h-full bg-navy-950 rounded-[10px] flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-gold-400" />

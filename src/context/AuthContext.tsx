@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const isPublicPath = pathname === '/login' || pathname.startsWith('/public');
+  const isPublicPath = pathname === '/' || pathname === '/login' || pathname.startsWith('/public');
 
   useEffect(() => {
     if (loading) return;
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       storeTokens(tokens);
       const profile = await apiService.auth.me();
       setUser(profile);
-      router.replace('/');
+      router.replace('/dashboard');
     },
     [router],
   );
