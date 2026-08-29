@@ -38,9 +38,15 @@ describe('LoginPage', () => {
   it('renderiza o formulário de sessão', () => {
     render(<LoginPage />);
     expect(screen.getByText('Iniciar Sessão')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('admin@casahortas.com')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByText('Entrar no Painel')).toBeInTheDocument();
+  });
+
+  it('marca os campos obrigatórios para validação nativa do browser', () => {
+    render(<LoginPage />);
+    expect(screen.getByLabelText('Email')).toBeRequired();
+    expect(screen.getByLabelText('Password')).toBeRequired();
   });
 
   it('chama login com as credenciais preenchidas', async () => {
@@ -48,8 +54,8 @@ describe('LoginPage', () => {
     mockLoginResult.mockResolvedValue(undefined);
     render(<LoginPage />);
 
-    await user.type(screen.getByPlaceholderText('admin@casahortas.com'), 'admin@casahortas.com');
-    await user.type(screen.getByPlaceholderText('••••••••'), 'Admin123!');
+    await user.type(screen.getByLabelText('Email'), 'admin@casahortas.com');
+    await user.type(screen.getByLabelText('Password'), 'Admin123!');
     await user.click(screen.getByText('Entrar no Painel'));
 
     await waitFor(() => {
@@ -65,8 +71,8 @@ describe('LoginPage', () => {
     });
     render(<LoginPage />);
 
-    await user.type(screen.getByPlaceholderText('admin@casahortas.com'), 'admin@casahortas.com');
-    await user.type(screen.getByPlaceholderText('••••••••'), 'wrong');
+    await user.type(screen.getByLabelText('Email'), 'admin@casahortas.com');
+    await user.type(screen.getByLabelText('Password'), 'wrong');
     await user.click(screen.getByText('Entrar no Painel'));
 
     expect(await screen.findByText('Credenciais inválidas.')).toBeInTheDocument();
@@ -76,8 +82,8 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
-    await user.type(screen.getByPlaceholderText('admin@casahortas.com'), 'admin@casahortas.com');
-    const form = screen.getByPlaceholderText('admin@casahortas.com').closest('form') as HTMLFormElement;
+    await user.type(screen.getByLabelText('Email'), 'admin@casahortas.com');
+    const form = screen.getByLabelText('Email').closest('form') as HTMLFormElement;
     fireEvent.submit(form);
 
     expect(screen.getByText('Introduza o email e a password.')).toBeInTheDocument();
@@ -87,7 +93,7 @@ describe('LoginPage', () => {
   it('alterna a visibilidade da password', async () => {
     const user = userEvent.setup();
     render(<LoginPage />);
-    const passwordInput = screen.getByPlaceholderText('••••••••') as HTMLInputElement;
+    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
 
     expect(passwordInput).toHaveAttribute('type', 'password');
 
