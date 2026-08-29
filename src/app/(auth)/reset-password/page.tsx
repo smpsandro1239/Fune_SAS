@@ -76,10 +76,11 @@ function ResetPasswordForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div className="space-y-1.5">
-          <label className="block text-navy-200 font-semibold">Nova palavra-passe</label>
+          <label htmlFor="newPassword" className="block text-navy-200 font-semibold">Nova palavra-passe</label>
           <div className="relative">
             <Lock className="w-4 h-4 text-navy-400 absolute left-3 top-2.5" />
             <input
+              id="newPassword"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={password}
@@ -101,10 +102,11 @@ function ResetPasswordForm() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-navy-200 font-semibold">Confirmar palavra-passe</label>
+          <label htmlFor="confirmPassword" className="block text-navy-200 font-semibold">Confirmar palavra-passe</label>
           <div className="relative">
             <Lock className="w-4 h-4 text-navy-400 absolute left-3 top-2.5" />
             <input
+              id="confirmPassword"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={confirmPassword}
