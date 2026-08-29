@@ -49,7 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const isPublicPath = pathname === '/' || pathname === '/login' || pathname.startsWith('/public');
+  const isPublicPath =
+    pathname === '/' || pathname === '/login' || pathname === '/register' || pathname.startsWith('/public');
 
   useEffect(() => {
     if (loading) return;

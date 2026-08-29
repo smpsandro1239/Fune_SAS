@@ -320,6 +320,15 @@ export const apiService = {
   auth: {
     login: (email: string, password: string) =>
       api.post<TokenPair>('/auth/login', { email, password }).then((r) => r.data),
+    register: (data: {
+      name: string;
+      email: string;
+      password: string;
+      agencyName: string;
+      agencySlug?: string;
+      agencyAddress?: string;
+      agencyLocation?: string;
+    }) => api.post<TokenPair>('/auth/register', data).then((r) => r.data),
     refresh: (refreshToken: string) =>
       api.post<TokenPair>('/auth/refresh', { refreshToken }).then((r) => r.data),
     logout: (refreshToken: string) =>

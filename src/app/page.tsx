@@ -108,7 +108,7 @@ export default function LandingPage() {
               <span>Entrar</span>
             </Link>
             <Link
-              href="/login"
+              href="/register"
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 hover:from-gold-400 hover:to-amber-300 text-navy-950 font-bold text-xs flex items-center space-x-2 shadow-lg shadow-gold-500/10 transition-all"
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -139,7 +139,7 @@ export default function LandingPage() {
                 <span>Entrar</span>
               </Link>
               <Link
-                href="/login"
+                href="/register"
                 className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs flex items-center justify-center space-x-2"
               >
                 <UserPlus className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export default function LandingPage() {
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/login"
+              href="/register"
               className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-gold-500 to-amber-400 hover:from-gold-400 hover:to-amber-300 text-navy-950 font-bold text-sm flex items-center justify-center space-x-2 shadow-2xl shadow-gold-500/20 transition-all"
             >
               <UserPlus className="w-4 h-4" />
@@ -277,7 +277,7 @@ export default function LandingPage() {
           </p>
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/login"
+              href="/register"
               className="px-8 py-4 rounded-2xl bg-gradient-to-r from-gold-500 to-amber-400 hover:from-gold-400 hover:to-amber-300 text-navy-950 font-bold text-sm flex items-center space-x-2 shadow-2xl shadow-gold-500/20 transition-all"
             >
               <UserPlus className="w-4 h-4" />
@@ -328,7 +328,7 @@ export default function LandingPage() {
               <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Acesso</h4>
               <ul className="space-y-2.5 text-xs text-navy-400">
                 <li><Link href="/login" className="hover:text-gold-300 transition-colors">Entrar</Link></li>
-                <li><Link href="/login" className="hover:text-gold-300 transition-colors">Registar Agência</Link></li>
+                <li><Link href="/register" className="hover:text-gold-300 transition-colors">Registar Agência</Link></li>
               </ul>
               <div className="mt-5 space-y-2 text-xs text-navy-400">
                 <div className="flex items-center space-x-2">
