@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const replace = jest.fn();
@@ -7,6 +7,11 @@ const setUser = jest.fn();
 const register = jest.fn();
 const me = jest.fn();
 const storeTokens = jest.fn();
+
+const mockUser = jest.fn<{ user: unknown; setUser: typeof setUser }, []>(() => ({
+  user: null,
+  setUser,
+}));
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
@@ -20,7 +25,7 @@ jest.mock('next/link', () => {
 });
 
 jest.mock('@/context/AuthContext', () => ({
-  useAuth: () => ({ user: null, setUser }),
+  useAuth: () => mockUser(),
 }));
 
 jest.mock('@/lib/api', () => {
@@ -46,6 +51,7 @@ describe('RegisterPage', () => {
     register.mockClear();
     me.mockClear();
     storeTokens.mockClear();
+    mockUser.mockReturnValue({ user: null, setUser });
   });
 
   it('renderiza o formulário de registo com os campos principais', () => {
@@ -128,5 +134,41 @@ describe('RegisterPage', () => {
       await screen.findByText('Já existe um utilizador com este email.'),
     ).toBeInTheDocument();
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  it('alterna a visibilidade da password', async () => {
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
+
+    expect(passwordInput).toHaveAttribute('type', 'password');
+
+    await user.click(screen.getByRole('button', { name: 'Mostrar password' }));
+    expect(passwordInput).toHaveAttribute('type', 'text');
+
+    await user.click(screen.getByRole('button', { name: 'Ocultar password' }));
+    expect(passwordInput).toHaveAttribute('type', 'password');
+  });
+
+  it('redireciona para o dashboard quando já há sessão iniciada', () => {
+    mockUser.mockReturnValue({ user: { id: 'u1' }, setUser });
+    render(<RegisterPage />);
+    expect(replace).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('mostra erro de validação quando falta o nome da agência (bypass do required nativo)', async () => {
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+    await user.type(screen.getByLabelText('Nome'), 'Ana Oliveira');
+    await user.type(screen.getByLabelText('Email'), 'ana@agencia.pt');
+    await user.type(screen.getByLabelText('Password'), 'Admin123!');
+
+    const form = screen.getByLabelText('Nome').closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(
+      await screen.findByText('Preencha o nome, email, password e nome da agência.'),
+    ).toBeInTheDocument();
+    expect(register).not.toHaveBeenCalled();
   });
 });
