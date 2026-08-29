@@ -59,4 +59,47 @@ describe('LandingPage', () => {
     render(<LandingPage />);
     expect(replace).not.toHaveBeenCalled();
   });
+
+  it('controla o menu móvel: fechado por defeito e alterna no clique', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<LandingPage />);
+    const mobileLinks = () =>
+      container.querySelectorAll('a[class*="block text-sm font-semibold text-navy-200"]');
+
+    expect(screen.getByRole('button', { name: 'Abrir menu' })).toBeInTheDocument();
+    expect(mobileLinks()).toHaveLength(0);
+
+    await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
+    expect(screen.getByRole('button', { name: 'Fechar menu' })).toBeInTheDocument();
+    expect(mobileLinks()).toHaveLength(3);
+
+    await user.click(screen.getByRole('button', { name: 'Fechar menu' }));
+    expect(screen.getByRole('button', { name: 'Abrir menu' })).toBeInTheDocument();
+    expect(mobileLinks()).toHaveLength(0);
+  });
+
+  it('fecha o menu móvel ao navegar através de uma âncora', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<LandingPage />);
+    const mobileLinks = () =>
+      container.querySelectorAll('a[class*="block text-sm font-semibold text-navy-200"]');
+
+    await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
+    expect(mobileLinks()).toHaveLength(3);
+
+    await user.click(screen.getByText('Funcionalidades', { selector: 'a[class*="block text-sm"]' }));
+    expect(screen.getByRole('button', { name: 'Abrir menu' })).toBeInTheDocument();
+    expect(mobileLinks()).toHaveLength(0);
+  });
+
+  it('expõe CTAs de registar/entrar dentro do menu móvel', async () => {
+    const user = userEvent.setup();
+    render(<LandingPage />);
+    await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
+
+    expect(screen.getAllByText('Entrar').length).toBeGreaterThan(0);
+    const registerMobile = screen.getAllByRole('link', { name: 'Registar' });
+    expect(registerMobile.length).toBeGreaterThan(0);
+    registerMobile.forEach((link) => expect(link).toHaveAttribute('href', '/register'));
+  });
 });
