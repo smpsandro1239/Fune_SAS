@@ -25,3 +25,4 @@ prisma/dev.db-journal
 .idea/
 .DS_Store
 tsconfig.tsbuildinfo
+tsconfig.*.tsbuildinfo

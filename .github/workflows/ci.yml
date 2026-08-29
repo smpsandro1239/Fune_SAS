@@ -83,6 +83,9 @@ jobs:
       - name: Unit tests
         run: npx jest --ci
 
+      - name: Test typecheck
+        run: npx tsc --noEmit -p tsconfig.test.json
+
       - name: Typecheck
         run: npx tsc --noEmit
 
