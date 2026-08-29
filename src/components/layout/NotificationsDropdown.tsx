@@ -73,6 +73,7 @@ export default function NotificationsDropdown() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
+        aria-label="Notificações"
         className="relative p-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-navy-300 hover:text-white border border-navy-700 transition-all"
       >
         <Bell className="w-4 h-4" />
