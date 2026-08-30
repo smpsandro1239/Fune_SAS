@@ -301,6 +301,7 @@ export default function GenerateDocumentsPage() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [copies, setCopies] = useState(1);
 
   useEffect(() => {
     apiService.funerals.list().then(setFunerals).catch(() => {}).finally(() => setLoading(false));
@@ -335,14 +336,8 @@ export default function GenerateDocumentsPage() {
   const currentDeceasedName = selectedFuneralObj?.deceased?.fullName || 'Funeral';
   const currentFilename = `${currentTypeName} - ${currentDeceasedName}.pdf`;
 
-  /** Valida campos obrigatórios do tipo selecionado */
+  /** Todos os campos são opcionais — deixar vazio imprime uma linha em branco no PDF */
   const validateFields = (): string | null => {
-    if (!currentType) return null;
-    for (const field of currentType.fields) {
-      if (field.required && !extraData[field.key]?.trim()) {
-        return `Preencha o campo "${field.label}" antes de gerar.`;
-      }
-    }
     return null;
   };
 
@@ -389,7 +384,7 @@ export default function GenerateDocumentsPage() {
     setGenerating(true);
     setError('');
     try {
-      const blob = await apiService.docGenerate.generate(selectedFuneral, selectedType, buildPayload());
+      const blob = await apiService.docGenerate.generate(selectedFuneral, selectedType, buildPayload(), copies);
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       const url = URL.createObjectURL(blob);
       setPdfBlob(blob);
@@ -425,11 +420,9 @@ export default function GenerateDocumentsPage() {
     }
   };
 
-  const missingRequired = currentType
-    ? currentType.fields.filter((f) => f.required).length
-    : 0;
-  const filledRequired = currentType
-    ? currentType.fields.filter((f) => f.required && extraData[f.key]?.trim()).length
+  const totalFields = currentType ? currentType.fields.length : 0;
+  const filledFields = currentType
+    ? currentType.fields.filter((f) => extraData[f.key]?.trim()).length
     : 0;
 
   return (
@@ -612,13 +605,13 @@ export default function GenerateDocumentsPage() {
                   <currentType.icon className="w-4 h-4 text-gold-400" />
                   Dados para: {currentType.label}
                 </p>
-                {missingRequired > 0 && (
+                {totalFields > 0 && (
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    filledRequired === missingRequired
+                    filledFields === totalFields
                       ? 'bg-emerald-500/15 text-emerald-300'
                       : 'bg-amber-500/15 text-amber-300'
                   }`}>
-                    {filledRequired}/{missingRequired} obrigatórios preenchidos
+                    {filledFields}/{totalFields} campos preenchidos
                   </span>
                 )}
               </div>
@@ -628,7 +621,7 @@ export default function GenerateDocumentsPage() {
                   <div key={field.key} className={field.textareaRows ? 'sm:col-span-2' : ''}>
                     <label className="block text-[10px] font-semibold text-navy-300 mb-1">
                       {field.label}
-                      {field.required ? <span className="text-red-400"> *</span> : <span className="text-navy-500"> (opcional)</span>}
+                      <span className="text-navy-500"> (opcional)</span>
                     </label>
 
                     {field.textareaRows ? (
@@ -664,7 +657,24 @@ export default function GenerateDocumentsPage() {
           )}
 
           {/* Generate button */}
-          <div className="flex justify-end pt-3 border-t border-navy-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-navy-800">
+            <div className="flex items-center gap-2">
+              <label htmlFor="doc-copies" className="text-[10px] font-semibold text-navy-300">
+                Nº de cópias
+              </label>
+              <input
+                id="doc-copies"
+                type="number"
+                min={1}
+                max={99}
+                value={copies}
+                onChange={(e) => {
+                  const n = parseInt(e.target.value, 10);
+                  setCopies(Number.isNaN(n) ? 1 : Math.min(99, Math.max(1, n)));
+                }}
+                className="w-16 px-2 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none text-center"
+              />
+            </div>
             <button
               onClick={handleGenerate}
               disabled={!selectedFuneral || !selectedType || generating}

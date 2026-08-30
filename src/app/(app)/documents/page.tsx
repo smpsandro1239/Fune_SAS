@@ -27,6 +27,9 @@ import {
   fetchFileBlobUrl,
   formatBytes,
 } from '@/lib/api';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 15;
 
 const TYPE_LABELS: Record<DocumentType, string> = {
   CERTIFICATE: 'Certidões',
@@ -60,6 +63,7 @@ export default function DocumentsPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeType, setActiveType] = useState<DocumentType | 'ALL'>('ALL');
+  const [page, setPage] = useState(1);
 
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -202,6 +206,13 @@ export default function DocumentsPage() {
   const inputClass =
     'w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none';
 
+  const pageCount = Math.max(1, Math.ceil(documents.length / PAGE_SIZE));
+  const visibleDocuments = documents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
   return (
     <div className="space-y-6 animate-in fade-in">
       {/* Cabeçalho */}
@@ -240,7 +251,7 @@ export default function DocumentsPage() {
             type="text"
             placeholder="Pesquisar por título..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none"
           />
         </div>
@@ -249,7 +260,7 @@ export default function DocumentsPage() {
           {TYPE_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setActiveType(opt.value)}
+              onClick={() => { setActiveType(opt.value); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeType === opt.value
                   ? 'bg-gold-500 text-navy-950'
@@ -276,6 +287,7 @@ export default function DocumentsPage() {
           </p>
         </div>
       ) : (
+        <>
         <div className="bg-navy-900/80 border border-navy-800 rounded-2xl overflow-hidden shadow-xl">
           <div className="p-4 border-b border-navy-800 flex items-center justify-between text-xs text-navy-400 font-bold uppercase tracking-wider">
             <span>Ficheiro</span>
@@ -285,7 +297,7 @@ export default function DocumentsPage() {
           </div>
 
           <div className="divide-y divide-navy-800">
-            {documents.map((doc) => (
+            {visibleDocuments.map((doc) => (
               <div key={doc.id} className="p-4 flex items-center justify-between hover:bg-navy-800/50 transition-colors">
                 <div className="flex items-center space-x-3 min-w-0 flex-1">
                   <div className="p-2.5 rounded-xl bg-navy-950 border border-gold-500/20 text-gold-400 shrink-0">
@@ -351,6 +363,13 @@ export default function DocumentsPage() {
             ))}
           </div>
         </div>
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          total={documents.length}
+          onPageChange={setPage}
+        />
+        </>
       )}
 
       {/* Modal: upload */}

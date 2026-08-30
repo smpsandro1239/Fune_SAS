@@ -461,8 +461,8 @@ export const apiService = {
   },
 
   docGenerate: {
-    generate: async (funeralId: string, type: string, extraData?: Record<string, any>): Promise<Blob> => {
-      const response = await api.post('/documents/generate', { funeralId, type, extraData }, { responseType: 'blob' });
+    generate: async (funeralId: string, type: string, extraData?: Record<string, any>, copies?: number): Promise<Blob> => {
+      const response = await api.post('/documents/generate', { funeralId, type, extraData, copies }, { responseType: 'blob' });
       return response.data;
     },
   },

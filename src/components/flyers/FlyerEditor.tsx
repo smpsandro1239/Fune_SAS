@@ -85,6 +85,8 @@ export default function FlyerEditor() {
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareForm, setShareForm] = useState({ title: '', caption: '', platform: 'FACEBOOK', scheduledFor: '' });
+  const [shareDate, setShareDate] = useState('');
+  const [shareTime, setShareTime] = useState('');
   const [shareBusy, setShareBusy] = useState(false);
 
   const previewRef = useRef<HTMLDivElement>(null);
@@ -341,6 +343,8 @@ export default function FlyerEditor() {
   };
 
   const openShare = () => {
+    setShareDate('');
+    setShareTime('');
     setShareForm({
       title: flyerData.deceasedName ? `Participação de ${flyerData.deceasedName}` : 'Participação Funerária',
       caption: flyerData.deceasedName
@@ -356,12 +360,13 @@ export default function FlyerEditor() {
     e.preventDefault();
     setShareBusy(true);
     try {
+      const combined = combineDateAndTime(shareDate || null, shareTime || null);
       await apiService.publications.create({
         title: shareForm.title,
         caption: shareForm.caption,
         platform: shareForm.platform,
         funeralId: selectedFuneralId || undefined,
-        scheduledFor: shareForm.scheduledFor || undefined,
+        scheduledFor: combined ? combined.toISOString() : undefined,
       });
       setShowShareModal(false);
       setExportMessage('Publicação criada com sucesso!');
@@ -1117,15 +1122,14 @@ export default function FlyerEditor() {
                 />
               </div>
 
-              <div>
-                <label className="block text-navy-200 mb-1 font-semibold">Agendar (opcional)</label>
-                <input
-                  type="datetime-local"
-                  value={shareForm.scheduledFor}
-                  onChange={(e) => setShareForm({ ...shareForm, scheduledFor: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
-                />
-              </div>
+              <DateTimePicker
+                id="share-schedule"
+                label="Agendar (opcional)"
+                date={shareDate || null}
+                time={shareTime || null}
+                onDateChange={setShareDate}
+                onTimeChange={setShareTime}
+              />
             </div>
 
             <div className="pt-3 border-t border-navy-800 flex justify-end gap-2">

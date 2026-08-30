@@ -32,6 +32,11 @@ import {
   apiService,
 } from '@/lib/api';
 import { useAgency } from '@/context/AgencyContext';
+import DateTimePicker from '@/components/flyers/DateTimePicker';
+import { combineDateAndTime } from '@/lib/date-utils';
+import Pagination from '@/components/Pagination';
+
+const FUNERALS_PAGE_SIZE = 9;
 
 const STATUS_META: Record<FuneralStatus, { label: string; className: string }> = {
   SCHEDULED: {
@@ -196,6 +201,7 @@ export default function FuneralsPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<FuneralStatus | 'ALL'>('ALL');
+  const [page, setPage] = useState(1);
 
   const [modal, setModal] = useState<null | { mode: 'create' } | { mode: 'edit'; funeral: ApiFuneral }>(null);
   const [form, setForm] = useState<FuneralForm>(EMPTY_FORM);
@@ -208,6 +214,8 @@ export default function FuneralsPage() {
 
   const [sharing, setSharing] = useState<ApiFuneral | null>(null);
   const [shareForm, setShareForm] = useState({ title: '', caption: '', platform: 'FACEBOOK', scheduledFor: '' });
+  const [shareDate, setShareDate] = useState('');
+  const [shareTime, setShareTime] = useState('');
   const [shareBusy, setShareBusy] = useState(false);
 
   const loadFunerals = useCallback(async (search?: string, status?: FuneralStatus | 'ALL') => {
@@ -332,6 +340,8 @@ export default function FuneralsPage() {
 
   const openShare = (funeral: ApiFuneral) => {
     setSharing(funeral);
+    setShareDate('');
+    setShareTime('');
     const pubUrl = currentAgency ? `/public/${currentAgency.slug}/${funeral.id}` : `/public/${funeral.id}`;
     setShareForm({
       title: `Funeral de ${funeral.deceased.fullName}`,
@@ -346,12 +356,13 @@ export default function FuneralsPage() {
     if (!sharing) return;
     setShareBusy(true);
     try {
+      const combined = combineDateAndTime(shareDate || null, shareTime || null);
       await apiService.publications.create({
         title: shareForm.title,
         caption: shareForm.caption,
         platform: shareForm.platform,
         funeralId: sharing.id,
-        scheduledFor: shareForm.scheduledFor || undefined,
+        scheduledFor: combined ? combined.toISOString() : undefined,
       });
       setNotice('Publicação criada com sucesso! Pode geri-la em Publicações Sociais.');
       setSharing(null);
@@ -368,6 +379,13 @@ export default function FuneralsPage() {
     inProgress: funerals.filter((f) => f.status === 'IN_PROGRESS').length,
     completed: funerals.filter((f) => f.status === 'COMPLETED').length,
   };
+
+  const pageCount = Math.max(1, Math.ceil(funerals.length / FUNERALS_PAGE_SIZE));
+  const visibleFunerals = funerals.slice((page - 1) * FUNERALS_PAGE_SIZE, page * FUNERALS_PAGE_SIZE);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
 
   const set = (field: keyof FuneralForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -434,14 +452,14 @@ export default function FuneralsPage() {
             type="text"
             placeholder="Pesquisar por nome do falecido..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none"
           />
         </div>
 
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as FuneralStatus | 'ALL')}
+          onChange={(e) => { setStatusFilter(e.target.value as FuneralStatus | 'ALL'); setPage(1); }}
           className="px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none w-full sm:w-auto"
         >
           {FILTER_OPTIONS.map((o) => (
@@ -498,8 +516,9 @@ export default function FuneralsPage() {
 
       {/* Funerals Grid */}
       {!loading && !error && funerals.length > 0 && (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {funerals.map((funeral) => {
+          {visibleFunerals.map((funeral) => {
             const statusMeta = STATUS_META[funeral.status];
             const publicUrl = currentAgency
               ? `/public/${currentAgency.slug}/${funeral.id}`
@@ -637,6 +656,13 @@ export default function FuneralsPage() {
             );
           })}
         </div>
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          total={funerals.length}
+          onPageChange={setPage}
+        />
+        </>
       )}
 
       {/* Create / Edit Modal */}
@@ -951,15 +977,14 @@ export default function FuneralsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-navy-200 mb-1 font-semibold">Agendar (opcional)</label>
-                <input
-                  type="datetime-local"
-                  value={shareForm.scheduledFor}
-                  onChange={(e) => setShareForm({ ...shareForm, scheduledFor: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white focus:border-gold-400 focus:outline-none"
-                />
-              </div>
+              <DateTimePicker
+                id="share-schedule"
+                label="Agendar (opcional)"
+                date={shareDate || null}
+                time={shareTime || null}
+                onDateChange={setShareDate}
+                onTimeChange={setShareTime}
+              />
             </div>
 
             <div className="pt-3 border-t border-navy-800 flex justify-end gap-2">

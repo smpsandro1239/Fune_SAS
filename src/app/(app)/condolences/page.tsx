@@ -2,13 +2,16 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, Check, CheckCircle2, Loader2, MessageSquareHeart, Trash2, X } from 'lucide-react';
+import { AlertCircle, Check, CheckCircle2, Loader2, MessageSquareHeart, Search, Trash2, X } from 'lucide-react';
 import {
   ApiCondolenceWithFuneral,
   apiErrorMessage,
   apiService,
 } from '@/lib/api';
 import { useToast } from '@/components/Toast';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 10;
 
 type Filter = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
 
@@ -30,6 +33,8 @@ export default function CondolencesModerationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<Filter>('PENDING');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = useCallback(async (f: Filter) => {
@@ -96,6 +101,24 @@ export default function CondolencesModerationPage() {
     }
   };
 
+  const query = searchTerm.trim().toLowerCase();
+  const filtered =
+    query === ''
+      ? items
+      : items.filter((c) =>
+          [c.authorName, c.message, c.funeral?.deceased.fullName ?? '']
+            .join(' ')
+            .toLowerCase()
+            .includes(query),
+        );
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const visibleItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
   return (
     <div className="space-y-6 animate-in fade-in">
       {/* Cabeçalho */}
@@ -123,7 +146,7 @@ export default function CondolencesModerationPage() {
         {FILTERS.map((f) => (
           <button
             key={f.value}
-            onClick={() => setFilter(f.value)}
+            onClick={() => { setFilter(f.value); setPage(1); }}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
               filter === f.value
                 ? 'bg-gold-500 text-navy-950 border-gold-400'
@@ -135,12 +158,24 @@ export default function CondolencesModerationPage() {
         ))}
       </div>
 
+      {/* Pesquisa */}
+      <div className="relative max-w-md">
+        <Search className="w-4 h-4 text-navy-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+          placeholder="Pesquisar por autor, mensagem ou falecido..."
+          className="w-full pl-9 pr-3 py-2 rounded-xl bg-navy-900/80 border border-navy-700 text-white placeholder:text-navy-400 focus:border-gold-400 focus:outline-none text-xs"
+        />
+      </div>
+
       {/* Lista */}
       {loading ? (
         <div className="flex items-center justify-center py-24">
           <Loader2 className="w-7 h-7 animate-spin text-gold-400" />
         </div>
-      ) : items.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="p-10 rounded-2xl bg-navy-900/80 border border-navy-800 text-center space-y-3">
           <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
           <p className="text-sm font-semibold text-white">Sem condolências nesta vista.</p>
@@ -149,8 +184,9 @@ export default function CondolencesModerationPage() {
           </p>
         </div>
       ) : (
+        <>
         <div className="space-y-3">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <div
               key={item.id}
               className="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 space-y-3 shadow-lg"
@@ -227,6 +263,8 @@ export default function CondolencesModerationPage() {
             </div>
           ))}
         </div>
+        <Pagination page={page} pageCount={pageCount} total={filtered.length} onPageChange={setPage} />
+        </>
       )}
     </div>
   );

@@ -84,7 +84,7 @@ describe('GenerateDocumentsPage', () => {
     ).toBeDisabled();
   });
 
-  it('valida os campos obrigatórios do tipo selecionado', async () => {
+  it('gera o documento mesmo com campos vazios (linha em branco)', async () => {
     render(<GenerateDocumentsPage />);
     await screen.findByText(/Selecione um funeral e o tipo de documento/);
 
@@ -92,11 +92,8 @@ describe('GenerateDocumentsPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Gerar e Visualizar/ }));
 
-    expect(toast).toHaveBeenCalledWith(
-      'error',
-      'Preencha o campo "Nome de quem esteve presente" antes de gerar.',
-    );
-    expect(docGenerate).not.toHaveBeenCalled();
+    await waitFor(() => expect(docGenerate).toHaveBeenCalled());
+    expect(docGenerate).toHaveBeenCalledWith('f1', 'PRESENCA', {}, 1);
   });
 
   it('gera um documento com sucesso e mostra a pré-visualização', async () => {
@@ -118,13 +115,26 @@ describe('GenerateDocumentsPage', () => {
     expect(docGenerate).toHaveBeenCalledWith('f1', 'PRESENCA', {
       presentName: 'Joana Silva',
       presentRelation: 'Filha',
-    });
+    }, 1);
     expect(URL.createObjectURL).toHaveBeenCalled();
     expect(toast).toHaveBeenCalledWith(
       'success',
       'Documento gerado com sucesso! Pode visualizar antes de descarregar.',
     );
     expect(await screen.findByText('Descarregar PDF')).toBeInTheDocument();
+  }, 10000);
+
+  it('envia o número de cópias selecionado quando gera', async () => {
+    render(<GenerateDocumentsPage />);
+    await screen.findByText(/Selecione um funeral e o tipo de documento/);
+
+    await selectFuneral();
+
+    fireEvent.change(screen.getByLabelText('Nº de cópias'), { target: { value: '3' } });
+    fireEvent.click(screen.getByRole('button', { name: /Gerar e Visualizar/ }));
+
+    await waitFor(() => expect(docGenerate).toHaveBeenCalled());
+    expect(docGenerate).toHaveBeenCalledWith('f1', 'PRESENCA', {}, 3);
   }, 10000);
 
   it('mostra a mensagem de erro quando a geração falha', async () => {

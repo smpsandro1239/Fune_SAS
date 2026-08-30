@@ -34,6 +34,9 @@ import { useAuth } from '@/context/AuthContext';
 import { ApiUser, UserRole, apiErrorMessage, apiService } from '@/lib/api';
 import Link from 'next/link';
 import { MessageSquareHeart } from 'lucide-react';
+import Pagination from '@/components/Pagination';
+
+const USERS_PAGE_SIZE = 8;
 
 const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: 'Administrador',
@@ -91,6 +94,7 @@ export default function AgenciesPage() {
   const [editingUser, setEditingUser] = useState<ApiUser | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [deletingUser, setDeletingUser] = useState<ApiUser | null>(null);
+  const [page, setPage] = useState(1);
 
   const [editingSocials, setEditingSocials] = useState(false);
   const [socialForm, setSocialForm] = useState<Record<string, string>>({});
@@ -162,6 +166,13 @@ export default function AgenciesPage() {
       );
     }
   }, [currentAgency, editingSocials]);
+
+  const usersPageCount = Math.max(1, Math.ceil(users.length / USERS_PAGE_SIZE));
+  const visibleUsers = users.slice((page - 1) * USERS_PAGE_SIZE, page * USERS_PAGE_SIZE);
+
+  useEffect(() => {
+    if (page > usersPageCount) setPage(usersPageCount);
+  }, [page, usersPageCount]);
 
   const openCreate = () => {
     setEditingUser(null);
@@ -593,8 +604,9 @@ export default function AgenciesPage() {
             <Loader2 className="w-6 h-6 animate-spin text-gold-400" />
           </div>
         ) : (
+          <>
           <div className="divide-y divide-navy-800">
-            {users.map((user) => (
+            {visibleUsers.map((user) => (
               <div key={user.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between hover:bg-navy-800/50 transition-colors">
                 <div className="flex items-center space-x-3 min-w-0">
                   <div className="w-9 h-9 rounded-full bg-navy-950 border border-gold-500/30 flex items-center justify-center text-xs font-bold text-gold-400 shrink-0">
@@ -639,6 +651,10 @@ export default function AgenciesPage() {
               </div>
             ))}
           </div>
+          <div className="px-4 pb-4">
+            <Pagination page={page} pageCount={usersPageCount} total={users.length} onPageChange={setPage} />
+          </div>
+          </>
         )}
       </div>
 

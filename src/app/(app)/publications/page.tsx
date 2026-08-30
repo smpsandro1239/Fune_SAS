@@ -25,6 +25,9 @@ import {
 } from 'lucide-react';
 import { apiErrorMessage, apiService, ApiPublication, ApiFuneral, PublicationPlatform, PublicationStatus } from '@/lib/api';
 import { useToast } from '@/components/Toast';
+import Pagination from '@/components/Pagination';
+
+const PAGE_SIZE = 9;
 
 const PLATFORMS: { value: PublicationPlatform; label: string; icon: any; color: string }[] = [
   { value: 'FACEBOOK', label: 'Facebook', icon: Facebook, color: 'text-blue-400' },
@@ -62,6 +65,7 @@ export default function PublicationsPage() {
   const [funerals, setFunerals] = useState<ApiFuneral[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [page, setPage] = useState(1);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<ApiPublication | null>(null);
@@ -183,6 +187,13 @@ export default function PublicationsPage() {
   const getPlatformInfo = (platform: PublicationPlatform) =>
     PLATFORMS.find((p) => p.value === platform) || PLATFORMS[0];
 
+  const pageCount = Math.max(1, Math.ceil(publications.length / PAGE_SIZE));
+  const visiblePublications = publications.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
   return (
     <div className="space-y-6 animate-in fade-in max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -216,7 +227,7 @@ export default function PublicationsPage() {
         {(['', 'DRAFT', 'SCHEDULED', 'PUBLISHED', 'FAILED'] as const).map((status) => (
           <button
             key={status}
-            onClick={() => setFilter(status)}
+            onClick={() => { setFilter(status); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
               filter === status
                 ? 'bg-gold-500/20 text-gold-300 border border-gold-500/30'
@@ -240,8 +251,9 @@ export default function PublicationsPage() {
           <p className="mt-1">Crie a sua primeira publicação para redes sociais.</p>
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {publications.map((pub) => {
+          {visiblePublications.map((pub) => {
             const platform = getPlatformInfo(pub.platform);
             const PlatformIcon = platform.icon;
             return (
@@ -314,6 +326,13 @@ export default function PublicationsPage() {
             );
           })}
         </div>
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          total={publications.length}
+          onPageChange={setPage}
+        />
+        </>
       )}
 
       {/* Modal: criar/editar */}
