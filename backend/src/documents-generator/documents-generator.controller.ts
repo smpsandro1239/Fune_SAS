@@ -21,7 +21,7 @@ export class DocumentsGeneratorController {
   @Post('generate')
   async generate(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { funeralId: string; type: string; extraData?: Record<string, any> },
+    @Body() body: { funeralId: string; type: string; extraData?: Record<string, any>; copies?: number },
     @Res() res: Response,
   ) {
     if (!body.funeralId || !body.type) {
@@ -38,6 +38,7 @@ export class DocumentsGeneratorController {
       body.funeralId,
       type,
       body.extraData,
+      body.copies,
     );
     const filename = this.generatorService.getFilename(
       type,

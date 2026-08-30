@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import jsPDF from 'jspdf';
+import { FuneralData, AgencyData } from './pdf.helpers';
 import { generatePresenca, PresencaData } from './templates/presenca.template';
 import { generatePrograma, ProgramaData } from './templates/programa.template';
 import { generateCremacao, CremacaoData } from './templates/cremacao.template';
@@ -45,6 +47,7 @@ export class DocumentsGeneratorService {
     funeralId: string,
     type: DocType,
     extraData?: Record<string, any>,
+    copies: number = 1,
   ): Promise<Buffer> {
     const funeral = await this.prisma.funeral.findFirst({
       where: { id: funeralId, agencyId },
@@ -81,120 +84,102 @@ export class DocumentsGeneratorService {
       logoUrl: agency.logoUrl,
     };
 
-    let doc;
-
-    switch (type) {
-      case 'PRESENCA':
-        doc = generatePresenca(
-          funeralData,
-          agencyData,
-          (extraData as PresencaData) || { presentName: '', presentRelation: '' },
-        );
-        break;
-      case 'PROGRAMA':
-        doc = generatePrograma(funeralData, agencyData, (extraData as ProgramaData) || {});
-        break;
-      case 'CREMACAO':
-        doc = generateCremacao(
-          funeralData,
-          agencyData,
-          (extraData as CremacaoData) || {
-            requesterName: '',
-            requesterId: '',
-            requesterRelation: '',
-            requesterAddress: '',
-          },
-        );
-        break;
-      case 'TRANSPORTE_DOCS':
-        doc = generateTransporte(
-          funeralData,
-          agencyData,
-          (extraData as TransporteData) || {
-            origin: '',
-            destination: '',
-            vehicleType: '',
-            vehiclePlate: '',
-            driverName: '',
-          },
-        );
-        break;
-      case 'RELATORIO':
-        doc = generateRelatorio(
-          funeralData,
-          agencyData,
-          (extraData as RelatorioData) || { clientName: '', items: [] },
-        );
-        break;
-      case 'SEPULTURA':
-        doc = generateSepultura(funeralData, agencyData, (extraData as SepulturaData) || {});
-        break;
-      case 'CONDOLENCIA':
-        doc = generateCondolencia(
-          funeralData,
-          agencyData,
-          (extraData as CondolenciaData) || { familyName: '' },
-        );
-        break;
-      case 'ATESTADO_OBITO':
-        doc = generateAtestadoObito(
-          funeralData,
-          agencyData,
-          (extraData as AtestadoObitoData) || {},
-        );
-        break;
-      case 'AUTORIZACAO_SEPULTAMENTO':
-        doc = generateAutorizacaoSepultamento(
-          funeralData,
-          agencyData,
-          (extraData as AutorizacaoSepultamentoData) || {
-            requesterName: '',
-            requesterId: '',
-            requesterRelation: '',
-          },
-        );
-        break;
-      case 'CONTRATO_SERVICO':
-        doc = generateContratoServico(
-          funeralData,
-          agencyData,
-          (extraData as ContratoServicoData) || {
-            clientName: '',
-            clientId: '',
-            clientAddress: '',
-            clientPhone: '',
-            clientEmail: '',
-            items: [],
-          },
-        );
-        break;
-      case 'GUIA_PAGAMENTO':
-        doc = generateGuiaPagamento(
-          funeralData,
-          agencyData,
-          (extraData as GuiaPagamentoData) || {
-            clientName: '',
-            clientId: '',
-            paymentMethod: '',
-            items: [],
-          },
-        );
-        break;
-      case 'DECLARACAO_HERDEIROS':
-        doc = generateDeclaracaoHerdeiros(
-          funeralData,
-          agencyData,
-          (extraData as DeclaracaoHerdeirosData) || {
-            heirs: [],
-          },
-        );
-        break;
-      default:
-        throw new BadRequestException(`Tipo de documento não suportado: ${type}`);
+    const totalCopies = Math.min(99, Math.max(1, Math.floor(copies) || 1));
+    let doc = this.renderDoc(type, funeralData, agencyData, extraData);
+    for (let i = 1; i < totalCopies; i++) {
+      doc.addPage();
+      this.renderDoc(type, funeralData, agencyData, extraData, doc);
     }
 
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
     return pdfBuffer;
+  }
+
+  private renderDoc(
+    type: DocType,
+    funeralData: FuneralData,
+    agencyData: AgencyData,
+    extraData?: Record<string, any>,
+    sharedDoc?: jsPDF,
+  ): jsPDF {
+    switch (type) {
+      case 'PRESENCA':
+        return generatePresenca(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as PresencaData),
+          sharedDoc,
+        );
+      case 'PROGRAMA':
+        return generatePrograma(funeralData, agencyData, ((extraData || {}) as ProgramaData), sharedDoc);
+      case 'CREMACAO':
+        return generateCremacao(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as CremacaoData),
+          sharedDoc,
+        );
+      case 'TRANSPORTE_DOCS':
+        return generateTransporte(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as TransporteData),
+          sharedDoc,
+        );
+      case 'RELATORIO':
+        return generateRelatorio(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as RelatorioData),
+          sharedDoc,
+        );
+      case 'SEPULTURA':
+        return generateSepultura(funeralData, agencyData, ((extraData || {}) as SepulturaData), sharedDoc);
+      case 'CONDOLENCIA':
+        return generateCondolencia(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as CondolenciaData),
+          sharedDoc,
+        );
+      case 'ATESTADO_OBITO':
+        return generateAtestadoObito(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as AtestadoObitoData),
+          sharedDoc,
+        );
+      case 'AUTORIZACAO_SEPULTAMENTO':
+        return generateAutorizacaoSepultamento(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as AutorizacaoSepultamentoData),
+          sharedDoc,
+        );
+      case 'CONTRATO_SERVICO':
+        return generateContratoServico(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as ContratoServicoData),
+          sharedDoc,
+        );
+      case 'GUIA_PAGAMENTO':
+        return generateGuiaPagamento(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as GuiaPagamentoData),
+          sharedDoc,
+        );
+      case 'DECLARACAO_HERDEIROS':
+        return generateDeclaracaoHerdeiros(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as DeclaracaoHerdeirosData),
+          sharedDoc,
+        );
+      default:
+        throw new BadRequestException(`Tipo de documento não suportado: ${type}`);
+    }
   }
 
   getFilename(type: DocType, deceasedName: string): string {

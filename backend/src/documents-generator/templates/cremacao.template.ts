@@ -11,6 +11,7 @@ import {
   formatDate,
   addBox,
   addSeparator,
+  orBlank,
 } from '../pdf.helpers';
 
 export interface CremacaoData {
@@ -24,14 +25,15 @@ export function generateCremacao(
   funeral: FuneralData,
   agency: AgencyData,
   extra: CremacaoData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'AUTORIZAÇÃO DE CREMAÇÃO', y);
   y += 6;
 
   const introLines = doc.splitTextToSize(
-    `Eu, ${extra.requesterName}, portador(a) do Cartão de Cidadão nº ${extra.requesterId}, residente em ${extra.requesterAddress}, na qualidade de ${extra.requesterRelation} do(a) falecido(a):`,
+    `Eu, ${orBlank(extra.requesterName)}, portador(a) do Cartão de Cidadão nº ${orBlank(extra.requesterId)}, residente em ${orBlank(extra.requesterAddress)}, na qualidade de ${orBlank(extra.requesterRelation)} do(a) falecido(a):`,
     160,
   );
   doc.setFontSize(11);

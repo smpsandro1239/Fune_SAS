@@ -23,8 +23,9 @@ export function generateAtestadoObito(
   funeral: FuneralData,
   agency: AgencyData,
   extra: AtestadoObitoData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'ATESTADO DE ÓBITO', y);
   y += 4;

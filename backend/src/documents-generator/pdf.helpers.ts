@@ -44,6 +44,11 @@ export function formatDateLong(dateStr?: string | null): string {
   return d.toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+/** Devolve o valor ou uma linha em branco para preenchimento manual quando vazio */
+export function orBlank(value?: string | null): string {
+  return value && value.trim() ? value.trim() : '______________';
+}
+
 const GOLD_R = 180;
 const GOLD_G = 155;
 const GOLD_B = 80;

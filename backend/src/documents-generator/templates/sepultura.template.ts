@@ -11,6 +11,7 @@ import {
   addParagraph,
   addBox,
   addSeparator,
+  orBlank,
 } from '../pdf.helpers';
 
 export interface SepulturaData {
@@ -22,8 +23,9 @@ export function generateSepultura(
   funeral: FuneralData,
   agency: AgencyData,
   extra: SepulturaData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'CERTIDÃO DE SEPULTURA', y);
   y += 6;
@@ -52,9 +54,7 @@ export function generateSepultura(
   const graveInfo = [extra.graveType, extra.plotNumber ? `nº ${extra.plotNumber}` : '']
     .filter(Boolean)
     .join(' ');
-  if (graveInfo) {
-    doc.text(`Sepultura: ${graveInfo}`, 32, fy);
-  }
+  doc.text(`Sepultura: ${orBlank(graveInfo)}`, 32, fy);
   doc.setTextColor(0, 0, 0);
   y += 44;
 

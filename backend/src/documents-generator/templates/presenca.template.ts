@@ -9,6 +9,7 @@ import {
   addSignatureLine,
   addParagraph,
   addSeparator,
+  orBlank,
 } from '../pdf.helpers';
 
 export interface PresencaData {
@@ -20,8 +21,9 @@ export function generatePresenca(
   funeral: FuneralData,
   agency: AgencyData,
   extra: PresencaData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'DECLARAÇÃO DE PRESENÇA', y);
   y += 4;
@@ -36,7 +38,7 @@ export function generatePresenca(
 
   y = addParagraph(
     doc,
-    `declara para todos os efeitos legais que o(a) Sr(a). ${extra.presentName}, na qualidade de ${extra.presentRelation},`,
+    `declara para todos os efeitos legais que o(a) Sr(a). ${orBlank(extra.presentName)}, na qualidade de ${orBlank(extra.presentRelation)},`,
     25,
     y,
   );

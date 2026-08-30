@@ -9,6 +9,7 @@ import {
   formatDate,
   addParagraph,
   addSeparator,
+  orBlank,
 } from '../pdf.helpers';
 
 export interface CondolenciaData {
@@ -20,8 +21,9 @@ export function generateCondolencia(
   funeral: FuneralData,
   agency: AgencyData,
   extra: CondolenciaData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y += 4;
 
@@ -40,7 +42,7 @@ export function generateCondolencia(
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`Exmo(a). Sr(a). ${extra.familyName}`, 25, y);
+  doc.text(`Exmo(a). Sr(a). ${orBlank(extra.familyName)}`, 25, y);
   y += 8;
 
   doc.setFontSize(10);
@@ -55,7 +57,7 @@ export function generateCondolencia(
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`${extra.familyName},`, 25, y);
+  doc.text(`${orBlank(extra.familyName)},`, 25, y);
   y += 10;
 
   const opening = `A ${agency.name} deseja expressar as suas mais sinceras condolências pelo falecimento de ${funeral.deceasedName}, ocorrido em ${formatDate(funeral.dateOfDeath)}${funeral.age ? ', com a idade de ' + funeral.age + ' anos' : ''}.`;

@@ -12,6 +12,7 @@ import {
   addParagraph,
   addSeparator,
   addBox,
+  orBlank,
 } from '../pdf.helpers';
 
 export interface ContratoServicoData {
@@ -29,8 +30,9 @@ export function generateContratoServico(
   funeral: FuneralData,
   agency: AgencyData,
   extra: ContratoServicoData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'CONTRATO DE PRESTAÇÃO DE SERVIÇOS', y);
   y += 4;
@@ -72,9 +74,9 @@ export function generateContratoServico(
   doc.text('CLIENTE / CONTRATANTE:', 32, y + 7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`${extra.clientName} — CCº ${extra.clientId}`, 32, y + 14);
+  doc.text(`${orBlank(extra.clientName)} — CCº ${orBlank(extra.clientId)}`, 32, y + 14);
   doc.text(
-    `${extra.clientAddress} | Tel: ${extra.clientPhone} | Email: ${extra.clientEmail}`,
+    `${orBlank(extra.clientAddress)} | Tel: ${orBlank(extra.clientPhone)} | Email: ${orBlank(extra.clientEmail)}`,
     32,
     y + 21,
   );

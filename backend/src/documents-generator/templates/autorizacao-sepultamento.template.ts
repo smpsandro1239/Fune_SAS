@@ -10,6 +10,7 @@ import {
   addSignatureLine,
   formatDate,
   addSeparator,
+  orBlank,
 } from '../pdf.helpers';
 
 export interface AutorizacaoSepultamentoData {
@@ -22,13 +23,14 @@ export function generateAutorizacaoSepultamento(
   funeral: FuneralData,
   agency: AgencyData,
   extra: AutorizacaoSepultamentoData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'AUTORIZAÇÃO DE SEPULTAMENTO', y);
   y += 6;
 
-  const declText = `Eu, ${extra.requesterName}, portador(a) do Cartão de Cidadão nº ${extra.requesterId}, na qualidade de ${extra.requesterRelation} do(a) falecido(a), autorizo o sepultamento do corpo nos termos da lei.`;
+  const declText = `Eu, ${orBlank(extra.requesterName)}, portador(a) do Cartão de Cidadão nº ${orBlank(extra.requesterId)}, na qualidade de ${orBlank(extra.requesterRelation)} do(a) falecido(a), autorizo o sepultamento do corpo nos termos da lei.`;
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);

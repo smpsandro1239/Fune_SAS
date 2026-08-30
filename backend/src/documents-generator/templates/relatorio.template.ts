@@ -8,6 +8,7 @@ import {
   addTitle,
   formatDate,
   addSeparator,
+  orBlank,
 } from '../pdf.helpers';
 
 export interface RelatorioItem {
@@ -26,8 +27,9 @@ export function generateRelatorio(
   funeral: FuneralData,
   agency: AgencyData,
   extra: RelatorioData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'RELATÓRIO DE SERVIÇO', y);
   y += 4;
@@ -35,7 +37,7 @@ export function generateRelatorio(
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`Cliente: ${extra.clientName}`, 25, y);
+  doc.text(`Cliente: ${orBlank(extra.clientName)}`, 25, y);
   doc.text(`Falecido(a): ${funeral.deceasedName}`, 120, y);
   y += 6;
   doc.text(`Data do Serviço: ${formatDate(funeral.funeralDate)}`, 25, y);

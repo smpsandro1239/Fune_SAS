@@ -27,8 +27,9 @@ export function generateDeclaracaoHerdeiros(
   funeral: FuneralData,
   agency: AgencyData,
   extra: DeclaracaoHerdeirosData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'DECLARAÇÃO DE HERDEIROS', y);
   y += 6;

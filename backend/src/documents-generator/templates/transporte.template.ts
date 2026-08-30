@@ -24,8 +24,9 @@ export function generateTransporte(
   funeral: FuneralData,
   agency: AgencyData,
   extra: TransporteData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y = addTitle(doc, 'GUIA DE TRANSPORTE DE CADÁVER', y);
   y += 6;

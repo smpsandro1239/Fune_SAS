@@ -20,8 +20,9 @@ export function generatePrograma(
   funeral: FuneralData,
   agency: AgencyData,
   extra: ProgramaData,
+  sharedDoc?: jsPDF,
 ): jsPDF {
-  const doc = createDoc();
+  const doc = sharedDoc ?? createDoc();
   let y = addLetterhead(doc, agency);
   y += 2;
 

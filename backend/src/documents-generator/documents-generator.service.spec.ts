@@ -146,6 +146,32 @@ describe('DocumentsGeneratorService', () => {
       expect(buffer).toBeInstanceOf(Buffer);
       expect(buffer.length).toBeGreaterThan(0);
     });
+
+    it('should generate a single-page PDF by default', async () => {
+      const buffer = await service.generate('agency-1', 'funeral-1', 'PRESENCA');
+      const pages = countPdfPages(buffer);
+      expect(pages).toBe(1);
+    });
+
+    it('should generate a multi-page PDF when copies is provided', async () => {
+      const buffer = await service.generate('agency-1', 'funeral-1', 'PRESENCA', undefined, 3);
+      const pages = countPdfPages(buffer);
+      expect(pages).toBe(3);
+    });
+
+    it('should clamp copies within the accepted range', async () => {
+      const zero = await service.generate('agency-1', 'funeral-1', 'PRESENCA', undefined, 0);
+      expect(countPdfPages(zero)).toBe(1);
+
+      const huge = await service.generate('agency-1', 'funeral-1', 'PRESENCA', undefined, 500);
+      expect(countPdfPages(huge)).toBe(99);
+    });
+
+    it('should render a fill-in blank line when fields are empty', async () => {
+      const buffer = await service.generate('agency-1', 'funeral-1', 'PRESENCA', {});
+      const text = buffer.toString('latin1');
+      expect(text).toContain('______________');
+    });
   });
 
   describe('getFilename', () => {
@@ -177,3 +203,9 @@ describe('DocumentsGeneratorService', () => {
     });
   });
 });
+
+function countPdfPages(buffer: Buffer): number {
+  const s = buffer.toString('latin1');
+  const matches = s.match(/\/Type\s*\/Page[^s]/g);
+  return matches ? matches.length : 0;
+}
