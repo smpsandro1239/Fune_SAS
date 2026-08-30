@@ -669,8 +669,9 @@ export default function FuneralsPage() {
               <div className="p-3 rounded-xl bg-navy-950 border border-gold-500/20 space-y-3">
                 <p className="text-xs font-bold text-gold-400 uppercase tracking-wider">Falecido</p>
                 <div>
-                  <label className="block text-navy-200 mb-1 font-medium">Nome do Falecido *</label>
+                  <label htmlFor="funeral-fullName" className="block text-navy-200 mb-1 font-medium">Nome do Falecido *</label>
                   <input
+                    id="funeral-fullName"
                     type="text"
                     required
                     placeholder="Ex: MANUEL ANTONIO DA SILVA"
@@ -750,8 +751,8 @@ export default function FuneralsPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-navy-200 mb-1 font-medium">Data do Funeral *</label>
-                    <input type="date" required value={form.funeralDate} onChange={set('funeralDate')} className={inputClass} />
+                    <label htmlFor="funeral-funeralDate" className="block text-navy-200 mb-1 font-medium">Data do Funeral *</label>
+                    <input id="funeral-funeralDate" type="date" required value={form.funeralDate} onChange={set('funeralDate')} className={inputClass} />
                   </div>
                   <div>
                     <label className="block text-navy-200 mb-1 font-medium">Hora</label>
