@@ -7,6 +7,7 @@ const dashboard = jest.fn();
 const funeralsPerPeriod = jest.fn();
 const servicesUsage = jest.fn();
 const exportReport = jest.fn();
+const exportPdfReport = jest.fn();
 
 jest.mock('@/lib/api', () => ({
   apiErrorMessage: (err: unknown, fallback: string) => apiErrorMessage(err, fallback),
@@ -16,6 +17,7 @@ jest.mock('@/lib/api', () => ({
       funeralsPerPeriod: (...args: unknown[]) => funeralsPerPeriod(...args),
       servicesUsage: (...args: unknown[]) => servicesUsage(...args),
       export: (...args: unknown[]) => exportReport(...args),
+      exportPdf: (...args: unknown[]) => exportPdfReport(...args),
     },
   },
 }));
@@ -53,6 +55,10 @@ describe('AnalyticsPage', () => {
     dashboard.mockResolvedValue(summary);
     funeralsPerPeriod.mockResolvedValue(period);
     servicesUsage.mockResolvedValue(usage);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('mostra o loading enquanto os relatórios não chegam', async () => {
@@ -126,5 +132,30 @@ describe('AnalyticsPage', () => {
 
     await screen.findByRole('button', { name: /Exportar CSV/ });
     expect(exportReport).toHaveBeenCalled();
+  });
+
+  it('exporta o PDF ao clicar no botão', async () => {
+    exportPdfReport.mockResolvedValue(new Blob(['%PDF-1.4'], { type: 'application/pdf' }));
+
+    render(<AnalyticsPage />);
+    await screen.findByText('Funerais Registados');
+
+    Object.defineProperty(window, 'URL', {
+      value: { createObjectURL: jest.fn(() => 'blob:x'), revokeObjectURL: jest.fn() },
+      writable: true,
+    });
+    const origCreateElement = document.createElement.bind(document);
+    const mockAnchor = { click: jest.fn(), remove: jest.fn() } as any;
+    jest.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      if (tag === 'a') return mockAnchor;
+      return origCreateElement(tag);
+    });
+    jest.spyOn(document.body, 'appendChild').mockImplementation(() => ({} as any));
+
+    const btn = screen.getByRole('button', { name: /Exportar PDF/ });
+    await userEvent.click(btn);
+
+    await screen.findByRole('button', { name: /Exportar PDF/ });
+    expect(exportPdfReport).toHaveBeenCalled();
   });
 });

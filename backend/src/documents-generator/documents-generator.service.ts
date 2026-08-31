@@ -92,7 +92,7 @@ export class DocumentsGeneratorService {
     };
 
     const totalCopies = Math.min(99, Math.max(1, Math.floor(copies) || 1));
-    let doc = this.renderDoc(type, funeralData, agencyData, extraData);
+    const doc = this.renderDoc(type, funeralData, agencyData, extraData);
     for (let i = 1; i < totalCopies; i++) {
       doc.addPage();
       this.renderDoc(type, funeralData, agencyData, extraData, doc);
@@ -114,88 +114,98 @@ export class DocumentsGeneratorService {
         return generatePresenca(
           funeralData,
           agencyData,
-          ((extraData || {}) as PresencaData),
+          (extraData || {}) as PresencaData,
           sharedDoc,
         );
       case 'PROGRAMA':
-        return generatePrograma(funeralData, agencyData, ((extraData || {}) as ProgramaData), sharedDoc);
+        return generatePrograma(
+          funeralData,
+          agencyData,
+          (extraData || {}) as ProgramaData,
+          sharedDoc,
+        );
       case 'CREMACAO':
         return generateCremacao(
           funeralData,
           agencyData,
-          ((extraData || {}) as CremacaoData),
+          (extraData || {}) as CremacaoData,
           sharedDoc,
         );
       case 'TRANSPORTE_DOCS':
         return generateTransporte(
           funeralData,
           agencyData,
-          ((extraData || {}) as TransporteData),
+          (extraData || {}) as TransporteData,
           sharedDoc,
         );
       case 'RELATORIO':
         return generateRelatorio(
           funeralData,
           agencyData,
-          ((extraData || {}) as RelatorioData),
+          (extraData || {}) as RelatorioData,
           sharedDoc,
         );
       case 'SEPULTURA':
-        return generateSepultura(funeralData, agencyData, ((extraData || {}) as SepulturaData), sharedDoc);
+        return generateSepultura(
+          funeralData,
+          agencyData,
+          (extraData || {}) as SepulturaData,
+          sharedDoc,
+        );
       case 'CONDOLENCIA':
         return generateCondolencia(
           funeralData,
           agencyData,
-          ((extraData || {}) as CondolenciaData),
+          (extraData || {}) as CondolenciaData,
           sharedDoc,
         );
       case 'ATESTADO_OBITO':
         return generateAtestadoObito(
           funeralData,
           agencyData,
-          ((extraData || {}) as AtestadoObitoData),
+          (extraData || {}) as AtestadoObitoData,
           sharedDoc,
         );
       case 'AUTORIZACAO_SEPULTAMENTO':
         return generateAutorizacaoSepultamento(
           funeralData,
           agencyData,
-          ((extraData || {}) as AutorizacaoSepultamentoData),
+          (extraData || {}) as AutorizacaoSepultamentoData,
           sharedDoc,
         );
       case 'CONTRATO_SERVICO':
         return generateContratoServico(
           funeralData,
           agencyData,
-          ((extraData || {}) as ContratoServicoData),
+          (extraData || {}) as ContratoServicoData,
           sharedDoc,
         );
       case 'GUIA_PAGAMENTO':
         return generateGuiaPagamento(
           funeralData,
           agencyData,
-          ((extraData || {}) as GuiaPagamentoData),
+          (extraData || {}) as GuiaPagamentoData,
           sharedDoc,
         );
       case 'DECLARACAO_HERDEIROS':
         return generateDeclaracaoHerdeiros(
           funeralData,
           agencyData,
-          ((extraData || {}) as DeclaracaoHerdeirosData),
+          (extraData || {}) as DeclaracaoHerdeirosData,
           sharedDoc,
         );
       case 'ORCAMENTO':
         return generateOrcamento(
           funeralData,
           agencyData,
-          ((extraData || {}) as OrcamentoData),
+          (extraData || {}) as OrcamentoData,
           sharedDoc,
         );
       case 'AUTORIZACAO_TRANSPORTE':
         return generateAutorizacaoTransporte(
           funeralData,
           agencyData,
-          ((extraData || {}) as AutorizacaoTransporteData),
+          (extraData || {}) as AutorizacaoTransporteData,
           sharedDoc,
         );
       default:

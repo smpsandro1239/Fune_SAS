@@ -287,6 +287,13 @@ export default function PublicObituaryPage() {
               <Share2 className="w-4 h-4 text-gold-400" /> Partilhar anúncio:
             </span>
             <div className="flex flex-wrap gap-2">
+              <a
+                href={`${API_BASE}/public/${agencySlug}/${funeralId}/ical`}
+                download
+                className="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-xs text-gold-300 border border-gold-500/30 font-medium flex items-center gap-1.5"
+              >
+                <Calendar className="w-3.5 h-3.5" /> Adicionar ao calendário
+              </a>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);

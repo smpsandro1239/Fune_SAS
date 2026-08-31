@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   User,
   Mail,
+  Phone,
   Lock,
   Save,
   Loader2,
@@ -17,6 +18,7 @@ import { useAgency } from '@/context/AgencyContext';
 import { apiService, apiErrorMessage } from '@/lib/api';
 
 const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
   ADMIN: 'Administrador',
   OPERATOR: 'Operador',
   DESIGNER: 'Designer',
@@ -28,6 +30,8 @@ export default function ProfilePage() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [emailNotifications, setEmailNotifications] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
@@ -43,6 +47,8 @@ export default function ProfilePage() {
     if (user) {
       setName(user.name);
       setEmail(user.email);
+      setPhone(user.phone ?? '');
+      setEmailNotifications(user.preferences?.emailNotifications === false ? false : true);
     }
   }, [user]);
 
@@ -52,7 +58,12 @@ export default function ProfilePage() {
     setProfileSuccess('');
     setSavingProfile(true);
     try {
-      const updated = await apiService.auth.updateProfile({ name, email });
+      const updated = await apiService.auth.updateProfile({
+        name,
+        email,
+        phone,
+        preferences: { emailNotifications },
+      });
       setUser(updated);
       setProfileSuccess('Perfil atualizado com sucesso.');
     } catch (err) {
@@ -139,10 +150,11 @@ export default function ProfilePage() {
           </h3>
 
           <div>
-            <label className="block text-xs font-medium text-navy-300 mb-1.5">Nome</label>
+            <label htmlFor="profile-name" className="block text-xs font-medium text-navy-300 mb-1.5">Nome</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
               <input
+                id="profile-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -154,10 +166,11 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-navy-300 mb-1.5">Email</label>
+            <label htmlFor="profile-email" className="block text-xs font-medium text-navy-300 mb-1.5">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
               <input
+                id="profile-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -167,6 +180,31 @@ export default function ProfilePage() {
               />
             </div>
           </div>
+
+          <div>
+            <label htmlFor="profile-phone" className="block text-xs font-medium text-navy-300 mb-1.5">Telefone</label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+              <input
+                id="profile-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-navy-800 border border-navy-600 rounded-xl text-sm text-white placeholder:text-navy-400 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 transition-all"
+                placeholder="+351 912 345 678"
+              />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={emailNotifications}
+              onChange={(e) => setEmailNotifications(e.target.checked)}
+              className="w-4 h-4 rounded text-gold-500 focus:ring-gold-500/50"
+            />
+            <span className="text-xs text-navy-300">Receber notificações por email</span>
+          </label>
 
           {profileError && (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
@@ -201,10 +239,11 @@ export default function ProfilePage() {
           </h3>
 
           <div>
-            <label className="block text-xs font-medium text-navy-300 mb-1.5">Password Atual</label>
+            <label htmlFor="current-password" className="block text-xs font-medium text-navy-300 mb-1.5">Password Atual</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
               <input
+                id="current-password"
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -216,10 +255,11 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-navy-300 mb-1.5">Nova Password</label>
+            <label htmlFor="new-password" className="block text-xs font-medium text-navy-300 mb-1.5">Nova Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
               <input
+                id="new-password"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -232,10 +272,11 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-navy-300 mb-1.5">Confirmar Nova Password</label>
+            <label htmlFor="confirm-password" className="block text-xs font-medium text-navy-300 mb-1.5">Confirmar Nova Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
               <input
+                id="confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

@@ -7,7 +7,7 @@ export const ACCESS_TOKEN_KEY = 'fune.accessToken';
 export const REFRESH_TOKEN_KEY = 'fune.refreshToken';
 
 export type SubscriptionPlan = 'FREE' | 'PRO' | 'ENTERPRISE';
-export type UserRole = 'ADMIN' | 'OPERATOR' | 'DESIGNER';
+export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'OPERATOR' | 'DESIGNER';
 export type FuneralStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
 export type ServiceType = 'CERIMONIA' | 'VELORIO' | 'CREMACAO' | 'TRANSPORTE' | 'ACOLHIMENTO' | 'OUTRO';
 export type DocumentType = 'CERTIFICATE' | 'AUTHORIZATION' | 'CONTRACT' | 'IDENTITY' | 'PRESENCA' | 'PROGRAMA' | 'CREMACAO' | 'TRANSPORTE_DOCS' | 'RELATORIO' | 'SEPULTURA' | 'CONDOLENCIA';
@@ -52,6 +52,9 @@ export interface ApiUser {
   name: string;
   email: string;
   role: UserRole;
+  phone?: string | null;
+  photoUrl?: string | null;
+  preferences?: Record<string, unknown> | null;
   agency?: ApiAgency;
   createdAt: string;
   updatedAt: string;
@@ -202,6 +205,24 @@ export interface SocialStatus {
   tiktok: { connected: boolean; url?: string };
 }
 
+export interface AdminOverview {
+  totalAgencies: number;
+  totalUsers: number;
+  totalFunerals: number;
+  activeSubscriptions: number;
+  revenueEstimate: number;
+}
+
+export interface AdminAgency {
+  id: string;
+  name: string;
+  slug: string;
+  location?: string | null;
+  subscriptionPlan: SubscriptionPlan;
+  createdAt: string;
+  usersCount: number;
+}
+
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -334,8 +355,13 @@ export const apiService = {
     logout: (refreshToken: string) =>
       api.post<{ success: boolean }>('/auth/logout', { refreshToken }).then((r) => r.data),
     me: () => api.get<ApiUser>('/auth/me').then((r) => r.data),
-    updateProfile: (data: { name?: string; email?: string }) =>
-      api.patch<ApiUser>('/auth/me', data).then((r) => r.data),
+    updateProfile: (data: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      photoUrl?: string;
+      preferences?: Record<string, unknown>;
+    }) => api.patch<ApiUser>('/auth/me', data).then((r) => r.data),
     changePassword: (currentPassword: string, newPassword: string) =>
       api.post<{ success: boolean }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.data),
     forgotPassword: (email: string) =>
@@ -417,6 +443,10 @@ export const apiService = {
       api
         .get<{ filename: string; content: string; count: number }>('/reports/export', { params })
         .then((r) => r.data),
+    exportPdf: (params?: { from?: string; to?: string }) =>
+      api
+        .get<Blob>('/reports/export/pdf', { params, responseType: 'blob' })
+        .then((r) => r.data),
   },
 
   notifications: {
@@ -426,6 +456,30 @@ export const apiService = {
       api.patch<ApiNotification>(`/notifications/${id}/read`).then((r) => r.data),
     markAllRead: () =>
       api.post<{ count: number }>('/notifications/read-all').then((r) => r.data),
+    stream: (callbacks?: {
+      onNotification?: (n: ApiNotification) => void;
+      onOpen?: () => void;
+      onError?: (e: Event) => void;
+    }): EventSource | null => {
+      if (typeof window === 'undefined' || typeof EventSource === 'undefined') return null;
+      const token = getAccessToken();
+      if (!token) return null;
+      const url = `${API_BASE}/notifications/stream?token=${encodeURIComponent(token)}`;
+      const es = new EventSource(url);
+      if (callbacks?.onOpen) es.onopen = callbacks.onOpen;
+      if (callbacks?.onError) es.onerror = callbacks.onError;
+      es.addEventListener('notification', (raw) => {
+        try {
+          const data = JSON.parse((raw as MessageEvent).data);
+          if (data && data.type === 'notification' && data.notification) {
+            callbacks?.onNotification?.(data.notification as ApiNotification);
+          }
+        } catch {
+          // ignora eventos malformados
+        }
+      });
+      return es;
+    },
   },
 
   subscriptions: {
@@ -489,6 +543,15 @@ export const apiService = {
       api.post<{ success: boolean; postId?: string; error?: string }>(`/social/publish/${publicationId}/${platform}`).then((r) => r.data),
     processScheduled: () =>
       api.post<{ processed: number }>('/social/process-scheduled').then((r) => r.data),
+  },
+
+  admin: {
+    overview: () =>
+      api.get<AdminOverview>('/admin/overview').then((r) => r.data),
+    agencies: () =>
+      api.get<AdminAgency[]>('/admin/agencies').then((r) => r.data),
+    users: () =>
+      api.get<ApiUser[]>('/admin/users').then((r) => r.data),
   },
 };
 

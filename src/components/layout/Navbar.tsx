@@ -5,9 +5,13 @@ import { Sparkles, User, LogOut, Building2, Loader2, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useAgency } from '@/context/AgencyContext';
 import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
 import NotificationsDropdown from './NotificationsDropdown';
+import LocaleSwitcher from '../LocaleSwitcher';
+import ThemeToggle from '../ThemeToggle';
 
 const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
   ADMIN: 'Administrador',
   OPERATOR: 'Operador',
   DESIGNER: 'Designer',
@@ -16,6 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
 export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
   const { currentAgency, loading: agencyLoading } = useAgency();
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const initials = user
@@ -49,7 +54,7 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
             <span className="font-serif font-bold text-lg text-white tracking-wide block leading-none">
               Fune<span className="gold-gradient-text">SAS</span>
             </span>
-            <span className="text-[10px] text-navy-300 tracking-wider uppercase font-medium">Plataforma Funerária</span>
+            <span className="text-[10px] text-navy-300 tracking-wider uppercase font-medium">{t('nav.subtitle')}</span>
           </div>
         </Link>
 
@@ -74,13 +79,15 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
 
       <div className="flex items-center space-x-2 md:space-x-3">
         <NotificationsDropdown />
+        <ThemeToggle />
+        <LocaleSwitcher />
 
         <Link
           href="/flyers"
           className="hidden md:flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 hover:from-gold-400 hover:to-amber-300 text-navy-950 font-bold text-xs transition-all shadow-md shadow-gold-500/10"
         >
           <Sparkles className="w-4 h-4" />
-          <span>Novo Flyer</span>
+          <span>{t('nav.newFlyer')}</span>
         </Link>
 
         <div className="flex items-center space-x-2 pl-2 border-l border-navy-700/80">
@@ -99,7 +106,7 @@ export default function Navbar({ onMenuToggle }: { onMenuToggle?: () => void }) 
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            title="Terminar sessão"
+            title={t('nav.logoutTitle')}
             className="p-2 rounded-lg bg-navy-800 hover:bg-red-500/20 text-navy-300 hover:text-red-300 border border-navy-700 transition-all disabled:opacity-50"
           >
             {loggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}

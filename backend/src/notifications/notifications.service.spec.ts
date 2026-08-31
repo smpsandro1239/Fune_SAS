@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
+import { NotificationsGateway } from './notifications.gateway';
 import { PrismaService } from '../prisma/prisma.service';
 
 describe('NotificationsService', () => {
@@ -14,6 +15,7 @@ describe('NotificationsService', () => {
       updateMany: jest.Mock;
     };
   };
+  let gateway: { publish: jest.Mock };
 
   const user = { id: 'user-1', agencyId: 'agency-1' };
 
@@ -27,9 +29,14 @@ describe('NotificationsService', () => {
         updateMany: jest.fn(),
       },
     };
+    gateway = { publish: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [NotificationsService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        NotificationsService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: NotificationsGateway, useValue: gateway },
+      ],
     }).compile();
 
     service = module.get<NotificationsService>(NotificationsService);

@@ -161,8 +161,30 @@ export default function FlyerEditor() {
     }
   };
 
-  const loadDraft = async (id: string) => {
-    try {
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!currentDraftId) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      apiService.drafts
+        .update(currentDraftId, draftName || 'Rascunho', selectedTemplate.layoutStyle, flyerData)
+        .then(() => {
+          setExportMessage('Rascunho guardado automaticamente.');
+          setExportStatus('ok');
+          setTimeout(() => setExportMessage(null), 2000);
+        })
+        .catch(() => {
+          // falhas de auto-save são silenciosas
+        });
+    }, 1500);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDraftId, flyerData, selectedTemplate.layoutStyle]);
+
+  const loadDraft = async (id: string) => {    try {
       const draft = await apiService.drafts.get(id);
       setFlyerData(draft.data as FlyerData);
       setCurrentDraftId(draft.id);

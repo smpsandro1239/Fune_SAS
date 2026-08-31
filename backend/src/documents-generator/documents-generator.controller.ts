@@ -1,3 +1,4 @@
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { Controller, Post, Body, Res, BadRequestException } from '@nestjs/common';
 import { Response } from 'express';
 import { DocumentsGeneratorService, DocType } from './documents-generator.service';
@@ -21,14 +22,38 @@ const VALID_TYPES: DocType[] = [
   'AUTORIZACAO_TRANSPORTE',
 ];
 
+@ApiTags('Gerador de Documentos')
 @Controller('documents')
 export class DocumentsGeneratorController {
   constructor(private readonly generatorService: DocumentsGeneratorService) {}
 
   @Post('generate')
+  @ApiOperation({ summary: 'Gera um documento PDF (certidão de óbito, orçamento, etc.)' })
+  @ApiResponse({ status: 201, description: 'Ficheiro PDF devolvido.' })
+  @ApiResponse({ status: 400, description: 'funeralId ou type ausentes, ou tipo inválido.' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['funeralId', 'type'],
+      properties: {
+        funeralId: { type: 'string', example: 'clx...' },
+        type: {
+          type: 'string',
+          enum: VALID_TYPES,
+          example: 'ATESTADO_OBITO',
+        },
+        copies: { type: 'number', example: 2 },
+        extraData: {
+          type: 'object',
+          example: { deceasedName: 'João Silva' },
+        },
+      },
+    },
+  })
   async generate(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { funeralId: string; type: string; extraData?: Record<string, any>; copies?: number },
+    @Body()
+    body: { funeralId: string; type: string; extraData?: Record<string, any>; copies?: number },
     @Res() res: Response,
   ) {
     if (!body.funeralId || !body.type) {

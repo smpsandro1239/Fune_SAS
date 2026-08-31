@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LoggerModule } from './logger/logger.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { StorageModule } from './storage/storage.module';
 import { EmailModule } from './email/email.module';
 import { WhatsAppModule } from './whatsapp/whatsapp.module';
@@ -22,11 +24,12 @@ import { DraftsModule } from './drafts/drafts.module';
 import { DocumentsGeneratorModule } from './documents-generator/documents-generator.module';
 import { PublicationsModule } from './publications/publications.module';
 import { SocialModule } from './social/social.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
     // Rate limit global: 100 pedidos / minuto por IP.
-    // Endpoints sensíveis (login, reset, condolências) têm limites próprios via @Throttle().
+    // Endpoints sensíveis (login, register, reset, condolências) têm limites próprios via @Throttle().
     ThrottlerModule.forRoot([
       {
         name: 'default',
@@ -34,6 +37,7 @@ import { SocialModule } from './social/social.module';
         limit: 100,
       },
     ]),
+    LoggerModule,
     PrismaModule,
     StorageModule,
     EmailModule,
@@ -55,11 +59,16 @@ import { SocialModule } from './social/social.module';
     DocumentsGeneratorModule,
     PublicationsModule,
     SocialModule,
+    AdminModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
   ],
 })

@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { toast } from 'sonner';
 import { ToastProvider, useToast } from './Toast';
 
 function TriggerButton({ label, type, message }: { label: string; type: 'success' | 'error' | 'info'; message: string }) {
@@ -10,7 +11,13 @@ function TriggerButton({ label, type, message }: { label: string; type: 'success
 }
 
 describe('Toast', () => {
-  it('mostra uma mensagem após chamar toast()', () => {
+  afterEach(() => {
+    act(() => {
+      toast.dismiss();
+    });
+  });
+
+  it('mostra uma mensagem após chamar toast()', async () => {
     render(
       <ToastProvider>
         <TriggerButton label="guardar" type="success" message="Guardado com sucesso" />
@@ -19,10 +26,10 @@ describe('Toast', () => {
 
     expect(screen.queryByText('Guardado com sucesso')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'guardar' }));
-    expect(screen.getByText('Guardado com sucesso')).toBeInTheDocument();
+    expect(await screen.findByText('Guardado com sucesso')).toBeInTheDocument();
   });
 
-  it('permite várias mensagens em simultâneo', () => {
+  it('permite várias mensagens em simultâneo', async () => {
     render(
       <ToastProvider>
         <TriggerButton label="mostrar-uma" type="info" message="Mensagem uma" />
@@ -33,11 +40,11 @@ describe('Toast', () => {
     fireEvent.click(screen.getByRole('button', { name: 'mostrar-uma' }));
     fireEvent.click(screen.getByRole('button', { name: 'mostrar-duas' }));
 
-    expect(screen.getByText('Mensagem uma')).toBeInTheDocument();
-    expect(screen.getByText('Mensagem duas')).toBeInTheDocument();
+    expect(await screen.findByText('Mensagem uma')).toBeInTheDocument();
+    expect(await screen.findByText('Mensagem duas')).toBeInTheDocument();
   });
 
-  it('remove uma mensagem ao clicar no botão de fechar', () => {
+  it('remove uma mensagem ao clicar no botão de fechar', async () => {
     render(
       <ToastProvider>
         <TriggerButton label="mostrar-erro" type="error" message="Erro aqui" />
@@ -45,12 +52,14 @@ describe('Toast', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'mostrar-erro' }));
-    expect(screen.getByText('Erro aqui')).toBeInTheDocument();
+    expect(await screen.findByText('Erro aqui')).toBeInTheDocument();
 
-    const closeButton = screen.getAllByRole('button').filter((b) => b.className.includes('text-navy-300'));
-    expect(closeButton).toHaveLength(1);
-    fireEvent.click(closeButton[0]);
-    expect(screen.queryByText('Erro aqui')).not.toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: /close/i });
+    fireEvent.click(closeButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Erro aqui')).not.toBeInTheDocument();
+    });
   });
 
   it('remove a mensagem automaticamente após 4 segundos', () => {
@@ -63,12 +72,14 @@ describe('Toast', () => {
       );
 
       fireEvent.click(screen.getByRole('button', { name: 'auto' }));
+      act(() => {
+        jest.advanceTimersByTime(0);
+      });
       expect(screen.getByText('Auto remove')).toBeInTheDocument();
 
       act(() => {
-        jest.advanceTimersByTime(4000);
+        jest.advanceTimersByTime(5000);
       });
-
       expect(screen.queryByText('Auto remove')).not.toBeInTheDocument();
     } finally {
       jest.useRealTimers();

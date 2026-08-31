@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Bell, Check, CheckCheck, Loader2 } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Bell, Check, CheckCheck } from 'lucide-react';
 import { ApiNotification, apiService } from '@/lib/api';
+import Skeleton from '@/components/ui/Skeleton';
 
 const TYPE_LABELS: Record<string, string> = {
   EMAIL: 'Email',
@@ -12,6 +14,8 @@ const TYPE_LABELS: Record<string, string> = {
   LEMBRETE: 'Lembrete',
   SISTEMA: 'Sistema',
 };
+
+const NOTIFICATIONS_KEY = ['notifications'];
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -25,49 +29,79 @@ function timeAgo(dateStr: string) {
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<ApiNotification[]>([]);
-  const [loading, setLoading] = useState(false);
+  const streamRef = useRef<EventSource | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: notifications = [], isLoading } = useQuery<ApiNotification[]>({
+    queryKey: NOTIFICATIONS_KEY,
+    queryFn: () => apiService.notifications.list(),
+  });
+
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
-  const loadNotifications = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await apiService.notifications.list();
-      setNotifications(data);
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const markReadMutation = useMutation({
+    mutationFn: (id: string) => apiService.notifications.markRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
+    },
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: () => apiService.notifications.markAllRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
+    },
+  });
 
   useEffect(() => {
-    loadNotifications();
-    const interval = setInterval(loadNotifications, 60000);
-    return () => clearInterval(interval);
-  }, [loadNotifications]);
+    let interval: number | undefined;
 
-  const handleMarkRead = async (id: string) => {
-    try {
-      await apiService.notifications.markRead(id);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n)),
-      );
-    } catch {
-      // silently fail
-    }
-  };
+    const startPolling = () => {
+      if (interval) window.clearInterval(interval);
+      interval = window.setInterval(() => {
+        queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
+      }, 60000);
+    };
 
-  const handleMarkAllRead = async () => {
-    try {
-      await apiService.notifications.markAllRead();
-      setNotifications((prev) =>
-        prev.map((n) => (n.readAt ? n : { ...n, readAt: new Date().toISOString() })),
-      );
-    } catch {
-      // silently fail
+    const stopPolling = () => {
+      if (interval) {
+        window.clearInterval(interval);
+        interval = undefined;
+      }
+    };
+
+    const es = apiService.notifications.stream?.({
+      onOpen: () => {
+        stopPolling();
+      },
+      onError: () => {
+        streamRef.current?.close();
+        streamRef.current = null;
+        startPolling();
+      },
+      onNotification: (n) => {
+        queryClient.setQueryData<ApiNotification[]>(NOTIFICATIONS_KEY, (prev = []) => [
+          n,
+          ...prev.filter((existing) => existing.id !== n.id),
+        ]);
+      },
+    });
+
+    if (es) {
+      streamRef.current = es;
+    } else {
+      startPolling();
     }
-  };
+
+    return () => {
+      stopPolling();
+      streamRef.current?.close();
+      streamRef.current = null;
+    };
+  }, [queryClient]);
+
+  const handleMarkRead = (id: string) => markReadMutation.mutate(id);
+  const handleMarkAllRead = () => markAllReadMutation.mutate();
 
   return (
     <div className="relative">
@@ -93,6 +127,7 @@ export default function NotificationsDropdown() {
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
+                  aria-label="Marcar todas como lidas"
                   className="text-[10px] text-gold-400 hover:text-gold-300 font-semibold flex items-center gap-1"
                 >
                   <CheckCheck className="w-3 h-3" />
@@ -102,9 +137,17 @@ export default function NotificationsDropdown() {
             </div>
 
             <div className="max-h-80 overflow-y-auto">
-              {loading && notifications.length === 0 ? (
-                <div className="p-6 flex justify-center">
-                  <Loader2 className="w-5 h-5 text-navy-400 animate-spin" />
+              {isLoading && notifications.length === 0 ? (
+                <div className="p-4 space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <Skeleton className="w-8 h-8 rounded-lg shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3 w-1/3" />
+                        <Skeleton className="h-3 w-2/3" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-6 text-center text-xs text-navy-400">Sem notificações.</div>
@@ -132,6 +175,7 @@ export default function NotificationsDropdown() {
                             onClick={() => handleMarkRead(n.id)}
                             className="p-1 rounded text-navy-400 hover:text-gold-400"
                             title="Marcar como lida"
+                            aria-label={`Marcar notificação ${n.id} como lida`}
                           >
                             <Check className="w-3 h-3" />
                           </button>

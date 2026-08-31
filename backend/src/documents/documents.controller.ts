@@ -1,4 +1,11 @@
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -55,6 +62,8 @@ export class DocumentsController {
    */
   @Get('file/:filename')
   @ApiOperation({ summary: 'Descarrega um ficheiro de upload (autenticado)' })
+  @ApiResponse({ status: 200, description: 'Conteúdo do ficheiro.' })
+  @ApiResponse({ status: 404, description: 'Ficheiro não encontrado.' })
   async serveFile(
     @CurrentUser() user: AuthenticatedUser,
     @Param('filename') filename: string,
@@ -91,6 +100,7 @@ export class DocumentsController {
   @ApiQuery({ name: 'type', required: false, enum: DocumentType })
   @ApiQuery({ name: 'from', required: false, description: 'Data inicial (ISO)' })
   @ApiQuery({ name: 'to', required: false, description: 'Data final (ISO)' })
+  @ApiResponse({ status: 200, description: 'Lista de documentos da agência.' })
   findAll(
     @CurrentUser() user: AuthenticatedUser,
     @Query('search') search?: string,
@@ -103,12 +113,16 @@ export class DocumentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Detalhe de um documento' })
+  @ApiResponse({ status: 200, description: 'Detalhe do documento.' })
+  @ApiResponse({ status: 404, description: 'Documento não encontrado.' })
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.documentsService.findOne(user, id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Carrega um documento (JPG, PNG, WebP, PDF — máx. 10MB)' })
+  @ApiResponse({ status: 201, description: 'Documento carregado.' })
+  @ApiResponse({ status: 400, description: 'Ficheiro ou dados inválidos.' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -149,6 +163,8 @@ export class DocumentsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remove um documento' })
+  @ApiResponse({ status: 200, description: 'Documento removido.' })
+  @ApiResponse({ status: 404, description: 'Documento não encontrado.' })
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.documentsService.remove(user, id);
   }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import NotificationsDropdown from './NotificationsDropdown';
 import { apiService } from '@/lib/api';
 import { ApiNotification } from '@/lib/api';
@@ -30,6 +31,13 @@ function makeNotification(overrides: Partial<ApiNotification> = {}): ApiNotifica
   };
 }
 
+function renderWithProviders(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
 describe('NotificationsDropdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -37,11 +45,11 @@ describe('NotificationsDropdown', () => {
 
   it('mostra o sino e abre o painel com o link para todas as notificações', async () => {
     (mockedApi.notifications.list as jest.Mock).mockResolvedValue([]);
-    render(<NotificationsDropdown />);
+    renderWithProviders(<NotificationsDropdown />);
 
     fireEvent.click(screen.getByRole('button', { name: /Notificações/i }));
     expect(await screen.findByText('Notificações')).toBeInTheDocument();
-    expect(screen.getByText('Sem notificações.')).toBeInTheDocument();
+    expect(await screen.findByText('Sem notificações.')).toBeInTheDocument();
     expect(screen.getByText('Ver todas as notificações')).toBeInTheDocument();
   });
 
@@ -51,7 +59,7 @@ describe('NotificationsDropdown', () => {
       makeNotification({ id: 'n2' }),
       makeNotification({ id: 'n3', readAt: new Date().toISOString() }),
     ]);
-    render(<NotificationsDropdown />);
+    renderWithProviders(<NotificationsDropdown />);
 
     const badge = await screen.findByText('2');
     expect(badge).toBeInTheDocument();
@@ -66,7 +74,7 @@ describe('NotificationsDropdown', () => {
     ]);
     (mockedApi.notifications.markRead as jest.Mock).mockResolvedValue({});
 
-    render(<NotificationsDropdown />);
+    renderWithProviders(<NotificationsDropdown />);
     fireEvent.click(screen.getByRole('button', { name: /Notificações/i }));
     await screen.findByText('Nova condolência');
 
@@ -85,7 +93,7 @@ describe('NotificationsDropdown', () => {
     ]);
     (mockedApi.notifications.markAllRead as jest.Mock).mockResolvedValue({ count: 2 });
 
-    render(<NotificationsDropdown />);
+    renderWithProviders(<NotificationsDropdown />);
     fireEvent.click(screen.getByRole('button', { name: /Notificações/i }));
 
     const markAll = await screen.findByText('Marcar todas como lidas');

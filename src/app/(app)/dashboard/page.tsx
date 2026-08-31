@@ -12,7 +12,6 @@ import {
   Clock,
   MapPin,
   Sparkles,
-  Loader2,
 } from 'lucide-react';
 import {
   DashboardSummary,
@@ -22,6 +21,7 @@ import {
 } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useAgency } from '@/context/AgencyContext';
+import Skeleton from '@/components/ui/Skeleton';
 
 const STATUS_LABELS: Record<string, string> = {
   SCHEDULED: 'Agendado',
@@ -34,10 +34,12 @@ export default function DashboardPage() {
   const { currentAgency } = useAgency();
   const [dashboard, setDashboard] = useState<DashboardSummary | null>(null);
   const [recent, setRecent] = useState<ApiFuneral[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     Promise.all([apiService.reports.dashboard(), apiService.funerals.list()])
       .then(([dash, list]) => {
         if (cancelled) return;
@@ -46,6 +48,9 @@ export default function DashboardPage() {
       })
       .catch((err) => {
         if (!cancelled) setError(apiErrorMessage(err, 'Não foi possível carregar o painel.'));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -109,9 +114,16 @@ export default function DashboardPage() {
       {/* Cartões de métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {!dashboard && !error ? (
-          <div className="col-span-full flex justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-gold-400" />
-          </div>
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-5 rounded-2xl bg-navy-900/80 border border-navy-800/80 shadow-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-10 w-10 rounded-xl" />
+              </div>
+              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+          ))
         ) : (
           stats.map((stat) => {
             const Icon = stat.icon;
@@ -154,7 +166,21 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {recent.length === 0 ? (
+        {loading && recent.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="p-5 rounded-2xl bg-navy-900/80 border border-navy-800 flex gap-4 shadow-md">
+                <Skeleton className="w-20 h-24 rounded-xl shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2.5">
+                  <Skeleton className="h-4 w-14" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : recent.length === 0 ? (
           <p className="text-xs text-navy-400">Sem funerais registados.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

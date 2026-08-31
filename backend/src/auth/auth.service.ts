@@ -243,6 +243,9 @@ export class AuthService {
     const data: Record<string, unknown> = {};
     if (dto.name !== undefined) data.name = dto.name;
     if (dto.email !== undefined) data.email = dto.email.toLowerCase();
+    if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.photoUrl !== undefined) data.photoUrl = dto.photoUrl;
+    if (dto.preferences !== undefined) data.preferences = dto.preferences;
 
     const updated = await this.prisma.user.update({
       where: { id: userId },
@@ -252,6 +255,9 @@ export class AuthService {
         agencyId: true,
         name: true,
         email: true,
+        phone: true,
+        photoUrl: true,
+        preferences: true,
         role: true,
         createdAt: true,
         updatedAt: true,

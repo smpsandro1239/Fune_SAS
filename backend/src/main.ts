@@ -5,10 +5,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import helmet from 'helmet';
+import * as Sentry from '@sentry/node';
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
 import { validateEnv } from './env';
+import { SentryFilter } from './common/filters/sentry.filter';
 
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://fune-sas.vercel.app',
@@ -28,6 +30,16 @@ async function bootstrap() {
   // Falha imediatamente se faltar alguma env obrigatória
   const bootLogger = new Logger('Env');
   validateEnv(bootLogger);
+
+  // Sentry só é inicializado se houver DSN configurado
+  if (process.env.SENTRY_DSN) {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    });
+    bootLogger.log('Sentry inicializado.');
+  }
 
   // rawBody é necessário para verificar a assinatura do webhook Stripe
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
@@ -58,6 +70,8 @@ async function bootstrap() {
   );
 
   app.useGlobalGuards(new JwtAuthGuard(app.get(Reflector)));
+
+  app.useGlobalFilters(new SentryFilter());
 
   const uploadsDir = join(process.cwd(), 'uploads');
   if (!existsSync(uploadsDir)) {

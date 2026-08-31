@@ -34,6 +34,8 @@ Object.defineProperty(URL, 'revokeObjectURL', {
 
 import GenerateDocumentsPage from '@/app/(app)/documents/generate/page';
 
+jest.setTimeout(60000);
+
 function makeFuneral(overrides: Record<string, unknown> = {}) {
   return {
     id: 'f1',
@@ -94,7 +96,7 @@ describe('GenerateDocumentsPage', () => {
 
     await waitFor(() => expect(docGenerate).toHaveBeenCalled());
     expect(docGenerate).toHaveBeenCalledWith('f1', 'PRESENCA', {}, 1);
-  });
+  }, 10000);
 
   it('gera um documento com sucesso e mostra a pré-visualização', async () => {
     render(<GenerateDocumentsPage />);

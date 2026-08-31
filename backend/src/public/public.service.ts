@@ -70,6 +70,95 @@ export class PublicService {
     return { agency, funeral };
   }
 
+  async generateIcs(agencySlug: string, funeralId: string): Promise<string> {
+    const agency = await this.prisma.agency.findUnique({
+      where: { slug: agencySlug },
+      select: { id: true, name: true },
+    });
+    if (!agency) throw new NotFoundException('Agência não encontrada.');
+
+    const funeral = await this.prisma.funeral.findFirst({
+      where: { id: funeralId, agencyId: agency.id, publicNoticeEnabled: true },
+      select: {
+        id: true,
+        funeralDate: true,
+        funeralTime: true,
+        locationParish: true,
+        cemeteryLocation: true,
+        wakeLocation: true,
+        deceased: { select: { fullName: true } },
+      },
+    });
+    if (!funeral) throw new NotFoundException('Funeral não encontrado ou não público.');
+
+    const start = this.combineDateAndTime(funeral.funeralDate, funeral.funeralTime);
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const now = new Date();
+
+    const location =
+      funeral.locationParish || funeral.cemeteryLocation || funeral.wakeLocation || '';
+
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Fune_SAS//PT',
+      'BEGIN:VEVENT',
+      `UID:${funeral.id}@fune-sas`,
+      `DTSTAMP:${this.toIcsUtc(now)}`,
+      `DTSTART:${this.toIcsUtc(start)}`,
+      `DTEND:${this.toIcsUtc(end)}`,
+      `SUMMARY:Fúnebre de ${funeral.deceased.fullName}`,
+      `LOCATION:${location}`,
+      `DESCRIPTION:${agency.name}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ];
+
+    return lines.map((line) => this.foldLine(line)).join('\r\n') + '\r\n';
+  }
+
+  private combineDateAndTime(date: Date, time?: string | null): Date {
+    const d = new Date(date);
+    if (!time || !/^\d{1,2}:\d{2}/.test(time)) return d;
+    const [hours, minutes] = time.split(':').map((n) => Number(n));
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return d;
+    d.setUTCHours(hours, minutes, 0, 0);
+    return d;
+  }
+
+  private toIcsUtc(date: Date): string {
+    return date
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}/, '');
+  }
+
+  private foldLine(line: string): string {
+    const CRLF = '\r\n';
+    if (Buffer.byteLength(line, 'utf8') <= 75) return line;
+    const lines: string[] = [];
+    let remaining = line;
+    let first = true;
+    while (Buffer.byteLength(remaining, 'utf8') > 75) {
+      const cut = this.cutAtLineByteLength(remaining, first ? 75 : 74);
+      lines.push(first ? remaining.slice(0, cut) : ' ' + remaining.slice(0, cut));
+      remaining = remaining.slice(cut);
+      first = false;
+    }
+    if (remaining.length > 0) lines.push((first ? '' : ' ') + remaining);
+    return lines.join(CRLF);
+  }
+
+  private cutAtLineByteLength(str: string, maxBytes: number): number {
+    let bytes = 0;
+    for (let i = 0; i < str.length; i++) {
+      const code = str.charCodeAt(i);
+      bytes += code > 0x7f ? 2 : 1;
+      if (bytes > maxBytes) return i;
+    }
+    return str.length;
+  }
+
   async addCondolence(agencySlug: string, funeralId: string, dto: CreateCondolenceDto) {
     // Honeypot anti-spam: bots preenchem todos os campos
     if (dto.website) {

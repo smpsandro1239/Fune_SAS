@@ -83,6 +83,24 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsEmail({}, { message: 'Email inválido.' })
   email?: string;
+
+  @ApiProperty({ example: '+351 912 345 678', required: false })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ example: 'https://cdn.example.com/avatar.png', required: false })
+  @IsOptional()
+  @IsString()
+  photoUrl?: string;
+
+  @ApiProperty({
+    example: { notifications: true, theme: 'dark' },
+    description: 'Preferências do utilizador (JSON livre)',
+    required: false,
+  })
+  @IsOptional()
+  preferences?: Record<string, unknown>;
 }
 
 export class ChangePasswordDto {

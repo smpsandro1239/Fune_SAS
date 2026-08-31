@@ -85,6 +85,40 @@ describe('ReportsService', () => {
     });
   });
 
+  describe('exportPdf', () => {
+    it('gera um PDF com cabeçalho e linhas do relatório', async () => {
+      prisma.funeral.findMany.mockResolvedValue([funeralRow]);
+
+      const result = await service.exportPdf(user as never, {});
+
+      expect(result.count).toBe(1);
+      expect(result.contentType).toBe('application/pdf');
+      expect(result.filename).toMatch(/^relatorio-funerais-\d{4}-\d{2}-\d{2}\.pdf$/);
+      expect(Buffer.isBuffer(result.content)).toBe(true);
+      expect(result.content.length).toBeGreaterThan(0);
+      // PDF assinatura: %PDF
+      expect(result.content.slice(0, 4).toString('latin1')).toBe('%PDF');
+      expect(prisma.funeral.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ agencyId: 'agency-1' }),
+        }),
+      );
+    });
+
+    it('gera múltiplas páginas quando há muitas linhas', async () => {
+      const manyRows = Array.from({ length: 60 }, (_, i) => ({
+        ...funeralRow,
+        id: `f-${i}`,
+      }));
+      prisma.funeral.findMany.mockResolvedValue(manyRows);
+
+      const result = await service.exportPdf(user as never, {});
+
+      expect(result.count).toBe(60);
+      expect(result.content.length).toBeGreaterThan(0);
+    });
+  });
+
   describe('funeralsPerPeriod', () => {
     it('agrupa funerais por mês', async () => {
       prisma.funeral.findMany.mockResolvedValue([

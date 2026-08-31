@@ -8,13 +8,25 @@
   --font-inter: 'Inter', sans-serif;
   --font-cinzel: 'Cinzel', serif;
   --font-display: 'Playfair Display', 'Cinzel', Georgia, serif;
+  --bg: #061224;
+  --fg: #f1f5f9;
+}
+
+html[data-theme='light'] {
+  --bg: #f8fafc;
+  --fg: #0f172a;
 }
 
 body {
   font-family: var(--font-inter);
-  background-color: #061224;
-  color: #f1f5f9;
+  background-color: var(--bg);
+  color: var(--fg);
   min-height: 100vh;
+}
+
+html[data-theme='light'] body {
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 /* Custom Scrollbars */

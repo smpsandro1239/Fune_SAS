@@ -67,7 +67,12 @@ export function generateAutorizacaoTransporte(
   y += 2;
 
   if (funeral.funeralDate) {
-    y = addParagraph(doc, `realizando-se o transporte no dia ${formatDate(funeral.funeralDate)}, no âmbito da cerimónia fúnebre.`, 25, y);
+    y = addParagraph(
+      doc,
+      `realizando-se o transporte no dia ${formatDate(funeral.funeralDate)}, no âmbito da cerimónia fúnebre.`,
+      25,
+      y,
+    );
   } else {
     y = addParagraph(doc, 'no âmbito da cerimónia fúnebre decretada.', 25, y);
   }

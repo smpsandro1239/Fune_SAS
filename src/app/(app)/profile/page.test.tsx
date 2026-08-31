@@ -65,6 +65,8 @@ describe('ProfilePage', () => {
     expect(updateProfile).toHaveBeenCalledWith({
       name: 'Ana Silva',
       email: 'admin@casahortas.com',
+      phone: '',
+      preferences: { emailNotifications: true },
     });
     expect(setUser).toHaveBeenCalledWith(mockUser);
   });

@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service';
 import { Public } from '../common/decorators/public.decorator';
 
@@ -11,6 +11,7 @@ export class HealthController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Verifica se a API e a base de dados estão disponíveis' })
+  @ApiResponse({ status: 200, description: 'Estado do serviço e da base de dados.' })
   async check() {
     let database = 'up';
     try {

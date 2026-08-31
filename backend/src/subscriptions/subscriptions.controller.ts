@@ -1,4 +1,4 @@
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiProperty } from '@nestjs/swagger';
 import {
   BadRequestException,
   Body,
@@ -14,7 +14,6 @@ import type { Request } from 'express';
 import Stripe from 'stripe';
 import { SubscriptionPlan } from '@prisma/client';
 import { IsEnum } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 import { SubscriptionsService } from './subscriptions.service';
 import { BillingService } from './billing.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -39,18 +38,21 @@ export class SubscriptionsController {
 
   @Get('current')
   @ApiOperation({ summary: 'Plano atual da agência' })
+  @ApiResponse({ status: 200, description: 'Plano de subscrição atual.' })
   getCurrent(@CurrentUser() user: AuthenticatedUser) {
     return this.subscriptionsService.getCurrent(user);
   }
 
   @Get('history')
   @ApiOperation({ summary: 'Histórico de subscrições da agência' })
+  @ApiResponse({ status: 200, description: 'Histórico de subscrições.' })
   getHistory(@CurrentUser() user: AuthenticatedUser) {
     return this.subscriptionsService.getHistory(user);
   }
 
   @Get('usage')
   @ApiOperation({ summary: 'Uso atual vs limites do plano efetivo' })
+  @ApiResponse({ status: 200, description: 'Uso atual vs limites do plano.' })
   getUsage(@CurrentUser() user: AuthenticatedUser) {
     return this.subscriptionsService.getUsage(user);
   }
@@ -61,6 +63,9 @@ export class SubscriptionsController {
    */
   @Public()
   @Post('webhook')
+  @ApiOperation({ summary: 'Webhook Stripe (chamado pelo Stripe, público)' })
+  @ApiResponse({ status: 201, description: 'Evento recebido e processado.' })
+  @ApiResponse({ status: 400, description: 'Assinatura ou raw body inválidos.' })
   async webhook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string | undefined,
@@ -84,12 +89,36 @@ export class SubscriptionsController {
 
   @Post('checkout')
   @ApiOperation({ summary: 'Inicia checkout Stripe para upgrade de plano (apenas ADMIN)' })
+  @ApiResponse({ status: 201, description: 'Sessão de checkout criada.' })
+  @ApiResponse({ status: 400, description: 'Plano inválido.' })
+  @ApiBody({
+    type: ChangePlanDto,
+    examples: {
+      exemplo: {
+        value: {
+          plan: 'PRO',
+        },
+      },
+    },
+  })
   checkout(@CurrentUser() user: AuthenticatedUser, @Body() dto: ChangePlanDto) {
     return this.billingService.createCheckoutSession(user, dto.plan);
   }
 
   @Post('change-plan')
   @ApiOperation({ summary: 'Altera o plano diretamente — fallback demo sem Stripe (apenas ADMIN)' })
+  @ApiResponse({ status: 201, description: 'Plano alterado.' })
+  @ApiResponse({ status: 400, description: 'Plano inválido.' })
+  @ApiBody({
+    type: ChangePlanDto,
+    examples: {
+      exemplo: {
+        value: {
+          plan: 'PRO',
+        },
+      },
+    },
+  })
   changePlan(@CurrentUser() user: AuthenticatedUser, @Body() dto: ChangePlanDto) {
     return this.subscriptionsService.changePlan(user, dto.plan);
   }

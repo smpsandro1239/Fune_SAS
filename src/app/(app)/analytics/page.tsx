@@ -53,6 +53,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const handleExportCsv = async () => {
     setExporting(true);
@@ -72,6 +73,26 @@ export default function AnalyticsPage() {
       setError(apiErrorMessage(err, 'Não foi possível exportar o relatório.'));
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    setError('');
+    try {
+      const blob = await apiService.reports.exportPdf();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio-funerais-${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Não foi possível exportar o relatório em PDF.'));
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -145,18 +166,32 @@ export default function AnalyticsPage() {
             Estatísticas reais da agência: funerais, documentos e distribuição de serviços.
           </p>
         </div>
-        <button
-          onClick={handleExportCsv}
-          disabled={exporting}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 text-xs font-bold shadow-lg transition-all disabled:opacity-60 self-start sm:self-auto"
-        >
-          {exporting ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Download className="w-3.5 h-3.5" />
-          )}
-          Exportar CSV
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={handleExportCsv}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 text-xs font-bold shadow-lg transition-all disabled:opacity-60"
+          >
+            {exporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5" />
+            )}
+            Exportar CSV
+          </button>
+          <button
+            onClick={handleExportPdf}
+            disabled={exportingPdf}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 text-xs font-bold shadow-lg transition-all disabled:opacity-60"
+          >
+            {exportingPdf ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <FileText className="w-3.5 h-3.5" />
+            )}
+            Exportar PDF
+          </button>
+        </div>
       </div>
 
       {error && (

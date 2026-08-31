@@ -29,7 +29,7 @@ function VideoUltraStaticThumb() {
   );
 }
 
-export default function TemplateMiniature({ template }: { template: FlyerTemplateConfig }) {
+export default React.memo(function TemplateMiniature({ template }: { template: FlyerTemplateConfig }) {
   return (
     <div className="relative w-full overflow-hidden">
       <FlyerScaledView>
@@ -41,4 +41,4 @@ export default function TemplateMiniature({ template }: { template: FlyerTemplat
       </FlyerScaledView>
     </div>
   );
-}
+});

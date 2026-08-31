@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { NotificationType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsGateway } from './notifications.gateway';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
 
 export interface CreateNotificationInput {
@@ -13,7 +14,10 @@ export interface CreateNotificationInput {
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gateway: NotificationsGateway,
+  ) {}
 
   /**
    * Cria uma notificação de sistema para a agência (visível no painel).
@@ -21,9 +25,17 @@ export class NotificationsService {
    */
   async create({ agencyId, userId, type = 'SISTEMA', title, message }: CreateNotificationInput) {
     try {
-      return await this.prisma.notification.create({
+      const notification = await this.prisma.notification.create({
         data: { agencyId, userId, type, title, message, sentAt: new Date() },
       });
+      this.gateway.publish(agencyId, {
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        sentAt: notification.sentAt,
+      });
+      return notification;
     } catch {
       // nunca derruba o fluxo que dispara a notificação
       return null;

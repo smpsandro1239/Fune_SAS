@@ -3,8 +3,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, LayoutDashboard, Users, Palette, FileText, Calendar, BarChart3, Settings, ExternalLink, UserCircle, CreditCard, Send, Megaphone, MessageSquareHeart, Bell } from 'lucide-react';
+import { X, LayoutDashboard, Users, Palette, FileText, Calendar, BarChart3, Settings, ExternalLink, UserCircle, CreditCard, Send, Megaphone, MessageSquareHeart, Bell, ShieldCheck } from 'lucide-react';
 import { useAgency } from '@/context/AgencyContext';
+import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
 
 const PLAN_LABELS: Record<string, string> = {
   FREE: 'Free',
@@ -15,31 +17,36 @@ const PLAN_LABELS: Record<string, string> = {
 export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const { currentAgency } = useAgency();
+  const { user } = useAuth();
+  const { t } = useI18n();
 
   const navItems = [
-    { name: 'Visão Geral', href: '/', icon: LayoutDashboard },
-    { name: 'Funerais & Falecidos', href: '/funerals', icon: Users },
-    { name: 'Editor de Flyers', href: '/flyers', icon: Palette, badge: 'Interativo' },
-    { name: 'Gestão Documental', href: '/documents', icon: FileText },
-    { name: 'Agenda & Serviços', href: '/agenda', icon: Calendar },
-    { name: 'Relatórios & Métricas', href: '/analytics', icon: BarChart3 },
-    { name: 'Gerar Documentos', href: '/documents/generate', icon: Send },
-    { name: 'Publicações Sociais', href: '/publications', icon: Megaphone },
-    { name: 'Moderação Condolências', href: '/condolences', icon: MessageSquareHeart },
-    { name: 'Notificações', href: '/notifications', icon: Bell },
-    { name: 'Configurações Agência', href: '/agencies', icon: Settings },
+    { name: t('nav.overview'), href: '/', icon: LayoutDashboard },
+    { name: t('nav.funerals'), href: '/funerals', icon: Users },
+    { name: t('nav.flyers'), href: '/flyers', icon: Palette, badge: t('nav.interactive') },
+    { name: t('nav.documents'), href: '/documents', icon: FileText },
+    { name: t('nav.agenda'), href: '/agenda', icon: Calendar },
+    { name: t('nav.analytics'), href: '/analytics', icon: BarChart3 },
+    { name: t('nav.generate'), href: '/documents/generate', icon: Send },
+    { name: t('nav.publications'), href: '/publications', icon: Megaphone },
+    { name: t('nav.condolences'), href: '/condolences', icon: MessageSquareHeart },
+    { name: t('nav.notifications'), href: '/notifications', icon: Bell },
+    { name: t('nav.agency'), href: '/agencies', icon: Settings },
+    ...(user?.role === 'SUPER_ADMIN'
+      ? [{ name: t('nav.admin'), href: '/admin', icon: ShieldCheck }]
+      : []),
   ];
 
   const bottomItems = [
-    { name: 'Meu Perfil', href: '/profile', icon: UserCircle },
-    { name: 'Plano & Subscrição', href: '/subscriptions', icon: CreditCard },
+    { name: t('nav.profile'), href: '/profile', icon: UserCircle },
+    { name: t('nav.subscription'), href: '/subscriptions', icon: CreditCard },
   ];
 
   const content = (
     <>
       <div className="space-y-6">
         <div>
-          <p className="px-3 text-[10px] font-bold text-navy-400 uppercase tracking-wider mb-2">Navegação Principal</p>
+          <p className="px-3 text-[10px] font-bold text-navy-400 uppercase tracking-wider mb-2">{t('nav.section')}</p>
           <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -99,7 +106,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
         <div className="p-3.5 rounded-2xl bg-gradient-to-b from-navy-800/80 to-navy-900 border border-navy-700/80 space-y-2">
           <div className="flex items-center space-x-2 text-gold-400 text-xs font-semibold">
             <ExternalLink className="w-4 h-4" />
-            <span>Portal de Participações</span>
+            <span>{t('nav.participationPortal')}</span>
           </div>
           <p className="text-[11px] text-navy-300 leading-relaxed">
             Consulte a página pública de anúncios de falecimento para consulta familiar.
@@ -113,7 +120,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
 
       <div className="pt-4 border-t border-navy-800">
         <div className="flex items-center justify-between text-xs text-navy-300 mb-1.5">
-          <span>Plano Atual</span>
+          <span>{t('nav.currentPlan')}</span>
           <span className="font-bold text-gold-400">
             {PLAN_LABELS[currentAgency?.subscriptionPlan || 'FREE'] || 'FREE'}
           </span>
@@ -125,7 +132,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
           }`} />
         </div>
         <Link href="/subscriptions" onClick={onClose} className="text-[10px] text-navy-400 hover:text-gold-400 transition-colors">
-          Gerir plano →
+          {t('nav.managePlan')}
         </Link>
       </div>
     </>

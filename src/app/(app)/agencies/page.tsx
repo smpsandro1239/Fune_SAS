@@ -39,12 +39,14 @@ import Pagination from '@/components/Pagination';
 const USERS_PAGE_SIZE = 8;
 
 const ROLE_LABELS: Record<UserRole, string> = {
+  SUPER_ADMIN: 'Super Admin',
   ADMIN: 'Administrador',
   OPERATOR: 'Operador',
   DESIGNER: 'Designer',
 };
 
 const ROLE_STYLES: Record<UserRole, string> = {
+  SUPER_ADMIN: 'bg-red-500/20 text-red-300 border border-red-500/30',
   ADMIN: 'bg-gold-500/20 text-gold-300 border border-gold-500/30',
   OPERATOR: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
   DESIGNER: 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
