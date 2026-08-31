@@ -38,7 +38,7 @@ export function generatePresenca(
 
   y = addParagraph(
     doc,
-    `declara para todos os efeitos legais que o(a) Sr(a). ${orBlank(extra.presentName)}, na qualidade de ${orBlank(extra.presentRelation)},`,
+    `declara para todos os efeitos legais que o(a) Sr(a). ${orBlank(extra.presentName, 32)}, na qualidade de ${orBlank(extra.presentRelation, 18)},`,
     25,
     y,
   );

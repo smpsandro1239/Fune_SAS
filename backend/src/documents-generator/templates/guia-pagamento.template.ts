@@ -47,7 +47,11 @@ export function generateGuiaPagamento(
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`Cliente: ${orBlank(extra.clientName)} — CCº ${orBlank(extra.clientId)}`, 32, y + 7);
+  doc.text(
+    `Cliente: ${orBlank(extra.clientName, 32)} — CCº ${orBlank(extra.clientId, 16)}`,
+    32,
+    y + 7,
+  );
   doc.text(`Falecido: ${funeral.deceasedName} | Data: ${dateStr}`, 32, y + 14);
   doc.setTextColor(0, 0, 0);
   y += 26;

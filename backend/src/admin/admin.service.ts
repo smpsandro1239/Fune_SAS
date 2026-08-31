@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SubscriptionPlan } from '@prisma/client';
+import { PLAN_PRICES_CENTS } from '../subscriptions/plan-limits';
 
 export const ADMIN_PLAN_PRICES: Record<SubscriptionPlan, number> = {
   FREE: 0,
@@ -81,5 +82,33 @@ export class AdminService {
     });
 
     return users;
+  }
+
+  /** Altera manualmente o plano de uma agência (apenas Super Admin). */
+  async setAgencyPlan(agencyId: string, plan: SubscriptionPlan) {
+    const agency = await this.prisma.agency.findUnique({ where: { id: agencyId } });
+    if (!agency) throw new NotFoundException('Agência não encontrada.');
+
+    const priceCents = PLAN_PRICES_CENTS[plan] ?? 0;
+
+    const subscription = await this.prisma.subscription.create({
+      data: {
+        agencyId,
+        plan,
+        priceCents,
+        status: 'ACTIVE',
+        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    await this.prisma.agency.update({
+      where: { id: agencyId },
+      data: { subscriptionPlan: plan },
+    });
+
+    return {
+      ...subscription,
+      agency: { id: agencyId, name: agency.name, subscriptionPlan: plan },
+    };
   }
 }

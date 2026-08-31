@@ -25,6 +25,7 @@ import { DocumentsGeneratorModule } from './documents-generator/documents-genera
 import { PublicationsModule } from './publications/publications.module';
 import { SocialModule } from './social/social.module';
 import { AdminModule } from './admin/admin.module';
+import { AgendaModule } from './agenda/agenda.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { AdminModule } from './admin/admin.module';
     PublicationsModule,
     SocialModule,
     AdminModule,
+    AgendaModule,
   ],
   providers: [
     {

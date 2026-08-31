@@ -54,7 +54,7 @@ export function generateSepultura(
   const graveInfo = [extra.graveType, extra.plotNumber ? `nº ${extra.plotNumber}` : '']
     .filter(Boolean)
     .join(' ');
-  doc.text(`Sepultura: ${orBlank(graveInfo)}`, 32, fy);
+  doc.text(`Sepultura: ${orBlank(graveInfo, 22)}`, 32, fy);
   doc.setTextColor(0, 0, 0);
   y += 44;
 

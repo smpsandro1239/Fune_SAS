@@ -75,21 +75,23 @@ export function generatePrograma(
     { icon: '1.', text: 'Abertura e Boas-vindas' },
     {
       icon: '2.',
-      text: extra.officiant ? `Oficiante: ${extra.officiant}` : 'Oficiante: _______________',
+      text: extra.officiant
+        ? `Oficiante: ${extra.officiant}`
+        : 'Oficiante: ________________________',
     },
     {
       icon: '3.',
       text:
         extra.readings && extra.readings.length > 0
           ? `Leitura: ${extra.readings[0]}`
-          : 'Leitura: _______________',
+          : 'Leitura: ________________________',
     },
     {
       icon: '4.',
       text:
         extra.songs && extra.songs.length > 0
           ? `Música: ${extra.songs[0]}`
-          : 'Música: _______________',
+          : 'Música: ________________________',
     },
     { icon: '5.', text: 'Oração' },
     { icon: '6.', text: 'Homenagem e Palavras de Despedida' },

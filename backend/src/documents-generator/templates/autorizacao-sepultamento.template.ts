@@ -30,7 +30,7 @@ export function generateAutorizacaoSepultamento(
   y = addTitle(doc, 'AUTORIZAÇÃO DE SEPULTAMENTO', y);
   y += 6;
 
-  const declText = `Eu, ${orBlank(extra.requesterName)}, portador(a) do Cartão de Cidadão nº ${orBlank(extra.requesterId)}, na qualidade de ${orBlank(extra.requesterRelation)} do(a) falecido(a), autorizo o sepultamento do corpo nos termos da lei.`;
+  const declText = `Eu, ${orBlank(extra.requesterName, 32)}, portador(a) do Cartão de Cidadão nº ${orBlank(extra.requesterId, 16)}, na qualidade de ${orBlank(extra.requesterRelation, 18)} do(a) falecido(a), autorizo o sepultamento do corpo nos termos da lei.`;
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);

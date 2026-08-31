@@ -74,9 +74,9 @@ export function generateContratoServico(
   doc.text('CLIENTE / CONTRATANTE:', 32, y + 7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`${orBlank(extra.clientName)} — CCº ${orBlank(extra.clientId)}`, 32, y + 14);
+  doc.text(`${orBlank(extra.clientName, 32)} — CCº ${orBlank(extra.clientId, 16)}`, 32, y + 14);
   doc.text(
-    `${orBlank(extra.clientAddress)} | Tel: ${orBlank(extra.clientPhone)} | Email: ${orBlank(extra.clientEmail)}`,
+    `${orBlank(extra.clientAddress, 36)} | Tel: ${orBlank(extra.clientPhone, 20)} | Email: ${orBlank(extra.clientEmail, 20)}`,
     32,
     y + 21,
   );

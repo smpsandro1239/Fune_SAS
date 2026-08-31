@@ -133,6 +133,7 @@ model Agency {
   publications     Publication[]
   publicationTemplates PublicationTemplate[]
   auditLogs        AuditLog[]
+  agendaItems      AgendaItem[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -371,4 +372,20 @@ model AuditLog {
 
   @@index([agencyId, createdAt])
   @@index([entity, entityId])
+}
+
+model AgendaItem {
+  id          String   @id @default(cuid())
+  agencyId    String
+  agency      Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  date        DateTime
+  time        String?
+  title       String
+  description String?
+  color       String   @default("gold")
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([agencyId, date])
 }

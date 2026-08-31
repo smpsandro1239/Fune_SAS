@@ -37,7 +37,7 @@ export function generateRelatorio(
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`Cliente: ${orBlank(extra.clientName)}`, 25, y);
+  doc.text(`Cliente: ${orBlank(extra.clientName, 32)}`, 25, y);
   doc.text(`Falecido(a): ${funeral.deceasedName}`, 120, y);
   y += 6;
   doc.text(`Data do Serviço: ${formatDate(funeral.funeralDate)}`, 25, y);

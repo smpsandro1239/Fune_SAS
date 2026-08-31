@@ -44,9 +44,19 @@ export function formatDateLong(dateStr?: string | null): string {
   return d.toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-/** Devolve o valor ou uma linha em branco para preenchimento manual quando vazio */
-export function orBlank(value?: string | null): string {
-  return value && value.trim() ? value.trim() : '______________';
+/**
+ * Devolve o valor ou uma linha em branco para preenchimento manual quando vazio.
+ * `width` = nº de sublinhados (tamanho do espaço para escrever à mão).
+ * Tamanhos recomendados por tipo de conteúdo:
+ *  - nome completo / família: 32
+ *  - morada / destino: 36
+ *  - parentesco: 18
+ *  - documento de identificação (CC/NIF): 16
+ *  - telefone / email: 20
+ *  - geral: 22
+ */
+export function orBlank(value?: string | null, width: number = 22): string {
+  return value && value.trim() ? value.trim() : '_'.repeat(width);
 }
 
 const GOLD_R = 180;

@@ -44,7 +44,7 @@ export function generateAutorizacaoTransporte(
 
   y = addParagraph(
     doc,
-    `O(A) Sr(a). ${orBlank(extra.requesterName)}, titular do documento de identificação nº ${orBlank(extra.requesterId)}, na qualidade de ${orBlank(extra.requesterRelation)} do(a) falecido(a),`,
+    `O(A) Sr(a). ${orBlank(extra.requesterName, 32)}, titular do documento de identificação nº ${orBlank(extra.requesterId, 16)}, na qualidade de ${orBlank(extra.requesterRelation, 18)} do(a) falecido(a),`,
     25,
     y,
   );
@@ -60,7 +60,7 @@ export function generateAutorizacaoTransporte(
 
   y = addParagraph(
     doc,
-    `desde ${funeral.wakeLocation || funeral.locationParish || 'o local de velório'} até ${orBlank(extra.destination)},`,
+    `desde ${funeral.wakeLocation || funeral.locationParish || 'o local de velório'} até ${orBlank(extra.destination, 30)},`,
     25,
     y,
   );

@@ -1,9 +1,16 @@
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiProperty } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole, SubscriptionPlan } from '@prisma/client';
+import { IsEnum } from 'class-validator';
+
+export class SetAgencyPlanDto {
+  @ApiProperty({ enum: ['FREE', 'PRO', 'ENTERPRISE'] })
+  @IsEnum(['FREE', 'PRO', 'ENTERPRISE'])
+  plan: SubscriptionPlan;
+}
 
 @ApiTags('Administração')
 @UseGuards(RolesGuard)
@@ -44,5 +51,25 @@ export class AdminController {
   @ApiResponse({ status: 403, description: 'Permissões insuficientes.' })
   users() {
     return this.adminService.users();
+  }
+
+  @Patch('agencies/:id/plan')
+  @ApiOperation({
+    summary: 'Altera manualmente o plano de qualquer agência (apenas Super Admin)',
+  })
+  @ApiResponse({ status: 200, description: 'Plano da agência alterado.' })
+  @ApiResponse({ status: 400, description: 'Plano inválido.' })
+  @ApiResponse({ status: 403, description: 'Permissões insuficientes.' })
+  @ApiResponse({ status: 404, description: 'Agência não encontrada.' })
+  @ApiBody({
+    type: SetAgencyPlanDto,
+    examples: {
+      exemplo: {
+        value: { plan: 'PRO' },
+      },
+    },
+  })
+  setAgencyPlan(@Param('id') id: string, @Body() dto: SetAgencyPlanDto) {
+    return this.adminService.setAgencyPlan(id, dto.plan);
   }
 }

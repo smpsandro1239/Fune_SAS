@@ -42,7 +42,7 @@ export function generateCondolencia(
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`Exmo(a). Sr(a). ${orBlank(extra.familyName)}`, 25, y);
+  doc.text(`Exmo(a). Sr(a). ${orBlank(extra.familyName, 32)}`, 25, y);
   y += 8;
 
   doc.setFontSize(10);
@@ -57,7 +57,7 @@ export function generateCondolencia(
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 30, 30);
-  doc.text(`${orBlank(extra.familyName)},`, 25, y);
+  doc.text(`${orBlank(extra.familyName, 32)},`, 25, y);
   y += 10;
 
   const opening = `A ${agency.name} deseja expressar as suas mais sinceras condolências pelo falecimento de ${funeral.deceasedName}, ocorrido em ${formatDate(funeral.dateOfDeath)}${funeral.age ? ', com a idade de ' + funeral.age + ' anos' : ''}.`;
