@@ -35,6 +35,10 @@ export function validateEnv(logger: {
     logger.error('RESEND_API_KEY não configurada — emails não serão enviados.');
   }
 
+  if (!process.env.SENTRY_DSN) {
+    logger.log?.('SENTRY_DSN não configurada — sem monitorização de erros no Sentry.');
+  }
+
   // Storage de uploads: S3-compatível ou disco local
   const s3Vars = ['S3_BUCKET', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'].filter(
     (key) => !process.env[key],
