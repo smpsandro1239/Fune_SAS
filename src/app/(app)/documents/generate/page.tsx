@@ -181,6 +181,35 @@ const DOC_TYPES: DocTypeDef[] = [
       { key: 'deceasedAddress', label: 'Última morada do falecido (opcional)' },
     ],
   },
+  {
+    value: 'ORCAMENTO', label: 'Orçamento de Serviços', icon: FileText,
+    description: 'Orçamento/proposta de serviços funerários',
+    preview: 'table', accent: '#a3e635',
+    fields: [
+      { key: 'clientName', label: 'Nome do cliente', required: true },
+      { key: 'clientId', label: 'Nº do Cartão de Cidadão / NIF', required: true },
+      { key: 'itemsText', label: 'Serviços orçados', required: true, textareaRows: 4,
+        hint: 'Uma linha por serviço: descrição | quantidade | preço (€)',
+        placeholder: 'Serviço funerário completo | 1 | 1250\nCoroa de flores | 2 | 75' },
+      { key: 'paymentMethod', label: 'Condições de pagamento (opcional)', placeholder: 'Ex: 50% no ato, restante na entrega' },
+      { key: 'validUntil', label: 'Validade da proposta (opcional)', placeholder: 'Ex: 30 dias' },
+      { key: 'notes', label: 'Notas (opcional)', textareaRows: 2 },
+    ],
+  },
+  {
+    value: 'AUTORIZACAO_TRANSPORTE', label: 'Autorização de Transporte', icon: Truck,
+    description: 'Autorização de transporte de restos mortais',
+    preview: 'authorization', accent: '#f87171',
+    fields: [
+      { key: 'requesterName', label: 'Nome do requerente', required: true },
+      { key: 'requesterId', label: 'Nº do Cartão de Cidadão', required: true },
+      { key: 'requesterRelation', label: 'Grau de parentesco', required: true, placeholder: 'Ex: Filho(a), Cônjuge...' },
+      { key: 'destination', label: 'Destino do transporte', required: true, placeholder: 'Ex: Cemitério de Vilar' },
+      { key: 'vehicleType', label: 'Tipo de veículo (opcional)', placeholder: 'Ex: Carro funerário' },
+      { key: 'vehiclePlate', label: 'Matrícula (opcional)', placeholder: 'Ex: BB-34-CC' },
+      { key: 'notes', label: 'Observações (opcional)', textareaRows: 2 },
+    ],
+  },
 ];
 
 /* ================= Miniatura visual de cada documento ================= */

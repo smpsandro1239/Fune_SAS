@@ -90,6 +90,33 @@ describe('TemplateGallery', () => {
     expect(cards[0]).toHaveAccessibleName('Pré-visualizar modelo Modelo Dois (Premium)');
   });
 
+  it('filtra por categoria', () => {
+    const mixed = [
+      makeTemplate({ id: 't1', name: 'Modelo Um', plan: 'FREE', category: 'PARTICIPACAO' }),
+      makeTemplate({ id: 't2', name: 'Modelo Missa', plan: 'PREMIUM', category: 'MISSA_7DIA' }),
+      makeTemplate({ id: 't3', name: 'Modelo Grato', plan: 'FREE', category: 'AGRADECIMENTO' }),
+    ];
+    render(<TemplateGallery templates={mixed} selectedId="t1" onSelect={onSelect} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Missa de 7º Dia' }));
+    const cards = screen.getAllByRole('button', { name: /Pré-visualizar modelo/i });
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toHaveAccessibleName('Pré-visualizar modelo Modelo Missa (Premium)');
+  });
+
+  it('combina filtros de plano e categoria', () => {
+    const mixed = [
+      makeTemplate({ id: 't1', name: 'Modelo Um', plan: 'FREE', category: 'MISSA_7DIA' }),
+      makeTemplate({ id: 't2', name: 'Modelo Dois', plan: 'PREMIUM', category: 'MISSA_7DIA' }),
+      makeTemplate({ id: 't3', name: 'Modelo Três', plan: 'FREE', category: 'PARTICIPACAO' }),
+    ];
+    render(<TemplateGallery templates={mixed} selectedId="t1" onSelect={onSelect} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Missa de 7º Dia' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Free' }));
+    const cards = screen.getAllByRole('button', { name: /Pré-visualizar modelo/i });
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toHaveAccessibleName('Pré-visualizar modelo Modelo Um (Free)');
+  });
+
   it('marca o modelo selecionado', () => {
     render(<TemplateGallery templates={templates} selectedId="t2" onSelect={onSelect} />);
     const selected = screen.getByRole('button', {

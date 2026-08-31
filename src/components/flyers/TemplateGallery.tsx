@@ -11,6 +11,7 @@ import FlyerScaledView from './FlyerScaledView';
 import FlyerCanvasPreview from './FlyerCanvasPreview';
 
 type FilterKey = 'TODOS' | FlyerPlan;
+type CategoryKey = 'TODAS' | string;
 
 const FILTERS: { key: FilterKey; label: string; icon: React.ReactNode }[] = [
   { key: 'TODOS', label: 'Todos', icon: <LayoutGrid className="w-3.5 h-3.5" /> },
@@ -18,6 +19,12 @@ const FILTERS: { key: FilterKey; label: string; icon: React.ReactNode }[] = [
   { key: 'PREMIUM', label: 'Premium', icon: <Star className="w-3.5 h-3.5" /> },
   { key: 'ULTRA', label: 'Ultra', icon: <Gem className="w-3.5 h-3.5" /> },
 ];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  PARTICIPACAO: 'Participação',
+  MISSA_7DIA: 'Missa de 7º Dia',
+  AGRADECIMENTO: 'Agradecimento',
+};
 
 const PLAN_BADGE: Record<FlyerPlan, { className: string; icon: React.ReactNode }> = {
   FREE: { className: 'bg-slate-700/80 text-slate-200 border border-slate-500/50', icon: <Sparkles className="w-3 h-3" /> },
@@ -40,12 +47,19 @@ interface TemplateGalleryProps {
 
 export default function TemplateGallery({ templates, selectedId, onSelect, previewData }: TemplateGalleryProps) {
   const [filter, setFilter] = useState<FilterKey>('TODOS');
+  const [category, setCategory] = useState<CategoryKey>('TODAS');
   const [preview, setPreview] = useState<FlyerTemplateConfig | null>(null);
 
-  const visibleTemplates = useMemo(
-    () => (filter === 'TODOS' ? templates : templates.filter((t) => t.plan === filter)),
-    [templates, filter]
-  );
+  const categories = useMemo(() => {
+    const set = new Set<string>(templates.map((t) => t.category));
+    return Array.from(set);
+  }, [templates]);
+
+  const visibleTemplates = useMemo(() => {
+    let list = filter === 'TODOS' ? templates : templates.filter((t) => t.plan === filter);
+    if (category !== 'TODAS') list = list.filter((t) => t.category === category);
+    return list;
+  }, [templates, filter, category]);
 
   const openPreview = (tmpl: FlyerTemplateConfig) => {
     onSelect(tmpl);
@@ -99,6 +113,38 @@ export default function TemplateGallery({ templates, selectedId, onSelect, previ
           ))}
         </div>
       </div>
+
+      {categories.length > 1 && (
+        <div role="group" aria-label="Filtrar por categoria" className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setCategory('TODAS')}
+            aria-pressed={category === 'TODAS'}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all border ${
+              category === 'TODAS'
+                ? 'bg-gold-500/15 text-gold-300 border-gold-500/30'
+                : 'bg-navy-950 text-navy-400 border-navy-800 hover:text-white'
+            }`}
+          >
+            Todas as categorias
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCategory(c)}
+              aria-pressed={category === c}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all border ${
+                category === c
+                  ? 'bg-gold-500/15 text-gold-300 border-gold-500/30'
+                  : 'bg-navy-950 text-navy-400 border-navy-800 hover:text-white'
+              }`}
+            >
+              {CATEGORY_LABELS[c] || c}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
         {visibleTemplates.map((tmpl, i) => {

@@ -34,7 +34,8 @@ describe('templates-preset', () => {
       expect(t.id).toBeTruthy();
       expect(t.name).toBeTruthy();
       expect(['FREE', 'PREMIUM', 'ULTRA']).toContain(t.plan);
-      expect(t.category).toBe('PARTICIPACAO');
+      expect(t.category).toBeTruthy();
+      expect(['PARTICIPACAO', 'MISSA_7DIA', 'AGRADECIMENTO']).toContain(t.category);
       expect(t.primaryColor).toMatch(/^#[0-9a-f]{6}$/i);
       expect(t.secondaryColor).toMatch(/^#[0-9a-f]{6}$/i);
       expect(t.accentColor).toMatch(/^#[0-9a-f]{6}$/i);
@@ -55,5 +56,13 @@ describe('templates-preset', () => {
     expect(DEFAULT_FLYER_DATA.agencyName).toContain('Casa Hortas');
     expect(DEFAULT_FLYER_DATA.agencyInitials).toBe('CH');
     expect(DEFAULT_FLYER_DATA.fontFamily).toBe('sans');
+  });
+
+  it('suporta várias categorias de flyer', () => {
+    const categories = new Set(PRESET_TEMPLATES.map((t) => t.category));
+    expect(categories.has('PARTICIPACAO')).toBe(true);
+    expect(categories.has('MISSA_7DIA')).toBe(true);
+    expect(categories.has('AGRADECIMENTO')).toBe(true);
+    expect(PRESET_TEMPLATES.some((t) => t.layoutStyle === 'ceu-eterno' && t.plan === 'ULTRA' && t.animated)).toBe(true);
   });
 });

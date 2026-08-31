@@ -95,7 +95,14 @@ export type FlyerLayoutStyle =
   | 'aurora-boreal'
   | 'pergaminho-classico'
   | 'ondas-serenidade'
-  | 'luz-eterna';
+  | 'luz-eterna'
+  | 'memorial-campo'
+  | 'gratidao-luz'
+  | 'velada-orquidea'
+  | 'missa-setimo-dia'
+  | 'ceu-eterno'
+  | 'oracao-jardim'
+  | 'aposento-paz';
 
 export interface FlyerTemplateConfig {
   id: string;

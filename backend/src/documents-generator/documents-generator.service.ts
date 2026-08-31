@@ -23,6 +23,11 @@ import {
   generateDeclaracaoHerdeiros,
   DeclaracaoHerdeirosData,
 } from './templates/declaracao-herdeiros.template';
+import { generateOrcamento, OrcamentoData } from './templates/orcamento.template';
+import {
+  generateAutorizacaoTransporte,
+  AutorizacaoTransporteData,
+} from './templates/autorizacao-transporte.template';
 
 export type DocType =
   | 'PRESENCA'
@@ -36,7 +41,9 @@ export type DocType =
   | 'AUTORIZACAO_SEPULTAMENTO'
   | 'CONTRATO_SERVICO'
   | 'GUIA_PAGAMENTO'
-  | 'DECLARACAO_HERDEIROS';
+  | 'DECLARACAO_HERDEIROS'
+  | 'ORCAMENTO'
+  | 'AUTORIZACAO_TRANSPORTE';
 
 @Injectable()
 export class DocumentsGeneratorService {
@@ -177,6 +184,20 @@ export class DocumentsGeneratorService {
           ((extraData || {}) as DeclaracaoHerdeirosData),
           sharedDoc,
         );
+      case 'ORCAMENTO':
+        return generateOrcamento(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as OrcamentoData),
+          sharedDoc,
+        );
+      case 'AUTORIZACAO_TRANSPORTE':
+        return generateAutorizacaoTransporte(
+          funeralData,
+          agencyData,
+          ((extraData || {}) as AutorizacaoTransporteData),
+          sharedDoc,
+        );
       default:
         throw new BadRequestException(`Tipo de documento não suportado: ${type}`);
     }
@@ -197,6 +218,8 @@ export class DocumentsGeneratorService {
       CONTRATO_SERVICO: `Contrato_Servico_${safe}`,
       GUIA_PAGAMENTO: `Guia_Pagamento_${safe}`,
       DECLARACAO_HERDEIROS: `Declaracao_Herdeiros_${safe}`,
+      ORCAMENTO: `Orcamento_Servicos_Funerarios_${safe}`,
+      AUTORIZACAO_TRANSPORTE: `Autorizacao_Transporte_Restos_Mortais_${safe}`,
     };
     return names[type] || `Documento_${safe}`;
   }

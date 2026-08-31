@@ -172,6 +172,30 @@ describe('DocumentsGeneratorService', () => {
       const text = buffer.toString('latin1');
       expect(text).toContain('______________');
     });
+
+    it('should generate an ORCAMENTO document', async () => {
+      const buffer = await service.generate('agency-1', 'funeral-1', 'ORCAMENTO', {
+        clientName: 'José Pereira',
+        clientId: '987654321',
+        items: [{ description: 'Serviço funerário completo', qty: 1, unitPrice: 1250 }],
+        paymentMethod: 'Transferência bancária',
+      });
+      expect(buffer).toBeInstanceOf(Buffer);
+      expect(buffer.length).toBeGreaterThan(0);
+    });
+
+    it('should generate an AUTORIZACAO_TRANSPORTE document', async () => {
+      const buffer = await service.generate('agency-1', 'funeral-1', 'AUTORIZACAO_TRANSPORTE', {
+        requesterName: 'Maria Silva',
+        requesterId: '111222333',
+        requesterRelation: 'Esposa',
+        destination: 'Cemitério de Vilar',
+        vehicleType: 'Carro funerário',
+        vehiclePlate: 'BB-34-CC',
+      });
+      expect(buffer).toBeInstanceOf(Buffer);
+      expect(buffer.length).toBeGreaterThan(0);
+    });
   });
 
   describe('getFilename', () => {
@@ -194,6 +218,12 @@ describe('DocumentsGeneratorService', () => {
       );
       expect(service.getFilename('CONDOLENCIA', 'Manuel Silva')).toBe(
         'Carta_Condolencia_Manuel_Silva',
+      );
+      expect(service.getFilename('ORCAMENTO', 'Manuel Silva')).toBe(
+        'Orcamento_Servicos_Funerarios_Manuel_Silva',
+      );
+      expect(service.getFilename('AUTORIZACAO_TRANSPORTE', 'Manuel Silva')).toBe(
+        'Autorizacao_Transporte_Restos_Mortais_Manuel_Silva',
       );
     });
 

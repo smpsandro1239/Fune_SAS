@@ -45,6 +45,13 @@ import {
   OndasSerenidadeLayout,
   LuzEternaLayout,
 } from './layouts/ProLayoutsD';
+import {
+  MemorialCampoLayout,
+  GratidaoLuzLayout,
+  VeladaOrquideaLayout,
+  MissaSetimoDiaLayout,
+  CeuEternoLayout,
+} from './layouts/ProLayoutsE';
 
 interface FlyerCanvasPreviewProps {
   data: FlyerData;
@@ -102,6 +109,16 @@ export default function FlyerCanvasPreview({ data, template, previewRef }: Flyer
       return <OndasSerenidadeLayout data={data} previewRef={previewRef} />;
     case 'luz-eterna':
       return <LuzEternaLayout data={data} previewRef={previewRef} />;
+    case 'memorial-campo':
+      return <MemorialCampoLayout data={data} previewRef={previewRef} />;
+    case 'gratidao-luz':
+      return <GratidaoLuzLayout data={data} previewRef={previewRef} />;
+    case 'velada-orquidea':
+      return <VeladaOrquideaLayout data={data} previewRef={previewRef} />;
+    case 'missa-setimo-dia':
+      return <MissaSetimoDiaLayout data={data} previewRef={previewRef} />;
+    case 'ceu-eterno':
+      return <CeuEternoLayout data={data} previewRef={previewRef} />;
     case 'classico-ouro':
       return <ClassicoOuroLayout data={data} previewRef={previewRef} />;
     case 'sereno-minimal':
