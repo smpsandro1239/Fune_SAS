@@ -16,11 +16,17 @@ import {
   Sparkles,
   Church,
   FileText,
+  Plus,
+  Trash2,
+  Pencil,
+  Save,
 } from 'lucide-react';
 import {
   ApiFuneral,
+  ApiAgendaItem,
   FuneralStatus,
   ServiceType,
+  AGENDA_COLORS,
   apiErrorMessage,
   apiService,
 } from '@/lib/api';
@@ -49,6 +55,15 @@ const STATUS_STYLES: Record<FuneralStatus, string> = {
   COMPLETED: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
 };
 
+const AGENDA_COLOR_STYLES: Record<string, string> = {
+  gold: 'bg-gold-500/20 border border-gold-500/40 text-gold-200',
+  blue: 'bg-blue-500/20 border border-blue-500/40 text-blue-200',
+  green: 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-200',
+  purple: 'bg-purple-500/20 border border-purple-500/40 text-purple-200',
+  red: 'bg-red-500/20 border border-red-500/40 text-red-200',
+  slate: 'bg-slate-500/20 border border-slate-500/40 text-slate-200',
+};
+
 function dayKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
@@ -60,17 +75,29 @@ function sameDay(a: Date, b: Date): boolean {
 export default function AgendaPage() {
   const { currentAgency } = useAgency();
   const [funerals, setFunerals] = useState<ApiFuneral[]>([]);
+  const [agendaItems, setAgendaItems] = useState<ApiAgendaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState<ApiFuneral | null>(null);
 
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [editingItem, setEditingItem] = useState<ApiAgendaItem | null>(null);
+  const [agendaSaving, setAgendaSaving] = useState(false);
+  const [agendaError, setAgendaError] = useState('');
+  const [formTitle, setFormTitle] = useState('');
+  const [formTime, setFormTime] = useState('');
+  const [formDescription, setFormDescription] = useState('');
+  const [formColor, setFormColor] = useState<string>('gold');
+
   useEffect(() => {
     let cancelled = false;
-    apiService.funerals
-      .list()
-      .then((list) => {
-        if (!cancelled) setFunerals(list);
+    Promise.all([apiService.funerals.list(), apiService.agenda.list()])
+      .then(([funeralList, agendaList]) => {
+        if (!cancelled) {
+          setFunerals(funeralList);
+          setAgendaItems(agendaList);
+        }
       })
       .catch((err) => {
         if (!cancelled) setError(apiErrorMessage(err, 'Não foi possível carregar a agenda.'));
@@ -98,6 +125,19 @@ export default function AgendaPage() {
     return map;
   }, [funerals]);
 
+  const itemsByDay = useMemo(() => {
+    const map = new Map<string, ApiAgendaItem[]>();
+    for (const item of agendaItems) {
+      const key = dayKey(new Date(item.date));
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(item);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    }
+    return map;
+  }, [agendaItems]);
+
   const grid = useMemo(() => {
     const year = cursor.getFullYear();
     const month = cursor.getMonth();
@@ -112,7 +152,6 @@ export default function AgendaPage() {
   }, [cursor]);
 
   const monthLabel = cursor.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
-  // useMemo para não recriar a data em cada render (estabiliza as deps do useMemo seguinte)
   const today = useMemo(() => new Date(), []);
   const upcoming = useMemo(
     () =>
@@ -123,11 +162,99 @@ export default function AgendaPage() {
     [funerals, today],
   );
 
+  const daysWithContent = useMemo(() => {
+    const keys = new Set<string>();
+    byDay.forEach((_, k) => keys.add(k));
+    itemsByDay.forEach((_, k) => keys.add(k));
+    return keys;
+  }, [byDay, itemsByDay]);
+
   const moveMonth = (delta: number) => {
     setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
   };
 
   const goToday = () => setCursor(new Date());
+
+  const openDay = (date: Date) => {
+    setSelectedDay(date);
+    setEditingItem(null);
+    setFormTitle('');
+    setFormTime('');
+    setFormDescription('');
+    setFormColor('gold');
+    setAgendaError('');
+  };
+
+  const saveAgendaItem = async () => {
+    if (!selectedDay) return;
+    const title = formTitle.trim();
+    if (!title) {
+      setAgendaError('Indique um título para o item.');
+      return;
+    }
+    setAgendaSaving(true);
+    setAgendaError('');
+    const payload = {
+      date: dayKey(selectedDay),
+      title,
+      time: formTime.trim() || undefined,
+      description: formDescription.trim() || undefined,
+      color: formColor,
+    };
+    try {
+      if (editingItem) {
+        const updated = await apiService.agenda.update(editingItem.id, payload);
+        setAgendaItems((prev) => prev.map((it) => (it.id === updated.id ? updated : it)));
+      } else {
+        const created = await apiService.agenda.create(payload);
+        setAgendaItems((prev) => [...prev, created]);
+      }
+      setEditingItem(null);
+      setFormTitle('');
+      setFormTime('');
+      setFormDescription('');
+      setFormColor('gold');
+    } catch (err) {
+      setAgendaError(apiErrorMessage(err, 'Não foi possível guardar o item.'));
+    } finally {
+      setAgendaSaving(false);
+    }
+  };
+
+  const startEdit = (item: ApiAgendaItem) => {
+    setEditingItem(item);
+    setFormTitle(item.title);
+    setFormTime(item.time || '');
+    setFormDescription(item.description || '');
+    setFormColor(item.color || 'gold');
+    setAgendaError('');
+  };
+
+  const cancelEdit = () => {
+    setEditingItem(null);
+    setFormTitle('');
+    setFormTime('');
+    setFormDescription('');
+    setFormColor('gold');
+    setAgendaError('');
+  };
+
+  const deleteAgendaItem = async (item: ApiAgendaItem) => {
+    if (!window.confirm(`Eliminar "${item.title}" da agenda?`)) return;
+    setAgendaSaving(true);
+    try {
+      await apiService.agenda.remove(item.id);
+      setAgendaItems((prev) => prev.filter((it) => it.id !== item.id));
+      if (editingItem?.id === item.id) cancelEdit();
+    } catch (err) {
+      setAgendaError(apiErrorMessage(err, 'Não foi possível eliminar o item.'));
+    } finally {
+      setAgendaSaving(false);
+    }
+  };
+
+  const selectedDayFunerals = selectedDay ? byDay.get(dayKey(selectedDay)) || [] : [];
+  const selectedDayItems = selectedDay ? itemsByDay.get(dayKey(selectedDay)) || [] : [];
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -176,15 +303,23 @@ export default function AgendaPage() {
 
             <div className="flex items-center space-x-2">
               <button
-                onClick={goToday}
+                onClick={() => {
+                  goToday();
+                  openDay(new Date());
+                }}
                 className="px-3 py-1.5 rounded-lg bg-gold-500/15 hover:bg-gold-500/25 border border-gold-500/30 text-gold-300 text-xs font-bold transition-all"
+                title="Ver o agendado hoje"
               >
                 Hoje
               </button>
-              <span className="hidden sm:inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-navy-950 text-xs text-navy-300 border border-navy-700">
+              <button
+                onClick={() => openDay(new Date())}
+                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-navy-950 text-xs text-navy-300 border border-navy-700 hover:border-gold-500/40 hover:text-gold-300 transition-colors"
+                title="Ver o que está agendado"
+              >
                 <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-                <span>{byDay.size} dias com serviços</span>
-              </span>
+                <span>{daysWithContent.size} dias com serviços</span>
+              </button>
             </div>
           </div>
 
@@ -207,13 +342,16 @@ export default function AgendaPage() {
                 }
                 const key = dayKey(date);
                 const dayEvents = byDay.get(key) || [];
+                const dayAgenda = itemsByDay.get(key) || [];
                 const isToday = sameDay(date, today);
                 const isFuture = date >= today;
+                const hasContent = dayEvents.length + dayAgenda.length > 0;
 
                 return (
                   <div
                     key={key}
-                    className={`min-h-[92px] rounded-xl p-1.5 border transition-colors ${
+                    onClick={() => openDay(date)}
+                    className={`min-h-[92px] rounded-xl p-1.5 border transition-colors cursor-pointer group ${
                       isToday
                         ? 'bg-gold-500/10 border-gold-500/40'
                         : isFuture
@@ -221,14 +359,25 @@ export default function AgendaPage() {
                         : 'bg-navy-950/70 border-navy-800/60 opacity-70'
                     }`}
                   >
-                    <div className={`text-[11px] font-bold mb-1 ${isToday ? 'text-gold-300' : 'text-navy-300'}`}>
-                      {date.getDate()}
+                    <div
+                      className={`text-[11px] font-bold mb-1 flex items-center justify-between ${
+                        isToday ? 'text-gold-300' : 'text-navy-300'
+                      }`}
+                    >
+                      <span>{date.getDate()}</span>
+                      <Plus
+                        className="w-3 h-3 text-navy-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Adicionar item"
+                      />
                     </div>
                     <div className="space-y-1">
-                      {dayEvents.slice(0, 3).map((f) => (
+                      {dayEvents.slice(0, 2).map((f) => (
                         <button
                           key={f.id}
-                          onClick={() => setSelected(f)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelected(f);
+                          }}
                           className={`w-full text-left px-1.5 py-1 rounded-md text-[10px] font-semibold leading-tight transition-transform hover:scale-[1.03] ${STATUS_STYLES[f.status]}`}
                           title={`${f.deceased.fullName}${f.funeralTime ? ` — ${f.funeralTime}` : ''}`}
                         >
@@ -236,16 +385,28 @@ export default function AgendaPage() {
                           {f.funeralTime && <span className="opacity-80">{f.funeralTime}</span>}
                         </button>
                       ))}
-                      {dayEvents.length > 3 && (
+                      {dayAgenda.slice(0, 1).map((item) => (
                         <button
-                          onClick={() => {
-                            const d = dayEvents[0];
-                            if (d) setSelected(d);
+                          key={item.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDay(date);
                           }}
-                          className="w-full text-left px-1.5 py-0.5 rounded text-[9px] text-navy-300 hover:text-gold-300"
+                          className={`w-full text-left px-1.5 py-1 rounded-md text-[10px] font-semibold leading-tight truncate ${AGENDA_COLOR_STYLES[item.color] || AGENDA_COLOR_STYLES.gold}`}
+                          title={item.title}
                         >
-                          +{dayEvents.length - 3} mais
+                          {item.time ? `${item.time} ` : ''}{item.title}
                         </button>
+                      ))}
+                      {dayEvents.length > 2 || dayAgenda.length > 1 ? (
+                        <div className="w-full text-left px-1.5 py-0.5 rounded text-[9px] text-navy-300">
+                          +{(dayEvents.length - 2 > 0 ? dayEvents.length - 2 : 0) + (dayAgenda.length - 1 > 0 ? dayAgenda.length - 1 : 0)} mais
+                        </div>
+                      ) : null}
+                      {!hasContent && (
+                        <div className="text-[9px] text-navy-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          Clique para adicionar
+                        </div>
                       )}
                     </div>
                   </div>
@@ -305,13 +466,17 @@ export default function AgendaPage() {
                 <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Concluído</span>
                 Serviço realizado
               </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-gold-500/20 text-gold-300 border border-gold-500/30">Item</span>
+                Tarefa / nota adicionada
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Modal: detalhe do serviço */}
-      {selected && (
+      {selected && !selectedDay && (
         <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-navy-800 pb-3">
@@ -390,6 +555,180 @@ export default function AgendaPage() {
               >
                 Fechar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: vista do dia */}
+      {selectedDay && (
+        <div className="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-navy-900 border border-navy-700 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-in zoom-in-95 my-4">
+            <div className="flex items-center justify-between border-b border-navy-800 pb-3">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4 text-gold-400" />
+                {selectedDay.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </h2>
+              <button onClick={() => setSelectedDay(null)} className="text-navy-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {agendaError && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{agendaError}</span>
+              </div>
+            )}
+
+            {/* Serviços do dia */}
+            <div>
+              <h3 className="text-xs font-bold text-navy-200 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <Cross className="w-4 h-4 text-gold-400" />
+                Serviços ({selectedDayFunerals.length})
+              </h3>
+              {selectedDayFunerals.length === 0 ? (
+                <p className="text-xs text-navy-400">Sem serviços agendados neste dia.</p>
+              ) : (
+                <div className="space-y-2">
+                  {selectedDayFunerals.map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => {
+                        setSelected(f);
+                        setSelectedDay(null);
+                      }}
+                      className="w-full text-left p-2.5 rounded-xl bg-navy-950 border border-navy-800 hover:border-gold-500/30 transition-all"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-bold text-white uppercase truncate">{f.deceased.fullName}</p>
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${STATUS_STYLES[f.status]}`}>
+                          {STATUS_LABELS[f.status]}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-navy-300 mt-0.5">
+                        {f.funeralTime ? `${f.funeralTime} · ` : ''}
+                        {SERVICE_LABELS[f.serviceType]}
+                        {f.locationParish ? ` · ${f.locationParish}` : ''}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Itens adicionados */}
+            <div>
+              <h3 className="text-xs font-bold text-navy-200 uppercase tracking-wider mb-2">Itens adicionados ({selectedDayItems.length})</h3>
+              {selectedDayItems.length === 0 ? (
+                <p className="text-xs text-navy-400">Sem itens adicionados. Registe uma tarefa ou nota abaixo.</p>
+              ) : (
+                <div className="space-y-2">
+                  {selectedDayItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-2.5 rounded-xl ${AGENDA_COLOR_STYLES[item.color] || AGENDA_COLOR_STYLES.gold}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-bold uppercase truncate">
+                          {item.time ? `${item.time} — ` : ''}{item.title}
+                        </p>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => startEdit(item)}
+                            className="p-1.5 rounded-lg hover:bg-navy-900/60 transition-colors"
+                            aria-label="Editar item"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => deleteAgendaItem(item)}
+                            className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors"
+                            aria-label="Eliminar item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      {item.description && <p className="text-[10px] opacity-80 mt-1">{item.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Formulário adicionar/editar */}
+            <div className="pt-3 border-t border-navy-800 space-y-3">
+              <h3 className="text-xs font-bold text-navy-200 uppercase tracking-wider">
+                {editingItem ? 'Editar item' : 'Adicionar item'}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-1">
+                  <label className="block text-[10px] font-semibold text-navy-300 mb-1">Título *</label>
+                  <input
+                    type="text"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    placeholder="Ex: Reunião com a família"
+                    className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none"
+                  />
+                </div>
+                <div className="sm:col-span-1">
+                  <label className="block text-[10px] font-semibold text-navy-300 mb-1">Hora (opcional)</label>
+                  <input
+                    type="time"
+                    value={formTime}
+                    onChange={(e) => setFormTime(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[10px] font-semibold text-navy-300 mb-1">Descrição (opcional)</label>
+                  <textarea
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
+                    placeholder="Ex: Entregar documentação e discutir o programa."
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-xl bg-navy-950 border border-navy-700 text-white text-xs focus:border-gold-400 focus:outline-none resize-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-semibold text-navy-300 mb-1.5">Cor</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {AGENDA_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setFormColor(color)}
+                      className={`w-7 h-7 rounded-full transition-transform ${AGENDA_COLOR_STYLES[color].split(' ')[0]} ${
+                        formColor === color ? 'ring-2 ring-gold-400 ring-offset-2 ring-offset-navy-900 scale-110' : 'hover:scale-110'
+                      }`}
+                      aria-label={`Cor ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                {editingItem && (
+                  <button
+                    onClick={cancelEdit}
+                    className="px-4 py-2 rounded-xl bg-navy-800 text-navy-300 font-semibold text-xs"
+                  >
+                    Cancelar
+                  </button>
+                )}
+                <button
+                  onClick={saveAgendaItem}
+                  disabled={agendaSaving}
+                  className="flex items-center space-x-2 px-5 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-amber-400 text-navy-950 font-bold text-xs shadow-lg transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {agendaSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>{editingItem ? 'Guardar alterações' : 'Adicionar item'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,11 +1,14 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { act } from 'react';
 
 const apiErrorMessage = jest.fn((err: unknown, fallback?: string) =>
   err instanceof Error ? err.message : (fallback ?? ''),
 );
 const adminOverview = jest.fn();
 const adminAgencies = jest.fn();
+const adminChangeAgencyPlan = jest.fn();
 
 jest.mock('@/lib/api', () => ({
   apiErrorMessage: (err: unknown, fallback: string) => apiErrorMessage(err, fallback),
@@ -13,6 +16,7 @@ jest.mock('@/lib/api', () => ({
     admin: {
       overview: (...args: unknown[]) => adminOverview(...args),
       agencies: (...args: unknown[]) => adminAgencies(...args),
+      changeAgencyPlan: (...args: unknown[]) => adminChangeAgencyPlan(...args),
     },
   },
 }));
@@ -61,6 +65,10 @@ describe('AdminPage', () => {
     );
     adminOverview.mockResolvedValue(overview);
     adminAgencies.mockResolvedValue(agencies);
+    adminChangeAgencyPlan.mockResolvedValue({
+      id: 'a2',
+      subscriptionPlan: 'PRO',
+    });
     clearAuth.mockReturnValue({ role: 'SUPER_ADMIN' });
   });
 
@@ -89,7 +97,22 @@ describe('AdminPage', () => {
     expect(screen.getByText('Agência B')).toBeInTheDocument();
     expect(screen.getByText('Lisboa')).toBeInTheDocument();
     expect(screen.getAllByText('PRO').length).toBeGreaterThan(0);
-    expect(screen.getByText('Free')).toBeInTheDocument();
+    expect(screen.getAllByText('Free').length).toBeGreaterThan(0);
+  });
+
+  it('permite ao super admin alterar manualmente o plano de uma agência', async () => {
+    const user = userEvent.setup();
+    render(<AdminPage />);
+
+    const select = await screen.findByLabelText('Alterar plano de Agência B');
+    expect(select).toHaveValue('FREE');
+
+    await act(async () => {
+      await user.selectOptions(select, 'PRO');
+    });
+    expect(adminChangeAgencyPlan).toHaveBeenCalledWith('a2', 'PRO');
+
+    await waitFor(() => expect(select).toHaveValue('PRO'));
   });
 
   it('mostra a mensagem de erro quando o carregamento falha', async () => {

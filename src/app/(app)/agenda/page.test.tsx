@@ -17,6 +17,10 @@ jest.mock('@/context/AgencyContext', () => ({
 
 const apiErrorMessage = jest.fn((_err: unknown, fallback: string) => fallback);
 const funeralsList = jest.fn();
+const agendaList = jest.fn();
+const agendaCreate = jest.fn();
+const agendaUpdate = jest.fn();
+const agendaRemove = jest.fn();
 
 jest.mock('@/lib/api', () => ({
   apiErrorMessage: (err: unknown, fallback: string) => apiErrorMessage(err, fallback),
@@ -24,7 +28,14 @@ jest.mock('@/lib/api', () => ({
     funerals: {
       list: (...args: unknown[]) => funeralsList(...args),
     },
+    agenda: {
+      list: (...args: unknown[]) => agendaList(...args),
+      create: (...args: unknown[]) => agendaCreate(...args),
+      update: (...args: unknown[]) => agendaUpdate(...args),
+      remove: (...args: unknown[]) => agendaRemove(...args),
+    },
   },
+  AGENDA_COLORS: ['gold', 'blue', 'green', 'purple', 'red', 'slate'],
 }));
 
 import AgendaPage from '@/app/(app)/agenda/page';
@@ -59,6 +70,10 @@ describe('AgendaPage', () => {
     jest.resetAllMocks();
     apiErrorMessage.mockImplementation((_err: unknown, fallback: string) => fallback);
     funeralsList.mockResolvedValue([]);
+    agendaList.mockResolvedValue([]);
+    agendaCreate.mockResolvedValue({ id: 'a1', date: '2026-09-01', title: 'Reunião' });
+    agendaUpdate.mockResolvedValue({ id: 'a1', date: '2026-09-01', title: 'Reunião editada' });
+    agendaRemove.mockResolvedValue({ success: true });
   });
 
   it('mostra o loading enquanto os funerais não chegam', async () => {
@@ -109,10 +124,10 @@ describe('AgendaPage', () => {
     render(<AgendaPage />);
 
     await screen.findByText('Próximas Cerimónias');
-    expect(screen.getAllByText('Maria Silva').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('José Santos').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Agendado').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Em Curso').length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Maria Silva')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('José Santos')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Agendado')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Em Curso')).length).toBeGreaterThan(0);
   });
 
   it('mostra mensagem quando não há cerimónias próximas', async () => {
@@ -168,5 +183,34 @@ describe('AgendaPage', () => {
 
     expect(await screen.findByText('Erro do servidor.')).toBeInTheDocument();
     expect(apiErrorMessage).toHaveBeenCalled();
+  });
+
+  it('abre a vista do dia ao clicar em Hoje e permite adicionar um item', async () => {
+    const user = userEvent.setup();
+    render(<AgendaPage />);
+
+    await screen.findByText('Agenda de Serviços');
+    await user.click(screen.getByRole('button', { name: 'Hoje' }));
+
+    expect(screen.getByText(/Serviços \(0\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Itens adicionados \(0\)/)).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText(/Reunião com a família/), 'Entrega de flores');
+    await user.click(screen.getByRole('button', { name: /Adicionar item/ }));
+
+    await waitFor(() => expect(agendaCreate).toHaveBeenCalled());
+    expect(agendaCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Entrega de flores' }),
+    );
+    await waitFor(() =>
+      expect(screen.getAllByText('Reunião').length).toBeGreaterThan(1),
+    );
+  });
+
+  it('carrega os itens de agenda da API', async () => {
+    render(<AgendaPage />);
+
+    await screen.findByText('Agenda de Serviços');
+    expect(agendaList).toHaveBeenCalled();
   });
 });

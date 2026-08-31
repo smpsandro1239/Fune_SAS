@@ -136,6 +136,22 @@ export interface TokenPair {
   refreshExpiresIn: string;
 }
 
+export const AGENDA_COLORS = ['gold', 'blue', 'green', 'purple', 'red', 'slate'] as const;
+export type AgendaColor = (typeof AGENDA_COLORS)[number];
+
+export interface ApiAgendaItem {
+  id: string;
+  agencyId: string;
+  date: string;
+  time?: string | null;
+  title: string;
+  description?: string | null;
+  color: string;
+  createdById?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DashboardSummary {
   funerals: number;
   completed: number;
@@ -389,6 +405,18 @@ export const apiService = {
     remove: (id: string) => api.delete<{ success: boolean }>(`/funerals/${id}`).then((r) => r.data),
   },
 
+  agenda: {
+    list: (from?: string, to?: string) =>
+      api
+        .get<ApiAgendaItem[]>('/agenda', { params: { from, to } })
+        .then((r) => r.data),
+    create: (data: { date: string; time?: string; title: string; description?: string; color?: string }) =>
+      api.post<ApiAgendaItem>('/agenda', data).then((r) => r.data),
+    update: (id: string, data: { date?: string; time?: string; title?: string; description?: string; color?: string }) =>
+      api.put<ApiAgendaItem>(`/agenda/${id}`, data).then((r) => r.data),
+    remove: (id: string) => api.delete<{ success: boolean }>(`/agenda/${id}`).then((r) => r.data),
+  },
+
   condolences: {
     queue: (approved?: boolean) =>
       api.get<ApiCondolenceWithFuneral[]>('/funerals/condolences/queue', {
@@ -552,6 +580,8 @@ export const apiService = {
       api.get<AdminAgency[]>('/admin/agencies').then((r) => r.data),
     users: () =>
       api.get<ApiUser[]>('/admin/users').then((r) => r.data),
+    changeAgencyPlan: (agencyId: string, plan: SubscriptionPlan) =>
+      api.patch<AdminAgency>(`/admin/agencies/${agencyId}/plan`, { plan }).then((r) => r.data),
   },
 };
 

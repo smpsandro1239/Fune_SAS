@@ -110,15 +110,6 @@ export default function PhotoAdjuster({ transform, onChange }: PhotoAdjusterProp
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-          <button
-            type="button"
-            onClick={() => pan(0, PAN_STEP)}
-            disabled={!zoomed}
-            aria-label="Mover fotografia para baixo"
-            className={arrowClass(!zoomed)}
-          >
-            <ChevronDown className="w-3.5 h-3.5" />
-          </button>
           <span></span>
           <button
             type="button"
@@ -128,6 +119,16 @@ export default function PhotoAdjuster({ transform, onChange }: PhotoAdjusterProp
             className={arrowClass(!zoomed)}
           >
             <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+          <span></span>
+          <button
+            type="button"
+            onClick={() => pan(0, PAN_STEP)}
+            disabled={!zoomed}
+            aria-label="Mover fotografia para baixo"
+            className={arrowClass(!zoomed)}
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
           </button>
           <span></span>
         </div>

@@ -10,10 +10,12 @@ import {
   Loader2,
   AlertCircle,
   ShieldCheck,
+  Check,
 } from 'lucide-react';
 import {
   AdminOverview,
   AdminAgency,
+  SubscriptionPlan,
   apiErrorMessage,
   apiService,
 } from '@/lib/api';
@@ -25,12 +27,16 @@ const PLAN_BADGE: Record<string, { label: string; className: string }> = {
   ENTERPRISE: { label: 'Enterprise', className: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
 };
 
+const PLAN_OPTIONS: SubscriptionPlan[] = ['FREE', 'PRO', 'ENTERPRISE'];
+
 export default function AdminPage() {
   const { user } = useAuth();
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [agencies, setAgencies] = useState<AdminAgency[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [updatedId, setUpdatedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || user.role !== 'SUPER_ADMIN') {
@@ -54,6 +60,25 @@ export default function AdminPage() {
       cancelled = true;
     };
   }, [user]);
+
+  const handleChangePlan = async (agency: AdminAgency, plan: SubscriptionPlan) => {
+    if (plan === agency.subscriptionPlan || savingId) return;
+    setSavingId(agency.id);
+    setUpdatedId(null);
+    setError('');
+    try {
+      const updated = await apiService.admin.changeAgencyPlan(agency.id, plan);
+      setAgencies((prev) =>
+        prev.map((a) => (a.id === agency.id ? { ...a, subscriptionPlan: updated.subscriptionPlan } : a)),
+      );
+      setUpdatedId(agency.id);
+      setTimeout(() => setUpdatedId(null), 2000);
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Não foi possível alterar o plano da agência.'));
+    } finally {
+      setSavingId(null);
+    }
+  };
 
   if (!user || user.role !== 'SUPER_ADMIN') {
     return (
@@ -137,17 +162,19 @@ export default function AdminPage() {
                 <th className="pb-2 pr-4 font-semibold">Nome</th>
                 <th className="pb-2 pr-4 font-semibold">Localização</th>
                 <th className="pb-2 pr-4 font-semibold">Plano</th>
-                <th className="pb-2 font-semibold">Utilizadores</th>
+                <th className="pb-2 pr-4 font-semibold">Utilizadores</th>
+                <th className="pb-2 font-semibold">Ações</th>
               </tr>
             </thead>
             <tbody>
               {agencies.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-navy-400">Sem agências registadas.</td>
+                  <td colSpan={5} className="py-8 text-center text-navy-400">Sem agências registadas.</td>
                 </tr>
               ) : (
                 agencies.map((agency) => {
                   const badge = PLAN_BADGE[agency.subscriptionPlan] || PLAN_BADGE.FREE;
+                  const isSaving = savingId === agency.id;
                   return (
                     <tr key={agency.id} className="border-b border-navy-800/60 last:border-0">
                       <td className="py-3 pr-4 font-semibold text-white">{agency.name}</td>
@@ -157,7 +184,30 @@ export default function AdminPage() {
                           {badge.label}
                         </span>
                       </td>
-                      <td className="py-3 text-navy-300">{agency.usersCount}</td>
+                      <td className="py-3 pr-4 text-navy-300">{agency.usersCount}</td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <select
+                            aria-label={`Alterar plano de ${agency.name}`}
+                            value={agency.subscriptionPlan}
+                            disabled={isSaving}
+                            onChange={(e) =>
+                              handleChangePlan(agency, e.target.value as SubscriptionPlan)
+                            }
+                            className="px-2 py-1.5 rounded-lg bg-navy-950 border border-navy-700 text-xs text-white focus:border-gold-400 focus:outline-none disabled:opacity-50"
+                          >
+                            {PLAN_OPTIONS.map((p) => (
+                              <option key={p} value={p}>
+                                {PLAN_BADGE[p].label}
+                              </option>
+                            ))}
+                          </select>
+                          {isSaving && <Loader2 className="w-4 h-4 animate-spin text-gold-400" />}
+                          {!isSaving && updatedId === agency.id && (
+                            <Check className="w-4 h-4 text-emerald-400" />
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
